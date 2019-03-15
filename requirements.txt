@@ -1,0 +1,15 @@
+aws-requests-auth==0.4.2
+boto3==1.9.14
+botocore==1.12.14
+certifi==2018.8.24
+chardet==3.0.4
+docutils==0.14
+elasticsearch==6.3.1
+idna==2.7
+jmespath==0.9.3
+python-dateutil==2.7.3
+requests==2.19.1
+s3fs==0.1.6
+s3transfer==0.1.13
+six==1.11.0
+urllib3==1.23

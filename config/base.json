@@ -1,0 +1,7 @@
+{
+    "ES_NODE": "https://d51cd76b47934b079e1684c85399fb66.us-east-1.aws.found.io:9243",
+    "ES_USER": "elastic",
+    "ES_PASS": "ZIgitYNGVUBvt3eMRrdiJwZ5",
+    "S3" : "true",
+    "RESERVED": 10
+}

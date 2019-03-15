@@ -1,0 +1,28 @@
+service: perfin
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'base'}
+  runtime: python3.6
+  environment:
+    ES_NODE: ${file(./config/${self:provider.stage}.json):ES_NODE}
+    ES_USER: ${file(./config/${self:provider.stage}.json):ES_USER, ''}
+    ES_PASS: ${file(./config/${self:provider.stage}.json):ES_PASS, ''}
+    S3: ${file(./config/${self:provider.stage}.json):S3, ''}
+package:
+ include:
+   - util/**
+ exclude:
+   - tests
+   - serverless.yml
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+
+functions:
+  perfin_ingest:
+    handler: handler.insert_file
+
+plugins:
+  - serverless-python-requirements
