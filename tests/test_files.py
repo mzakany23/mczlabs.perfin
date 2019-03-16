@@ -1,14 +1,7 @@
 import pytest
-import re
-from fuzzywuzzy import fuzz
-import operator
+from perfin.util.classes import *
+from perfin.util.support import *
 
-
-def setupdjango():
-    import django
-    import os
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'athena_project.settings.dev'
-    django.setup()
 
 '''
     HOW_TO_RUN_TESTS
@@ -112,130 +105,89 @@ def scenarios():
             'filename' : 'mzakany-perfin/Chase3507_Activity20190314.CSV'
         }
     ]
+
+
+@pytest.fixture
+def file_match_scenarios():
+    return [
+        {
+            'domain' : 'CHASE',
+            'should_be' : '>= 198',
+            'filename' : 'mzakany-perfin/Chase3507_Activity20190314.CSV',
+            'policy_header' : ['Type', 'Trans Date', 'Post Date', 'Description', 'Amount'],
+            'header' : ['Type','TransDate','PostDate','Description','Amount'],
+        },
+        {
+            'domain' : 'CHASE',
+            'should_be' : '<= 227',
+            'filename' : 'mzakany-perfin/CapitalOne3507_Activity20190314.CSV',
+            'policy_header' : ['Post Date', 'Description', 'Amount'],
+            'header' : ['Type','TransDate','PostDate','Description','Amount'],
+        },
+        {
+            'domain' : 'CHASE',
+            'should_be' : '< 50',
+            'filename' : 'mzakany-perfin/FifthThird3507_Activity20190314.CSV',
+            'policy_header' : ['Post Date', 'Description', 'Amount'],
+            'header' : ['Type','TransDate','PostDate','Description','Amount'],
+        },
+        {
+            'domain' : 'CHASE',
+            'should_be' : '> 150',
+            'filename' : 'mzakany-perfin/chase_financial.CSV',
+            'policy_header' : ['Type', 'Trans Date', 'Post Date', 'Description', 'Amount'],
+            'header' : ['Type','Trans Date','Post Date','Description','Amount'],
+        }
+    ]
   
+
 # -------------------------------------------------------------------
 # 2. unit tests (es access stubbed)
 # -------------------------------------------------------------------
 
-class MalformedParams(Exception):
-    pass
 
+# def test_file_analyzer(policy, scenarios):
+#     '''run tests'''
+    
+#     for scenario in scenarios:
+#         file_type = FileAnalyzer(
+#             policy=policy,
+#             filename=scenario['filename'],
+#             header=scenario['header'],
+#         )
 
-class Base(object):
-    def __init__(self, *args, **kwargs):
-        self.init_kwargs = kwargs 
-
-    def validate(self, keys):
-        kwargs = self.init_kwargs
-        if isinstance(kwargs, dict):
-            kwarg_keys = list(kwargs.keys())
-            listed = [key for key in keys if kwargs.get(key)]
-            if len(kwarg_keys) != len(listed):
-                raise MalformedParams('{} {} {}'.format(self.__class__.__name__, kwarg_keys, listed))
-            
-
-class FilePolicyManager(Base):
-    def __init__(self, *args, **kwargs):
-        super(FilePolicyManager, self).__init__(*args, **kwargs)
-        self.validate(['policy'])
-        self.policy = kwargs.get('policy')
-        self._policies = [FilePolicy(domain=k, policy_body=v) for k, v in self.policy.items()]
-
-    @property
-    def policies(self):
-        return self._policies
-        
-
-class FilePolicy(Base):
-    def __init__(self, *args, **kwargs):
-        super(FilePolicy, self).__init__(*args, **kwargs)
-        self.validate(['domain', 'policy_body'])
-        self.domain = kwargs.get('domain')
-        policy_body = kwargs.get('policy_body')
-        self.policy_header = policy_body['header']
-
-    @property
-    def serialized_header(self):
-        return '{}'.format(self.policy_header)
+#         assert file_type.top_match.domain == scenario['should_be']
     
 
-class FileMatchManager(Base):
-    _matches = {}
-    
-    def add(self, file):
-        total_score = sum([file.header_score, file.filename_score])
-        self._matches[total_score] = file 
+def test_file_match(file_match_scenarios):
+    for scenario in file_match_scenarios:
+        domain = scenario['domain']
+        filename = scenario['filename']
+        policy_header = scenario['policy_header']
+        header = scenario['header']
+        headers = [policy_header, header]
+        should_be = scenario['should_be']
+        equality, unit = should_be.split(' ')
+        unit = int(unit)
 
-    @property
-    def matches(self):
-        return sorted(self._matches.items(), key=operator.itemgetter(0), reverse=True)
-    
-    @property
-    def descending(self):
-        return [item[1] for item in self.matches]
-
-
-class FileMatch(Base):
-    def __init__(self, *args, **kwargs):
-        super(FileMatch, self).__init__(*args, **kwargs)
-        self.validate(['domain', 'filename', 'headers'])
-        
-        self.domain = kwargs.get('domain')
-        self.filename = kwargs.get('filename')
-        self.headers = kwargs.get('headers')
-        
-        if self.headers and self.filename and self.domain:
-            self.header_score = self.get_score(self.headers[0], self.headers[1])
-            self.filename_score = self.get_score(self.domain, self.filename)
-        
-    def get_score(self, one, two):
-        return fuzz.ratio(one, two)
-        
-
-class FileAnalyzer(Base):
-    def __init__(self, *args, **kwargs):
-        super(FileAnalyzer, self).__init__(*args, **kwargs)
-        self.validate(['header', 'filename', 'policy'])
-
-        policy = kwargs.get('policy')
-        self.header = kwargs.get('header', [])
-        self.filename = kwargs.get('filename', [])
-        self.policy_manager = FilePolicyManager(policy=policy)
-
-    @property
-    def top_match(self):
-        score = self.calculate_score() 
-        return score[0] if len(score) > 0 else None
-
-    @property
-    def serialized_header(self):
-        return '{}'.format(self.header)
-    
-    def calculate_score(self):
-        matches = FileMatchManager()
-        
-        for policy in self.policy_manager.policies:
-            file_match = FileMatch(
-                domain=policy.domain,
-                filename=self.filename,
-                headers=[policy.serialized_header, self.serialized_header],
-            )
-            matches.add(file_match)
-        return matches.descending
-
-    
-def test_unit(policy, scenarios):
-    '''run tests'''
-    
-    for scenario in scenarios:
-        file_type = FileAnalyzer(
-            policy=policy,
-            filename=scenario['filename'],
-            header=scenario['header'],
+        match = FileMatch(
+            domain=domain,
+            filename=filename,
+            headers=headers,
         )
 
-        assert file_type.top_match.domain == scenario['should_be']
-    
+        if equality == '>':
+            assert match.total_score > unit
+        elif equality == '>=':
+            assert match.total_score >= unit
+        elif equality == '<':
+            assert match.total_score < unit
+        elif equality == '<=':
+            assert match.total_score <= unit
+        else:
+            assert match.total_score == unit
+
+
 
 # -------------------------------------------------------------------
 # 3. integration tests (requires elasticsearch)
