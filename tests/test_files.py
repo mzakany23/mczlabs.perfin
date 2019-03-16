@@ -1,4 +1,8 @@
 import pytest
+import re
+from fuzzywuzzy import fuzz
+import operator
+
 
 def setupdjango():
     import django
@@ -49,17 +53,62 @@ def base_tests():
             This needs to very robust if don't know what file then can't parse!
     '''
 
-    return [
-        {
-            'should_be' : 'chase',
-            # header from file
-            'header_key' : ['Transaction Date', 'Post Date', 'Description', 'Category', 'Type', 'Amount'],
-            # key I make
-            'account_types' : ['Type','TransDate','PostDate','Description','Amount'],
-            # this is also given in file
-            'file_name' : 'mzakany-perfin/Chase3507_Activity20190314.CSV'
-        }
-    ]
+    return {
+        'policy' : {
+            # chase
+            "['Type', 'Trans Date', 'Post Date', 'Description', 'Amount']" : {
+                "name" : "CHASE",
+                "trim" : {
+                    "field" : "description",
+                    "value" : 10
+                }, 
+                "fields" : {
+                    "date" : 2,
+                    "description" : 3,
+                    "amount" : 4
+                }
+            },
+            # Fifth third
+            "['Date', 'Description', 'Check Number', 'Amount']" : {
+                "name" : "FIFTH_THIRD",
+                "trim" : {
+                    "field" : "description",
+                    "value" : 10
+                }, 
+                "fields" : {
+                    "date" : 0,
+                    "description" : 1,
+                    "check_num" : 2,
+                    "amount" : 3
+                }   
+            },
+            # Capital one
+            "[' Transaction Date', ' Posted Date', ' Card No.', ' Description', ' Category', ' Debit', ' Credit']" : {
+                "name" : "CAPITAL_ONE",
+                "trim" : {
+                    "field" : "description",
+                    "value" : 10
+                }, 
+                "fields" : {
+                    "date" : 1,
+                    "card" : 2,
+                    "description" : 3,
+                    "category" : 4,
+                    "amount" : 5,
+                    "credit" : 6,
+                }     
+            }
+        },
+        'data' : [
+            {
+                'should_be' : 'CHASE',
+                # header from file
+                'header' : ['Type','TransDate','PostDate','Description','Amount'],
+                # this is also given in file
+                'file_name' : 'mzakany-perfin/Chase3507_Activity20190314.CSV'
+            }
+        ]
+    }
 
 
   
@@ -68,17 +117,58 @@ def base_tests():
 # -------------------------------------------------------------------
 
 
+class FileScore(object):
+    matches = []
+    
+    def update(self, domain, policy_header, header, file_name):
+        try:
+            header = '%s' % header
+            self.matches.append({
+                'domain' : domain,
+                'header_score' : fuzz.ratio(policy_header, header),
+                'filename_score' : fuzz.ratio(domain, file_name),
+            })
+        except:
+            self.not_in_index.append(1)
+
+
+class FileType(object):
+
+    def __init__(self, *args, **kwargs):
+        self.policy = kwargs.get('policy', [])
+        self.header = kwargs.get('header', [])
+        self.file_name = kwargs.get('file_name', [])
+    
+    @property
+    def score(self):
+        return self.calculate_file_score()
+    
+    @property
+    def top_match(self):
+        return self.score[0]
+
+    def calculate_file_score(self):
+        score = FileScore()
+        for policy_header, policy_key in self.policy.items():
+            score.update(policy_key['name'], policy_header, self.header, self.file_name)
+        
+        first_sort = sorted(score.matches, key=operator.itemgetter('header_score'), reverse=True)
+        return sorted(first_sort, key=operator.itemgetter('filename_score'), reverse=True)
+        
+
 def test_unit(base_tests):
     '''run tests'''
-    for test in base_tests:
-        header_key = test['header_key']
-        account_types = test['account_types']
-        file_name = test['file_name']
-        should_be = test['should_be']
+    policy = base_tests['policy']
+    data_item = base_tests['data'][0]
 
-        assert should_be == 'chase'
+    file_type = FileType(
+        policy=policy,
+        file_name=data_item['file_name'],
+        header=data_item['header'],
+    )
     
-
+    assert file_type.top_match['domain'] == data_item['should_be']
+    
 
 # -------------------------------------------------------------------
 # 3. integration tests (requires elasticsearch)
