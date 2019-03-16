@@ -141,10 +141,30 @@ def file_match_scenarios():
     ]
   
 
+@pytest.fixture 
+def mappings():
+    return [
+        {
+            'header' : ['Type', 'Trans Date', 'Post Date', 'Description', 'Amount'],
+            'boost' : {
+                "date" : 2,
+                "description" : 3,
+                "amount" : 4
+            }
+        }
+    ]
+
+
 # -------------------------------------------------------------------
 # 2. unit tests (es access stubbed)
 # -------------------------------------------------------------------
 
+
+def test_mappings(mappings):
+    for mapping in mappings:
+        mapping = Mapping(fields=mapping['header'], boost=mapping['boost'])
+        import pdb; pdb.set_trace()
+        
 
 # def test_file_analyzer(policy, scenarios):
 #     '''run tests'''
@@ -159,33 +179,33 @@ def file_match_scenarios():
 #         assert file_type.top_match.domain == scenario['should_be']
     
 
-def test_file_match(file_match_scenarios):
-    for scenario in file_match_scenarios:
-        domain = scenario['domain']
-        filename = scenario['filename']
-        policy_header = scenario['policy_header']
-        header = scenario['header']
-        headers = [policy_header, header]
-        should_be = scenario['should_be']
-        equality, unit = should_be.split(' ')
-        unit = int(unit)
+# def test_file_match(file_match_scenarios):
+#     for scenario in file_match_scenarios:
+#         domain = scenario['domain']
+#         filename = scenario['filename']
+#         policy_header = scenario['policy_header']
+#         header = scenario['header']
+#         headers = [policy_header, header]
+#         should_be = scenario['should_be']
+#         equality, unit = should_be.split(' ')
+#         unit = int(unit)
 
-        match = FileMatch(
-            domain=domain,
-            filename=filename,
-            headers=headers,
-        )
+#         match = FileMatch(
+#             domain=domain,
+#             filename=filename,
+#             headers=headers,
+#         )
 
-        if equality == '>':
-            assert match.total_score > unit
-        elif equality == '>=':
-            assert match.total_score >= unit
-        elif equality == '<':
-            assert match.total_score < unit
-        elif equality == '<=':
-            assert match.total_score <= unit
-        else:
-            assert match.total_score == unit
+#         if equality == '>':
+#             assert match.total_score > unit
+#         elif equality == '>=':
+#             assert match.total_score >= unit
+#         elif equality == '<':
+#             assert match.total_score < unit
+#         elif equality == '<=':
+#             assert match.total_score <= unit
+#         else:
+#             assert match.total_score == unit
 
 
 

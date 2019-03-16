@@ -1,11 +1,8 @@
-from .support import strip_white, shorten_filename
+from .support import strip_white, shorten_filename, word_in_string
 from fuzzywuzzy import fuzz
 import operator
+from .exceptions import MalformedParams
 from dateutil.parser import parse
-
-
-class MalformedParams(Exception):
-    pass
 
 
 class Base(object):
@@ -16,10 +13,99 @@ class Base(object):
         kwargs = self.init_kwargs
         if isinstance(kwargs, dict):
             kwarg_keys = list(kwargs.keys())
-            listed = [key for key in keys if kwargs.get(key)]
+            listed = [key for key in keys if kwargs.get(key) or kwargs.get(key) == 0]
             if len(kwarg_keys) != len(listed):
                 raise MalformedParams('{} {} {}'.format(self.__class__.__name__, kwarg_keys, listed))
             
+
+class MappingType(Base):
+    def __init__(self, *args, **kwargs):
+        super(MappingType, self).__init__(*args, **kwargs)
+        self.validate(['key', 'index', 'boost'])
+        self.boost_match = False 
+        self.key = kwargs.get('key')
+        self.index = kwargs.get('index')
+        self.boost = kwargs.get('boost')
+
+        boost_index = self.boost.get(self.key)
+
+        if boost_index == self.index:
+            self.boost_match = True
+    
+    @property
+    def matches(self):
+        return self.boost_match
+
+    @property
+    def info(self):
+        return {
+            'type' : self.key,
+            'index' : self.index,
+            'matches_boost' : self.matches
+        }
+    
+
+class Mapping(Base):
+    _types = [
+        'date',
+        'description',
+        'amount',
+        'type'
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super(Mapping, self).__init__(*args, **kwargs)
+        self.validate(['fields', 'boost'])
+        self.fields = kwargs.get('fields')
+        self.boost = kwargs.get('boost')
+        self.calculate()
+
+    def is_date(self, item):
+        return word_in_string('date', item)
+
+    def is_type(self, item):
+        return word_in_string('type', item)
+
+    def is_description(self, item):
+        return word_in_string('description', item) or word_in_string('transaction', item)
+
+    def is_amount(self, item):
+        return word_in_string('amount', item)
+
+    def get_type(self, index, key):
+        return MappingType(index=index, key=key, boost=self.boost)
+        
+    def calculate(self):
+        for index, field in enumerate(self.fields):
+            for _type in self._types:
+                attr = 'is_{}'.format(_type)
+                found = getattr(self, attr)(field)
+                if found:
+                    setter = self.get_type(index, found)
+                    setattr(self, _type, setter)
+                    break
+
+    @property
+    def types(self):
+        return [getattr(self, _type) for _type in self._types]
+    
+    @property
+    def schema(self):
+        _schema = {}
+        for _type in self.types:
+            _schema[_type.key] = _type.info
+        return _schema
+
+    @property
+    def pretty_schema(self):
+        import json; print(json.dumps(self.schema, indent=4))
+
+    @property 
+    def matches_boost(self):
+        match_length = len([_type for _type in self.types if _type.matches])
+        boost_length = len(list(self.boost.keys()))
+        return match_length == boost_length
+
 
 class FilePolicyManager(Base):
     def __init__(self, *args, **kwargs):
