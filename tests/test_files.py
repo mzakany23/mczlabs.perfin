@@ -1,6 +1,11 @@
 import pytest
 from assertpy import assert_that
-from perfin.util.classes import *
+from perfin.lib.file_matching.analyzer import *
+from perfin.lib.file_matching.matching import *
+from perfin.lib.file_matching.mapping import *
+from perfin.lib.file_matching.policy import *
+
+
 from perfin.util.support import *
 
 
@@ -98,21 +103,28 @@ def policy():
         
 
 @pytest.fixture
-def scenarios():
+def file_analyizer_scenarios():
+    '''match a file against the policy as a whole'''
+
     return [
         {
             'assertion' : 'is_equal_to',
             'should_be' : 'CHASE',
-            # header from file
             'header' : ['Type','TransDate','PostDate','Description','Amount'],
-            # this is also given in file
             'filename' : 'mzakany-perfin/Chase3507_Activity20190314.CSV'
+        },
+        {
+            'assertion' : 'is_not_equal_to',
+            'should_be' : 'CHASE',
+            'header' : ['Type','TransDate','PostDate','Description','Amount'],
+            'filename' : 'mzakany-perfin/fifth_third3507_Activity20190314.CSV'
         }
     ]
 
 
 @pytest.fixture
 def file_match_scenarios():
+    '''match a single file against a single policy'''
     return [
         {
             'domain' : 'CHASE',
@@ -145,12 +157,20 @@ def file_match_scenarios():
             'filename' : 'mzakany-perfin/chase_financial.CSV',
             'policy_header' : ['Type', 'Trans Date', 'Post Date', 'Description', 'Amount'],
             'header' : ['Type','Trans Date','Post Date','Description','Amount'],
+        },
+        {
+            'domain' : 'CHASE',
+            'assertion' : 'is_not_equal_to',
+            'should_be' : 'CHASE',
+            'policy_header' : ['Type','TransDate','PostDate','Description','Amount'],
+            'header' : ['Type','Trans Date','Post Date','Description','Amount'],
+            'filename' : 'mzakany-perfin/fifth_third3507_Activity20190314.CSV'
         }
     ]
   
 
 @pytest.fixture 
-def mappings():
+def mapping_scenarios():
     return [
         {
             'assertion' : 'is_equal_to',
@@ -170,49 +190,47 @@ def mappings():
 # -------------------------------------------------------------------
 
 
-def test_mappings(mappings):
-    for mapping in mappings:
-        mapping_obj = Mapping(fields=mapping['header'], boost=mapping['boost'])
-        assertion = mapping['assertion']
-        should_be= mapping['should_be']
+# def test_mappings(mapping_scenarios):
+#     for mapping in mapping_scenarios:
+#         mapping_obj = Mapping(fields=mapping['header'], boost=mapping['boost'])
+#         assertion = mapping['assertion']
+#         should_be= mapping['should_be']
         
-        assert_helper(assertion, mapping_obj.matches_boost, should_be)
+#         assert_helper(assertion, mapping_obj.matches_boost, should_be)
 
 
-def test_file_analyzer(policy, scenarios):
-    '''run tests'''
-    
-    for scenario in scenarios:
+def test_file_analyzer(policy, file_analyizer_scenarios):
+    for scenario in file_analyizer_scenarios:
         assertion = scenario['assertion']
         should_be = scenario['should_be']
 
-        file_type = FileAnalyzer(
+        analyzer = FileAnalyzer(
             policy=policy,
             filename=scenario['filename'],
             header=scenario['header'],
         )
 
-        assert_helper(assertion, file_type.top_match.domain, should_be)
+        assert_helper(assertion, analyzer.top_match.domain, should_be)
 
     
-def test_file_match(file_match_scenarios):
-    for scenario in file_match_scenarios:
-        domain = scenario['domain']
-        filename = scenario['filename']
-        policy_header = scenario['policy_header']
-        header = scenario['header']
-        headers = [policy_header, header]
+# def test_file_match(file_match_scenarios):
+#     for scenario in file_match_scenarios:
+#         domain = scenario['domain']
+#         filename = scenario['filename']
+#         policy_header = scenario['policy_header']
+#         header = scenario['header']
+#         headers = [policy_header, header]
 
-        assertion = scenario['assertion']
-        should_be = scenario['should_be']
+#         assertion = scenario['assertion']
+#         should_be = scenario['should_be']
     
-        match = FileMatch(
-            domain=domain,
-            filename=filename,
-            headers=headers,
-        )
-
-        assert_helper(assertion, match.total_score, should_be)
+#         match = FileMatch(
+#             domain=domain,
+#             filename=filename,
+#             headers=headers,
+#         )
+        
+#         assert_helper(assertion, match.total_score, should_be)
         
 
 
