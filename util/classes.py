@@ -1,3 +1,4 @@
+import json
 from .support import strip_white, shorten_filename, word_in_string
 from fuzzywuzzy import fuzz
 import operator
@@ -6,8 +7,13 @@ from dateutil.parser import parse
 
 
 class Base(object):
+
     def __init__(self, *args, **kwargs):
         self.init_kwargs = kwargs 
+
+    @property
+    def __info__(self): 
+        print('class {}'.format(self.__class__))        
 
     def validate(self, keys):
         kwargs = self.init_kwargs
@@ -16,7 +22,15 @@ class Base(object):
             listed = [key for key in keys if kwargs.get(key) or kwargs.get(key) == 0]
             if len(kwarg_keys) != len(listed):
                 raise MalformedParams('{} {} {}'.format(self.__class__.__name__, kwarg_keys, listed))
-            
+
+    def pretty_print(self, msg):
+        print(json.dumps(msg, indent=4))
+
+    def header_print(self, msg):
+        print('---------------------------------------------')
+        print(msg)
+        print('---------------------------------------------')
+        
 
 class MappingType(Base):
     def __init__(self, *args, **kwargs):
@@ -33,16 +47,18 @@ class MappingType(Base):
             self.boost_match = True
     
     @property
-    def matches(self):
-        return self.boost_match
-
-    @property
-    def info(self):
+    def __info__(self):
+        self.header_print('Mapping info')
         return {
             'type' : self.key,
             'index' : self.index,
             'matches_boost' : self.matches
         }
+
+    @property
+    def matches(self):
+        return self.boost_match
+
     
 
 class Mapping(Base):
@@ -59,6 +75,11 @@ class Mapping(Base):
         self.fields = kwargs.get('fields')
         self.boost = kwargs.get('boost')
         self.calculate()
+
+    @property
+    def __info__(self):
+        self.header_print('Schema')
+        return self.pretty_schema
 
     def is_date(self, item):
         return word_in_string('date', item)
@@ -98,7 +119,7 @@ class Mapping(Base):
 
     @property
     def pretty_schema(self):
-        import json; print(json.dumps(self.schema, indent=4))
+        self.pretty_print(self.schema)
 
     @property 
     def matches_boost(self):
@@ -106,6 +127,7 @@ class Mapping(Base):
         boost_length = len(list(self.boost.keys()))
         return match_length == boost_length
 
+    
 
 class FilePolicyManager(Base):
     def __init__(self, *args, **kwargs):
@@ -115,26 +137,49 @@ class FilePolicyManager(Base):
         self._policies = [FilePolicy(domain=k, policy_body=v) for k, v in self.policy.items()]
 
     @property
+    def __info__(self):
+        lookup = {}
+        for policy in self._policies:
+            lookup.update(policy.to_dict())
+        self.header_print('Policies')
+        self.pretty_print(lookup)
+
+    @property
     def policies(self):
         return self._policies
-        
+    
 
 class FilePolicy(Base):
     def __init__(self, *args, **kwargs):
         super(FilePolicy, self).__init__(*args, **kwargs)
         self.validate(['domain', 'policy_body'])
         self.domain = kwargs.get('domain')
-        policy_body = kwargs.get('policy_body')
-        self.policy_header = policy_body['header']
+        self.policy_body = kwargs.get('policy_body')
+        self.policy_header = self.policy_body['header']
 
     @property
     def serialized_header(self):
         return '{}'.format(self.policy_header)
+
+    @property
+    def __info__(self):
+        self.header_print('File Policy')
+        self.pretty_print(self.to_dict())
+    
+    def to_dict(self):
+        return {self.domain : self.policy_body}
     
 
 class FileMatchManager(Base):
     _matches = {}
     
+    @property
+    def __info__(self):
+        self.header_print('Matches sort in descending order')
+        print('matches length: {}'.format(len(self._matches)))
+        item = [(item.domain, item.total_score) for item in self.descending]
+        self.pretty_print(item)
+
     def add(self, file):
         total_score = file.total_score
         self._matches[total_score] = file 
@@ -143,9 +188,15 @@ class FileMatchManager(Base):
     def matches(self):
         return sorted(self._matches.items(), key=operator.itemgetter(0), reverse=True)
     
+    @property 
+    def top(self):
+        score = self.descending
+        return score[0] if len(score) > 0 else None
+
     @property
     def descending(self):
         return [item[1] for item in self.matches]
+
 
 
 class FileMatch(Base):
@@ -156,56 +207,86 @@ class FileMatch(Base):
 
     def __init__(self, *args, **kwargs):
         super(FileMatch, self).__init__(*args, **kwargs)
-        self.validate(['domain', 'filename', 'headers'])
-        
-        self.domain = kwargs.get('domain')
-        self.filename = shorten_filename(kwargs.get('filename'), self.domain)
-        self.headers = kwargs.get('headers')
-        
-        self.header_score = self.get_score(self.headers[0], self.headers[1])
-        self.filename_score = self.get_score(self.domain.lower(), self.filename)
+        empty = kwargs.get('empty')
+        if not empty:
+            self.validate(['domain', 'filename', 'headers'])
 
-        if self.header_score == 100:
-            self.header_score += 50
+            self.domain = kwargs.get('domain')
+            self._filename = kwargs.get('filename')
+            self.filename = shorten_filename(self._filename, self.domain)
+            self.headers = kwargs.get('headers')
+            
+            self._header_score = self.get_score(self.headers[0], self.headers[1])
+            self._filename_score = self.get_score(self.domain.lower(), self.filename)
 
-        if self.filename_score == 100:
-            self.filename_score += 50
-        if self.filename_score > 80:
-            self.filename_score += 10
-        else:
-            self.header_score -= 30
-            self.filename_score -= 50
-    
+            self.header_score = self._header_score
+            self.filename_score = self._filename_score
+            
+            if self.header_score == 100:
+                self.header_score += 50
+
+            if  self.filename_score == 100:
+                self.filename_score += 50
+            
+            elif self.filename_score > 80:
+                self.filename_score += 10
+            
+            elif self.filename_score <= 50:
+                self.header_score -= 100
+            else:
+                self.header_score -= 30
+                self.filename_score -= 50
+
+    @property
+    def __info__(self):
+        item = {
+            'header_score' : self.header_score, 
+            'filename_score' : self.filename_score, 
+            'total' : self.total_score
+        }
+        self.header_print('top matches in descending order')
+        print(json.dumps(item, indent=4))
+
     @property
     def total_score(self):
         return sum([getattr(self, key) for key in self.base_stat_fields])
     
+
     def get_score(self, one, two):
         return fuzz.ratio(one, two)
-        
 
+    
 class FileAnalyzer(Base):
     def __init__(self, *args, **kwargs):
         super(FileAnalyzer, self).__init__(*args, **kwargs)
         self.validate(['header', 'filename', 'policy'])
-
-        policy = kwargs.get('policy')
+        self.policy = kwargs.get('policy')
+        self.min_required_score = kwargs.get('min_required_score', 70)
         self.header = kwargs.get('header', [])
         self.filename = kwargs.get('filename', [])
-        self.policy_manager = FilePolicyManager(policy=policy)
-
-    @property
-    def top_match(self):
-        score = self.calculate_score() 
-        return score[0] if len(score) > 0 else None
-
+        self.policy_manager = FilePolicyManager(policy=self.policy)
+    
     @property
     def serialized_header(self):
         return '{}'.format(self.header)
-    
-    def calculate_score(self):
-        matches = FileMatchManager()
         
+    @property
+    def top_match(self):
+        matches = self.calculate_matches()
+        top_match = matches.top
+        
+        return (
+            top_match 
+            if top_match.total_score > self.min_required_score 
+            else FileMatch(empty=True)
+        )
+            
+        
+    def calculate_matches(self):
+        matches = FileMatchManager()
+        # wtf looping twice on second run?
+        # why is it double looping?
+
         for policy in self.policy_manager.policies:
             file_match = FileMatch(
                 domain=policy.domain,
@@ -213,7 +294,7 @@ class FileAnalyzer(Base):
                 headers=[policy.serialized_header, self.serialized_header],
             )
             matches.add(file_match)
-        return matches.descending
+        return matches
 
 
 class RowFactory(object):

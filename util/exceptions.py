@@ -1,2 +1,0 @@
-class MalformedParams(Exception):
-    pass
