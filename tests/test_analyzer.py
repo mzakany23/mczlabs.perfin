@@ -6,7 +6,7 @@ from perfin.lib.file_matching.analyzer import *
 from perfin.lib.file_matching.matching import *
 from perfin.lib.file_matching.mapping import *
 from perfin.lib.file_matching.policy import *
-
+import os
 
 from perfin.util.support import *
 
@@ -50,10 +50,30 @@ def policy():
         
 
 @pytest.fixture
-def file_analyizer_scenarios():
+def file_analyzer_scenarios():
     '''match a file against the policy as a whole'''
 
     return [
+        {
+            'assertion' : 'is_equal_to',
+            'should_be' : 'CAPITAL_ONE',
+            'filename' : '/Users/mzakany/desktop/perfin/tests/files/2019-03-14_transaction_download.csv', 
+        },
+        {
+            'assertion' : 'is_equal_to',
+            'should_be' : 'FIFTH_THIRD',
+            'filename' : '/Users/mzakany/desktop/perfin/tests/files/53_03_07_09.CSV', 
+        },
+        {
+            'assertion' : 'is_equal_to',
+            'should_be' : 'FIFTH_THIRD',
+            'filename' : '/Users/mzakany/desktop/perfin/tests/files/EXPORT3_14_2019.CSV', 
+        },
+        {
+            'assertion' : 'is_equal_to',
+            'should_be' : 'CHASE',
+            'filename' : '/Users/mzakany/desktop/perfin/perfin/tests/files/Chase3507_Activity20190314.CSV', 
+        },
         {
             'assertion' : 'is_equal_to',
             'should_be' : 'CHASE',
@@ -87,16 +107,23 @@ def file_analyizer_scenarios():
 # -------------------------------------------------------------------
 
 
-def test_file_analyzer(policy, file_analyizer_scenarios):
-    for scenario in file_analyizer_scenarios:
+def test_file_analyzer(policy, file_analyzer_scenarios):
+    for scenario in file_analyzer_scenarios:
         assertion = scenario['assertion']
         should_be = scenario['should_be']
 
-        analyzer = FileAnalyzer(
-            policy=policy,
-            filename=scenario['filename'],
-            header=scenario['header'],
-        )
+        params = {
+            'policy' : policy,
+            'filename' : scenario['filename']
+        }
+
+        if 'header' in scenario:
+            params['header'] = scenario['header']
+        else:
+            with open(scenario['filename']) as f:
+                params['header'] = f.read(1)
+
+        analyzer = FileAnalyzer(**params)
 
         assert_helper(assertion, analyzer.top_match.domain, should_be)
 
