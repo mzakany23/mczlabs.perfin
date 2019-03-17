@@ -1,4 +1,5 @@
 import pytest
+from .utils.helpers import *
 from assertpy import assert_that
 from perfin.lib.file_matching.config import *
 from perfin.lib.file_matching.analyzer import *
@@ -24,20 +25,11 @@ from perfin.util.support import *
 # LEGEND
 # -------------------------------------------------------------------
 
+
 '''
-    0. test helpers
     1. fixtures
     2. unit tests (no db required)
-    3. integration tests (elasticsearch required)
 '''
-
-# -------------------------------------------------------------------
-# 0. test helpers
-# -------------------------------------------------------------------
-
-
-def assert_helper(assertion, item, should_be):
-    getattr(assert_that(item), assertion)(should_be)
 
 
 # -------------------------------------------------------------------
@@ -46,54 +38,9 @@ def assert_helper(assertion, item, should_be):
 
 
 @pytest.fixture
-def policy():
-    '''
-        TITLE
-            Test learning about the file
-        DESCRIPTION
-            Trying to test being able to know what file we are talking about.
-            This needs to very robust if don't know what file then can't parse!
-    '''
-
-    return ACCOUNTS
-        
-
-@pytest.fixture
-def file_analyizer_scenarios():
-    '''match a file against the policy as a whole'''
-
-    return [
-        {
-            'assertion' : 'is_equal_to',
-            'should_be' : 'CHASE',
-            'header' : ['Type','TransDate','PostDate','Description','Amount'],
-            'filename' : 'mzakany-perfin/Chase3507_Activity20190314.CSV'
-        },
-        {
-            'assertion' : 'is_not_equal_to',
-            'should_be' : 'CHASE',
-            'header' : ['Type','TransDate','PostDate','Description','Amount'],
-            'filename' : 'mzakany-perfin/fifth_third3507_Activity20190314.CSV'
-        },
-        {
-            'assertion' : 'is_equal_to',
-            'should_be' : 'CAPITAL_ONE',
-            'header' : [' Transaction Date', ' Posted Date', ' Card No.', ' Description', ' Category', ' Debit', ' Credit'],
-            'filename' : 'mzakany-perfin/capitalone3507_Activity20190314.CSV'
-        },
-        {
-            'assertion' : 'is_not_equal_to',
-            'should_be' : 'CAPITAL_ONE',
-            'header' : [ ' Category', ' Debit', ' Credit'],
-            'filename' : 'mzakany-perfin/capitalone3507_Activity20190314.CSV'
-        }
-        
-    ]
-
-
-@pytest.fixture
 def file_match_scenarios():
-    '''match a single file against a single policy'''
+    '''match a file against a single policy'''
+
     return [
         {
             'domain' : 'CHASE',
@@ -138,48 +85,9 @@ def file_match_scenarios():
     ]
   
 
-@pytest.fixture 
-def mapping_scenarios():
-    return [
-        {
-            'assertion' : 'is_equal_to',
-            'should_be' : True,
-            'header' : ['Type', 'Trans Date', 'Post Date', 'Description', 'Amount'],
-            'boost' : {
-                "date" : 2,
-                "description" : 3,
-                "amount" : 4
-            }
-        }
-    ]
-
-
 # -------------------------------------------------------------------
 # 2. unit tests (es access stubbed)
 # -------------------------------------------------------------------
-
-
-def test_mappings(mapping_scenarios):
-    for mapping in mapping_scenarios:
-        mapping_obj = Mapping(fields=mapping['header'], boost=mapping['boost'])
-        assertion = mapping['assertion']
-        should_be= mapping['should_be']
-        
-        assert_helper(assertion, mapping_obj.matches_boost, should_be)
-
-
-def test_file_analyzer(policy, file_analyizer_scenarios):
-    for scenario in file_analyizer_scenarios:
-        assertion = scenario['assertion']
-        should_be = scenario['should_be']
-
-        analyzer = FileAnalyzer(
-            policy=policy,
-            filename=scenario['filename'],
-            header=scenario['header'],
-        )
-        
-        assert_helper(assertion, analyzer.top_match.domain, should_be)
 
     
 def test_file_match(file_match_scenarios):
@@ -201,18 +109,3 @@ def test_file_match(file_match_scenarios):
                 
         assert_helper(assertion, match.total_score, should_be)
         
-
-
-# -------------------------------------------------------------------
-# 3. integration tests (requires elasticsearch)
-# -------------------------------------------------------------------
-
-
-# def test_integration(base_config):
-#     '''
-#         DESCRIPTION 
-#             To show how works
-#         EXAMPLE:
-#             Just run tests
-#     '''
-#     assert base_config == 'foo'
