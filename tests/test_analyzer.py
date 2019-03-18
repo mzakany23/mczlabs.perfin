@@ -1,14 +1,14 @@
 import pytest
 from .utils.helpers import *
 from assertpy import assert_that
-from perfin.lib.file_matching.config import *
-from perfin.lib.file_matching.analyzer import *
-from perfin.lib.file_matching.matching import *
-from perfin.lib.file_matching.mapping import *
-from perfin.lib.file_matching.policy import *
+from ..lib.file_matching.config import *
+from ..lib.file_matching.analyzer import *
+from ..lib.file_matching.matching import *
+from ..lib.file_matching.mapping import *
+from ..lib.file_matching.policy import *
 import os
 
-from perfin.util.support import *
+from ..util.support import *
 
 
 '''
@@ -46,7 +46,7 @@ def policy():
             This needs to very robust if don't know what file then can't parse!
     '''
 
-    return ACCOUNTS
+    return BASE_POLICY
         
 
 @pytest.fixture
@@ -72,7 +72,7 @@ def file_analyzer_scenarios():
         {
             'assertion' : 'is_equal_to',
             'should_be' : 'CHASE',
-            'filename' : '/Users/mzakany/desktop/perfin/perfin/tests/files/Chase3507_Activity20190314.CSV', 
+            'filename' : '/Users/mzakany/desktop/perfin/tests/files/Chase3507_Activity20190314.CSV', 
         },
         {
             'assertion' : 'is_equal_to',
@@ -93,7 +93,7 @@ def file_analyzer_scenarios():
             'filename' : 'mzakany-perfin/capitalone3507_Activity20190314.CSV'
         },
         {
-            'assertion' : 'is_not_equal_to',
+            'assertion' : 'is_equal_to',
             'should_be' : 'CAPITAL_ONE',
             'header' : [ ' Category', ' Debit', ' Credit'],
             'filename' : 'mzakany-perfin/capitalone3507_Activity20190314.CSV'
@@ -114,16 +114,15 @@ def test_file_analyzer(policy, file_analyzer_scenarios):
 
         params = {
             'policy' : policy,
-            'filename' : scenario['filename']
+            'filename' : scenario['filename'],
         }
 
         if 'header' in scenario:
             params['header'] = scenario['header']
         else:
             with open(scenario['filename']) as f:
-                params['header'] = f.read(1)
+                params['header'] = f.readline().strip().split(',')
 
         analyzer = FileAnalyzer(**params)
 
         assert_helper(assertion, analyzer.top_match.domain, should_be)
-

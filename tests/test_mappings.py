@@ -64,13 +64,13 @@ def mapping_scenarios():
 
 
 def test_mappings(mapping_scenarios):
-    for mapping in mapping_scenarios:
-        mapping_obj = Mapping(
-            fields=mapping['header'], 
-            columns=mapping['columns']
+    for scenario in mapping_scenarios:
+        mapping = Mapping(
+            header=scenario['header'], 
+            columns=scenario['columns']
         )
-        assertion = mapping['assertion']
-        should_be= mapping['should_be']
-        
-        assert_helper(assertion, mapping_obj.matches_columns, should_be)
+        assertion = scenario['assertion']
+        should_be= scenario['should_be']
+    
+        assert_helper(assertion, mapping.matches_columns, should_be)
 
