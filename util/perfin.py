@@ -36,3 +36,4 @@ def local_insertion_all_s3_csvs_into_es(Bucket="mzakany-perfin"):
             except:
                 print("problem with: %s" % item)
                 pass
+                
