@@ -100,12 +100,19 @@ def test_file_match(file_match_scenarios):
 
         assertion = scenario['assertion']
         should_be = scenario['should_be']
-    
-        match = FileMatch(
+        
+        policy_body = BASE_POLICY[domain]
+
+        policy = FilePolicy(
             domain=domain,
-            filename=filename,
-            headers=headers,
+            policy_body=policy_body
         )
-                
+
+        match = FileMatch(
+            policy=policy,
+            header=header,
+            filename=filename
+        )
+        
         assert_helper(assertion, match.total_score, should_be)
         

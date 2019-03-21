@@ -71,6 +71,6 @@ def test_mappings(mapping_scenarios):
         )
         assertion = scenario['assertion']
         should_be= scenario['should_be']
-    
-        assert_helper(assertion, mapping.matches_columns, should_be)
-
+        
+        assert mapping.success == True
+        assert mapping.date.index == 2
