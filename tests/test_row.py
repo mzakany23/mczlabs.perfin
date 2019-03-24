@@ -1,6 +1,7 @@
 import pytest
-from ..lib.file_matching.policy import *
+from ..lib.file_matching.analyzer import *
 from ..lib.file_matching.config import *
+from ..lib.file_matching.row import *
 
 '''
     HOW_TO_RUN_TESTS
@@ -36,24 +37,12 @@ from ..lib.file_matching.config import *
 
 
 @pytest.fixture
-def mapping_params():
-    return {
-        'header' : [' Transaction Date', ' Posted Date', ' Card No.', ' Description', ' Category', ' Debit', ' Credit'],
-        'columns' : {
-            "date" : 1,
-            "card" : 2,
-            "description" : 3,
-            "category" : 4,
-            "amount" : 5,
-            "credit" : 6,
-        }     
-    }
-
-
-@pytest.fixture
 def scenarios():
     return [
-        ['2018-10-08', '2018-10-09', '3457', 'HEROKU SEP-20833205', 'Internet', '14.00', '']
+        {
+            'filename' : 'mzakany-perfin/capitalone3507_Activity20190314.CSV',
+            'data' : ['2018-10-08', '2018-10-09', '3457', 'HEROKU SEP-20833205', 'Internet', '14.00', '']
+        }
     ]
 
 
@@ -62,13 +51,24 @@ def scenarios():
 # -------------------------------------------------------------------
 
 
-def test_unit(mapping_params, scenarios):
-    mapping = Mapping(
-        header=mapping_params['header'], 
-        columns=mapping_params['columns']
-    )
-    
-    assert mapping.success
+def test_unit(scenarios):
+    for row_scenario in scenarios:
+
+        analyzer = FileAnalyzer(
+            header=row_scenario['data'],
+            filename=row_scenario['filename']
+        )
+
+        policy = analyzer.policy 
+        mapping = analyzer.mapping
+
+        row = RowFactory(policy, row_scenario['data'])
+        doc = row.get_doc()
+
+        assert row.trim_key == 'description'
+        assert mapping.success == True
+        assert mapping.date.value == '2018-10-09'
+        assert mapping.date.index == 1
 
 
 # -------------------------------------------------------------------
