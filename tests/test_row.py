@@ -67,7 +67,6 @@ def test_unit(scenarios):
 
         assert row.trim_key == 'description'
         assert mapping.success == True
-        assert mapping.date.value == '2018-10-09'
         assert mapping.date.index == 1
 
 
