@@ -1,4 +1,5 @@
 import os
+import sentry_sdk
 from s3fs.core import S3FileSystem
 from util.csv_functions import read_classified_file, open_and_yield_csv_row
 from util.config import get_account_types
@@ -8,7 +9,13 @@ from util.es import get_es_connection, insert_document, create_index, perfin_sch
 
 ES_CONN = get_es_connection()
 
+sentry_key = os.environ.get('SENTRY_KEY')
+
+if sentry_key:
+    sentry_sdk.init(sentry_key)
+
 S3 = os.environ.get("s3", True)
+
 
 
 def insert_files(file_paths, index):
@@ -16,7 +23,6 @@ def insert_files(file_paths, index):
         for row in read_classified_file(file_path, s3=S3):
             document = row["document"]
             document["group"] = row["_group"]
-            # print(document)
             insert_document(ES_CONN, index, row["_id"], document)
 
 
@@ -47,13 +53,8 @@ if __name__ == "__main__":
     # s3 = S3FileSystem(anon=False)
     # _dir = "/Users/mzakany/Desktop/perfin_test_files"
     # local_files = ["%s/%s" % (_dir, file) for file in os.listdir(_dir) if not file.startswith('.')]
-
     # insert_files(files)
 
     s3 = S3FileSystem(anon=False)
     files = s3.ls(path="mzakany-perfin")
     insert_files(files, "transactions_write")
-
-    # s3_files = s3.ls(path='mzakany-perfin')
-    # print(local_files)
-    # insert_files(s3_files)
