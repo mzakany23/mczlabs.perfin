@@ -31,8 +31,8 @@ def get_es_connection(**kwargs):
     ES_USER = os.environ.get("ES_USER")
     ES_PASS = os.environ.get("ES_PASS")
     
-    # ES_NODE = "http://localhost:9200"
-    # ES_USER, ES_PASS = None, None
+    ES_NODE = "http://localhost:9200"
+    ES_USER, ES_PASS = None, None
 
     if ES_USER and ES_PASS:
         params = {
