@@ -2,7 +2,7 @@ import os
 import sentry_sdk
 from s3fs.core import S3FileSystem
 from util.csv_functions import read_classified_file, open_and_yield_csv_row
-from util.es import get_es_connection, insert_document, create_index, perfin_schema
+from util.es import get_es_connection, insert_document, create_index, perfin_schema, delete_index
 
 
 ES_CONN = get_es_connection()
@@ -37,22 +37,19 @@ def insert_file(event, context):
             insert_document(ES_CONN, index, row["_id"], document)
 
 
-if __name__ == "__main__":
-    # create_index(ES_CONN, 'transactions', perfin_schema)
+def flush():
+    delete_index(ES_CONN, 'transactions')
+    create_index(ES_CONN, 'transactions', perfin_schema)
 
-    # files = [
-    #     "/Users/mzakany/Desktop/perfin_test_files/Chase4975_Activity_20181202.CSV",
-    #     "/Users/mzakany/Desktop/perfin_test_files/2018-12-02_transaction_download.csv",
-    #     "/Users/mzakany/Desktop/perfin_test_files/2018-12-02_transaction_download (3).csv",
-    #     "/Users/mzakany/Desktop/perfin_test_files/2018-12-02_transaction_download (1).csv",
-    #     "/Users/mzakany/Desktop/perfin_test_files/2018-12-02_transaction_download (2).csv",
-    # ]
 
-    # s3 = S3FileSystem(anon=False)
-    # _dir = "/Users/mzakany/Desktop/perfin_test_files"
-    # local_files = ["%s/%s" % (_dir, file) for file in os.listdir(_dir) if not file.startswith('.')]
-    # insert_files(files)
-
+def init():
     s3 = S3FileSystem(anon=False)
     files = s3.ls(path="mzakany-perfin")
     insert_files(files, "transactions_write")
+
+
+if __name__ == "__main__":
+    flush()
+    # init()
+    
+    
