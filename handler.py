@@ -2,8 +2,6 @@ import os
 import sentry_sdk
 from s3fs.core import S3FileSystem
 from util.csv_functions import read_classified_file, open_and_yield_csv_row
-from util.config import get_account_types
-from itertools import groupby
 from util.es import get_es_connection, insert_document, create_index, perfin_schema
 
 

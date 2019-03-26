@@ -5,8 +5,7 @@ from perfin.lib.file_matching.analyzer import *
 from perfin.lib.file_matching.matching import *
 from perfin.lib.file_matching.mapping import *
 from perfin.lib.file_matching.policy import *
-
-from perfin.util.support import *
+from perfin.lib.file_matching.util.support import *
 
 
 '''

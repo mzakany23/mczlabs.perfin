@@ -7,8 +7,7 @@ from ..lib.file_matching.matching import *
 from ..lib.file_matching.mapping import *
 from ..lib.file_matching.policy import *
 import os
-
-from ..util.support import *
+from perfin.lib.file_matching.util.support import *
 
 
 '''
