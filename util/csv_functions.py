@@ -1,8 +1,6 @@
 import csv
 from s3fs.core import S3FileSystem
-from .config import TRANSACTION_TYPES, get_account_types
-from .support import generate_specific_key, strip_white
-from lib.file_matching.analyzer import *
+from lib.file_matching.analyzer import FileAnalyzer
 
 
 def open_and_yield_csv_row(file_url, **kwargs):
