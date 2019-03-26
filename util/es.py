@@ -26,6 +26,7 @@ perfin_schema = {
     }
 }
 
+
 def get_es_connection(**kwargs):
     ES_NODE = os.environ.get("ES_NODE")
     ES_USER = os.environ.get("ES_USER")
@@ -45,10 +46,16 @@ def get_es_connection(**kwargs):
 
     return None
 
+
 def create_index(es, index_name, schema):
     return es.indices.create(
         index=index_name,
         body=schema)
+
+
+def delete_index(es, index_name):
+    return es.indices.delete(index=[index_name])
+
 
 def insert_document(es, index, unique_doc_id, document, **kwargs):
     doc_type = kwargs.get("doc_type", "default")
@@ -59,6 +66,7 @@ def insert_document(es, index, unique_doc_id, document, **kwargs):
         body=document,
         id=unique_doc_id,
         request_timeout=60)
+
 
 def create_perfin_index():
     es = get_es_connection()
