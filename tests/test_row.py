@@ -1,7 +1,7 @@
 import pytest
 from ..lib.file_matching.analyzer import *
 from ..lib.file_matching.config import *
-from ..lib.file_matching.row import *
+
 
 '''
     HOW_TO_RUN_TESTS
@@ -62,11 +62,11 @@ def test_unit(scenarios):
         policy = analyzer.policy 
         mapping = analyzer.mapping
 
-        row = RowFactory(policy, row_scenario['data'])
-        doc = row.get_doc()
-
-        assert row.trim_key == 'description'
+        doc = analyzer.get_doc(row_scenario['data'])
+        
+        assert policy.policy_trim['field'] == 'description'
         assert mapping.success == True
+        assert doc['document']['amount'] == 14.0
         assert mapping.date.index == 1
 
 

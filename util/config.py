@@ -1,51 +1,6 @@
 from functools import reduce
 from .support import strip_white
 
-ACCOUNT_TYPES = {
-    # chase
-    "['Type', 'Trans Date', 'Post Date', 'Description', 'Amount']" : {
-        "name" : "CHASE",
-        "trim" : {
-            "field" : "description",
-            "value" : 10
-        }, 
-        "fields" : {
-            "date" : 2,
-            "description" : 3,
-            "amount" : 4
-        }
-    },
-    # Fifth third
-    "['Date', 'Description', 'Check Number', 'Amount']" : {
-        "name" : "FIFTH_THIRD",
-        "trim" : {
-            "field" : "description",
-            "value" : 10
-        }, 
-        "fields" : {
-            "date" : 0,
-            "description" : 1,
-            "check_num" : 2,
-            "amount" : 3
-        }   
-    },
-    # Capital one
-    "[' Transaction Date', ' Posted Date', ' Card No.', ' Description', ' Category', ' Debit', ' Credit']" : {
-        "name" : "CAPITAL_ONE",
-        "trim" : {
-            "field" : "description",
-            "value" : 10
-        }, 
-        "fields" : {
-            "date" : 1,
-            "card" : 2,
-            "description" : 3,
-            "category" : 4,
-            "amount" : 5,
-            "credit" : 6,
-        }     
-    }
-}
 
 FIFTH_THIRD_LOOKUP = {
     "EAST OHIO GAS PAYMENT" : {
