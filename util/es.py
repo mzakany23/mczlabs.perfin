@@ -27,12 +27,12 @@ perfin_schema = {
 }
 
 def get_es_connection(**kwargs):
-    # ES_NODE = os.environ.get("ES_NODE")
-    # ES_USER = os.environ.get("ES_USER")
-    # ES_PASS = os.environ.get("ES_PASS")
-    ES_NODE = "https://d51cd76b47934b079e1684c85399fb66.us-east-1.aws.found.io:9243"
-    ES_USER = "elastic"
-    ES_PASS = "ZIgitYNGVUBvt3eMRrdiJwZ5"
+    ES_NODE = os.environ.get("ES_NODE")
+    ES_USER = os.environ.get("ES_USER")
+    ES_PASS = os.environ.get("ES_PASS")
+    
+    # ES_NODE = "http://localhost:9200"
+    # ES_USER, ES_PASS = None, None
 
     if ES_USER and ES_PASS:
         params = {

@@ -16,8 +16,8 @@ def insert_files(file_paths, index):
         for row in read_classified_file(file_path, s3=S3):
             document = row["document"]
             document["group"] = row["_group"]
-            print(document)
-            # insert_document(ES_CONN, index, row["_id"], document)
+            # print(document)
+            insert_document(ES_CONN, index, row["_id"], document)
 
 
 def insert_file(event, context):
@@ -26,10 +26,11 @@ def insert_file(event, context):
         file_name = record["s3"]["object"]["key"]
         bucket_name = record["s3"]["bucket"]["name"]
         file_path = "%s/%s" % (bucket_name, file_name)
-        for row in read_classified_file(file_path, ACCOUNTS, s3=S3):
+        index = "transactions_write"
+        for row in read_classified_file(file_path, s3=S3):
             document = row["document"]
             document["group"] = row["_group"]
-            insert_document(ES_CONN, "transactions_write", row["_id"], document)
+            insert_document(ES_CONN, index, row["_id"], document)
 
 
 if __name__ == "__main__":
