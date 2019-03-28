@@ -1,4 +1,5 @@
 import pytest
+import functools
 from .utils.helpers import *
 from assertpy import assert_that
 from perfin.lib.file_matching.config import *
@@ -89,6 +90,11 @@ def file_match_scenarios():
 
     
 def test_file_match(file_match_scenarios):
+    def _fn(accum, current):
+        accum[current['key']] = current
+        return accum
+    base_policy = functools.reduce(_fn, BASE_POLICY)
+
     for scenario in file_match_scenarios:
         domain = scenario['domain']
         filename = scenario['filename']
@@ -99,7 +105,7 @@ def test_file_match(file_match_scenarios):
         assertion = scenario['assertion']
         should_be = scenario['should_be']
         
-        policy_body = BASE_POLICY[domain]
+        policy_body = base_policy[domain]
 
         policy = FilePolicy(
             domain=domain,
