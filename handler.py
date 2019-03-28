@@ -21,6 +21,7 @@ def insert_files(file_paths, index):
         for row in read_classified_file(file_path, s3=S3):
             document = row["document"]
             document["group"] = row["_group"]
+            print(document)
             insert_document(ES_CONN, index, row["_id"], document)
 
 
@@ -49,7 +50,8 @@ def init():
 
 
 if __name__ == "__main__":
-    flush()
+    # flush()
     # init()
+    pass
     
     
