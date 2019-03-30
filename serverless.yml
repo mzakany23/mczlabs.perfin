@@ -22,7 +22,7 @@ custom:
 
 functions:
   perfin_ingest:
-    handler: handler.insert_file
+    handler: handler.process_files
 
 plugins:
   - serverless-python-requirements
