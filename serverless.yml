@@ -12,6 +12,7 @@ provider:
 package:
  include:
    - util/**
+   - lib/**
  exclude:
    - tests
    - serverless.yml

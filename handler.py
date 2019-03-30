@@ -21,7 +21,6 @@ def insert_files(file_paths, index, **kwargs):
         for row in read_csv_fn(file_path, s3=S3):
             document = row["document"]
             document["group"] = row["_group"]
-            print(document)
             insert_fn(ES_CONN, index, row["_id"], document)
 
 
