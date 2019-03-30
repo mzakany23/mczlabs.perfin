@@ -17,7 +17,7 @@ def init():
     files = s3.ls(path="mzakany-perfin")
     insert_files(files, "transactions_write")
 
-if __name__ == "__main__":
-    # flush()
-    init()
-    pass
+# if __name__ == "__main__":
+#     # flush()
+#     init()
+#     pass
