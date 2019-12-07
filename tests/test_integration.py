@@ -33,7 +33,8 @@ from ..handler import insert_files
 @pytest.fixture
 def file_paths():
     _dir = os.path.dirname(os.path.abspath(__file__))
-    return ['{}/{}'.format(_dir, path) for path in os.listdir(_dir)]
+    rows = ['{}/{}'.format(_dir, path) for path in os.listdir(_dir) if path.lower().endswith('.csv')]
+    return rows
 
 # -------------------------------------------------------------------
 # 2. unit tests (es access stubbed)
