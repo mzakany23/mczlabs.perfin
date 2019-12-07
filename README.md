@@ -11,7 +11,7 @@ pytest -p no:warnings
 pytest --cov=./lib -p no:warnings
 
 #integration
-RUN_INTEGRATION_TESTS=1 pytest -p no:warnings
+ES_NODE=http://localhost:9200 RUN_INTEGRATION_TESTS=1 pytest -p no:warnings
 ```
 
 ### Dependencies
@@ -28,7 +28,7 @@ RUN_INTEGRATION_TESTS=1 pytest -p no:warnings
 ES_NODE=http://localhost:9200  python -c "exec(\"from util.es import create_perfin_index\ncreate_perfin_index()\")"
 
 #insert some docs
-RUN_INTEGRATION_TESTS=1 pytest -p no:warnings
+ES_NODE=http://localhost:9200 RUN_INTEGRATION_TESTS=1 pytest -p no:warnings
 ```
 ### Deploying 
 Service uses [serverless](https://serverless.com/) to deploy lambda
