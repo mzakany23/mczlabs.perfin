@@ -1,7 +1,9 @@
 import os
 import sentry_sdk
-from util.csv_functions import read_classified_file
-from util.es import get_es_connection, insert_document
+from .util.csv_functions import read_classified_file
+from .util.es import get_es_connection, insert_document
+
+
 
 
 ES_CONN = get_es_connection()

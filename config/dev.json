@@ -1,0 +1,5 @@
+{
+    "ES_NODE": "https://localhost:9200",
+    "S3" : "true",
+    "RESERVED": 10
+}

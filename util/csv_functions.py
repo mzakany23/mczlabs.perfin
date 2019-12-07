@@ -1,6 +1,8 @@
 import csv
 from s3fs.core import S3FileSystem
-from lib.file_matching.analyzer import FileAnalyzer
+from ..lib.file_matching.analyzer import FileAnalyzer
+
+
 
 
 def open_and_yield_csv_row(file_url, **kwargs):

@@ -1,9 +1,10 @@
-from .util.support import strip_white, shorten_filename, word_in_string
-from .exceptions import MalformedParams
 from .config import BASE_POLICY
 from .base import Base
 from .policy import *
 from .matching import *
+
+
+
 
 class ScoreResult(Base):
     def __init__(self, *args, **kwargs):

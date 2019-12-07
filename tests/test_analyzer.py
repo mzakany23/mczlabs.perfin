@@ -1,3 +1,4 @@
+import os
 import pytest
 from .utils.helpers import *
 from assertpy import assert_that
@@ -6,7 +7,6 @@ from ..lib.file_matching.analyzer import *
 from ..lib.file_matching.matching import *
 from ..lib.file_matching.mapping import *
 from ..lib.file_matching.policy import *
-import os
 from perfin.lib.file_matching.util.support import *
 
 

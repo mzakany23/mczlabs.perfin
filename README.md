@@ -4,8 +4,8 @@ Read financial CSV files, encode and upload transactions to elasticsearch.
 ### Running tests
 
 ```
-pytest
-pytest --cov=./lib
+pytest -p no:warnings
+pytest --cov ./lib -p no:warnings
 ```
 
 ### Dependencies
