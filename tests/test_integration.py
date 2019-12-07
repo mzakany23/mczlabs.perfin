@@ -32,7 +32,7 @@ from ..handler import insert_files
 
 @pytest.fixture
 def file_paths():
-    _dir = os.path.dirname(os.path.abspath(__file__))
+    _dir = '{}/files'.format(os.path.dirname(os.path.abspath(__file__)))
     rows = ['{}/{}'.format(_dir, path) for path in os.listdir(_dir) if path.lower().endswith('.csv')]
     return rows
 
@@ -57,3 +57,6 @@ def test_integration(file_paths):
             Just run tests
     '''
     insert_files(ES_CONN, file_paths, 'transactions_write', read_from_s3=False)
+    res = ES_CONN.search('transactions_write')
+    assert res['hits']['total'] == 291
+
