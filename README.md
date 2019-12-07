@@ -22,7 +22,7 @@ ES_NODE=http://localhost:9200 RUN_INTEGRATION_TESTS=1 pytest -p no:warnings
  - [serverless](https://serverless.com/)
 
 ## Setup Cluster Locally
- - Make sure you have elastisearch running locally (http://localhost:9200)
+Make sure you have elastisearch running locally (http://localhost:9200)
 ```
 #create index with default schema
 ES_NODE=http://localhost:9200  python -c "exec(\"from util.es import create_perfin_index\ncreate_perfin_index()\")"
