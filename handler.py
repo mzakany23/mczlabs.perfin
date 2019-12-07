@@ -35,4 +35,5 @@ def process_files(event, context, **kwargs):
         bucket_name = record["s3"]["bucket"]["name"]
         file_path = "%s/%s" % (bucket_name, file_name)
         file_paths.append(file_path)
+    import pdb; pdb.set_trace()
     insert_files(ES_CONN, file_paths, 'transactions_write', **kwargs)
