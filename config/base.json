@@ -1,7 +1,7 @@
 {
     "ES_NODE": "https://d51cd76b47934b079e1684c85399fb66.us-east-1.aws.found.io:9243",
     "ES_USER": "elastic",
-    "ES_PASS": "ZIgitYNGVUBvt3eMRrdiJwZ5",
+    "ES_PASS": "Y4lc2ssSyoWUTL0KbPBUJixw",
     "S3" : "true",
     "RESERVED": 10,
     "SENTRY_KEY" : "https://667833b436894b74826b43d12f782737@sentry.io/1423674"
