@@ -1,5 +1,5 @@
 import pytest
-from perfin.handler import *
+from ..handler import *
 
 '''
     HOW_TO_RUN_TESTS
