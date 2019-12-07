@@ -3,5 +3,6 @@
     "ES_USER": "elastic",
     "ES_PASS": "ZIgitYNGVUBvt3eMRrdiJwZ5",
     "S3" : "true",
-    "RESERVED": 10
+    "RESERVED": 10,
+    "SENTRY_KEY" : "https://667833b436894b74826b43d12f782737@sentry.io/1423674"
 }
