@@ -9,6 +9,7 @@ provider:
     ES_USER: ${file(./config/${self:provider.stage}.json):ES_USER, ''}
     ES_PASS: ${file(./config/${self:provider.stage}.json):ES_PASS, ''}
     S3: ${file(./config/${self:provider.stage}.json):S3, ''}
+    SENTRY_KEY: ${file(./config/${self:provider.stage}.json):SENTRY_KEY, ''}
 package:
  include:
    - util/**
