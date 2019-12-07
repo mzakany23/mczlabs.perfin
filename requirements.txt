@@ -11,7 +11,7 @@ python-dateutil==2.7.3
 requests==2.19.1
 s3fs==0.1.6
 s3transfer==0.1.13
-sentry-sdk==0.7.7
+sentry-sdk==0.13.5
 six==1.11.0
 urllib3==1.23
 fuzzywuzzy==0.17.0

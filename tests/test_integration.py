@@ -1,13 +1,9 @@
 import pytest
+import os
 from .utils.helpers import *
 from assertpy import assert_that
-from perfin.lib.file_matching.config import *
-from perfin.lib.file_matching.analyzer import *
-from perfin.lib.file_matching.matching import *
-from perfin.lib.file_matching.mapping import *
-from perfin.lib.file_matching.policy import *
-from perfin.lib.file_matching.util.support import *
-
+from ..util.es import get_es_connection
+from ..handler import insert_files
 
 '''
     HOW_TO_RUN_TESTS
@@ -34,6 +30,10 @@ from perfin.lib.file_matching.util.support import *
 # 1. fixtures
 # -------------------------------------------------------------------
 
+@pytest.fixture
+def file_paths():
+    _dir = os.path.dirname(os.path.abspath(__file__))
+    return ['{}/{}'.format(_dir, path) for path in os.listdir(_dir)]
 
 # -------------------------------------------------------------------
 # 2. unit tests (es access stubbed)
@@ -45,12 +45,14 @@ from perfin.lib.file_matching.util.support import *
 # -------------------------------------------------------------------
 
 
-def test_integration():
+@pytest.mark.skipif(not os.environ.get('RUN_INTEGRATION_TESTS'), reason="Does not have local elasticsearch running")
+def test_integration(file_paths):
+    ES_CONN = get_es_connection()
+
     '''
         DESCRIPTION 
             To show how works
         EXAMPLE:
             Just run tests
     '''
-    assert 1==1
-
+    insert_files(ES_CONN, file_paths, 'transactions_write', read_from_s3=False)
