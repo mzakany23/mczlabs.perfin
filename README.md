@@ -4,8 +4,8 @@ Read financial CSV files, encode and upload transactions to elasticsearch.
 ### Running tests
 
 ```
-pytest -p no:warnings
-pytest --cov ./lib -p no:warnings
+pytest
+pytest --cov=./lib
 ```
 
 ### Dependencies
@@ -13,3 +13,10 @@ pytest --cov ./lib -p no:warnings
  - aws lambda
  - python 3.7
  - sentry
+ 
+### Deploying 
+Service uses [serverless](https://serverless.com/) to deploy lambda
+
+```
+serverless deploy
+```
