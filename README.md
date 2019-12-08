@@ -34,5 +34,5 @@ ES_NODE=http://localhost:9200 RUN_INTEGRATION_TESTS=1 pytest -p no:warnings
 Service uses [serverless](https://serverless.com/) to deploy lambda
 
 ```
-serverless deploy
+AWS_PROFILE=mzakany serverless deploy
 ```
