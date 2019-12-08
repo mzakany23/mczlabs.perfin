@@ -51,27 +51,28 @@ def policy():
 @pytest.fixture
 def file_analyzer_scenarios():
     '''match a file against the policy as a whole'''
+    test_file_dir = '{}/files'.format(os.path.dirname(os.path.abspath(__file__)))
 
     return [
         {
             'assertion' : 'is_equal_to',
             'should_be' : 'CAPITAL_ONE',
-            'filename' : '/Users/mzakany/desktop/perfin/tests/files/2019-03-14_transaction_download.csv', 
+            'filename' : '{}/2019-03-14_transaction_download.csv'.format(test_file_dir), 
         },
         {
             'assertion' : 'is_equal_to',
             'should_be' : 'FIFTH_THIRD',
-            'filename' : '/Users/mzakany/desktop/perfin/tests/files/53_03_07_09.CSV', 
+            'filename' : '{}/53_03_07_09.CSV'.format(test_file_dir), 
         },
         {
             'assertion' : 'is_equal_to',
             'should_be' : 'FIFTH_THIRD',
-            'filename' : '/Users/mzakany/desktop/perfin/tests/files/EXPORT3_14_2019.CSV', 
+            'filename' : '{}/EXPORT3_14_2019.CSV'.format(test_file_dir), 
         },
         {
             'assertion' : 'is_equal_to',
             'should_be' : 'CHASE',
-            'filename' : '/Users/mzakany/desktop/perfin/tests/files/Chase3507_Activity20190314.CSV', 
+            'filename' : '{}/Chase3507_Activity20190314.CSV'.format(test_file_dir), 
         },
         {
             'assertion' : 'is_equal_to',
