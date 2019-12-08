@@ -3,7 +3,7 @@ service: perfin
 provider:
   name: aws
   stage: ${opt:stage, 'base'}
-  runtime: python3.6
+  runtime: python3.7
   environment:
     ES_NODE: ${file(./config/${self:provider.stage}.json):ES_NODE}
     ES_USER: ${file(./config/${self:provider.stage}.json):ES_USER, ''}
