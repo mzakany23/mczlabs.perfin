@@ -21,6 +21,8 @@ package:
    - .git/*
    - node_modules/*
    - serverless.yml
+   - package-lock.json
+   - package.json
 
 custom:
   pythonRequirements:
