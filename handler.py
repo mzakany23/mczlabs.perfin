@@ -1,7 +1,7 @@
 import os
 import sentry_sdk
-from .util.csv_functions import read_classified_file
-from .util.es import get_es_connection, insert_document
+from perfin.util.csv_functions import read_classified_file
+from perfin.util.es import get_es_connection, insert_document
 
 
 
