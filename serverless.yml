@@ -17,10 +17,10 @@ package:
  exclude:
    - perfin/tests/**
    - perfin/serverless.yml
+   - perfin/tests/*
    - .git/*
    - node_modules/*
    - serverless.yml
-   - perfin/tests/*
 
 custom:
   pythonRequirements:
