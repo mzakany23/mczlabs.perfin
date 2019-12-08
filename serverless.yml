@@ -15,6 +15,7 @@ package:
    - perfin/util/**
    - perfin/lib/**
  exclude:
+   - docs/**
    - perfin/tests/**
    - perfin/serverless.yml
    - perfin/tests/*
