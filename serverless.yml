@@ -12,11 +12,15 @@ provider:
     SENTRY_KEY: ${file(./config/${self:provider.stage}.json):SENTRY_KEY, ''}
 package:
  include:
-   - util/**
-   - lib/**
+   - perfin/util/**
+   - perfin/lib/**
  exclude:
-   - tests
+   - perfin/tests/**
+   - perfin/serverless.yml
+   - .git/*
+   - node_modules/*
    - serverless.yml
+   - perfin/tests/*
 
 custom:
   pythonRequirements:
@@ -24,7 +28,7 @@ custom:
 
 functions:
   perfin_ingest:
-    handler: handler.process_files
+    handler: perfin.handler.process_files
 
 plugins:
   - serverless-python-requirements
