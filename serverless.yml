@@ -24,6 +24,7 @@ package:
    - serverless.yml
    - package-lock.json
    - package.json
+   - README.md
 
 custom:
   pythonRequirements:
