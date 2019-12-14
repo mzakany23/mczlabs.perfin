@@ -91,7 +91,7 @@ TODAY = NOW.strftime('%m-%d-%Y')
 
 RENAME_FILES_TYPE = f"rename_files -> rename all files in directory"
 UPLOAD_S3_TYPE = f"upload_s3 -> upload your files to s3 directory"
-DELETE_DIR_TYPE = f"reset_dir -> delete files from local file directory"
+DELETE_DIR_TYPE = f"delete_files -> delete files from local file directory"
 
 ACTION_TYPES = [
   RENAME_FILES_TYPE,
