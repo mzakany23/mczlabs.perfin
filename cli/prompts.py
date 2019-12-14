@@ -48,6 +48,12 @@ class Prompt:
         )
 
     @staticmethod
+    def confirm():
+        return inquirer.Confirm('confirm',
+          message="Are you sure?",
+          default=False
+        )
+    @staticmethod
     def custom_directory():
         return inquirer.Text('custom_directory',
           message="Directory path",
@@ -85,10 +91,12 @@ TODAY = NOW.strftime('%m-%d-%Y')
 
 RENAME_FILES_TYPE = f"rename_files -> rename all files in directory"
 UPLOAD_S3_TYPE = f"upload_s3 -> upload your files to s3 directory"
+DELETE_DIR_TYPE = f"reset_dir -> delete files from local file directory"
 
 ACTION_TYPES = [
   RENAME_FILES_TYPE,
-  UPLOAD_S3_TYPE
+  UPLOAD_S3_TYPE,
+  DELETE_DIR_TYPE
 ]
 
 DIRECTORY_TYPES = ['~/Desktop/perfin_files']
