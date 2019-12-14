@@ -1,122 +1,69 @@
 import pytest
-import functools
-from .utils.helpers import *
-from assertpy import assert_that
-from perfin.lib.file_matching.config import *
-from perfin.lib.file_matching.analyzer import *
-from perfin.lib.file_matching.matching import *
-from perfin.lib.file_matching.mapping import *
-from perfin.lib.file_matching.policy import *
-from perfin.lib.file_matching.util.support import *
+from perfin.lib.file_matching.analyzer import FileAnalyzer
 
 
 '''
     HOW_TO_RUN_TESTS
-        make sure python tls is 1.2 compatable
-        make sure pytest is installed
-        (with warnings)
-        pytest ./tests/test_files.py
-        (without warnings)
-        pytest -q ./tests/test_files.py -p no:warnings
-'''
-
-# -------------------------------------------------------------------
-# LEGEND
-# -------------------------------------------------------------------
-
-
-'''
-    1. fixtures
-    2. unit tests (no db required)
+        pytest ./perfin/tests/test_matching.py -p no:warnings
+        pytest ./perfin/tests/test_matching.py -k 'test_poor_results test_fifth_third' -p no:warnings
 '''
 
 
-# -------------------------------------------------------------------
-# 1. fixtures
-# -------------------------------------------------------------------
+
+def test_very_poor_results():
+    domain = 'CHASE'
+    header = ['foo', 'bar', 'baz']
+    file_url = 'mzakany-perfin/Chase3507_Activity20190314.CSV'
+    analyzer = FileAnalyzer(header=header, filename=file_url)
+    assert analyzer.score.confidence == 'marginal' 
+    assert analyzer.top_match.domain == domain
 
 
-@pytest.fixture
-def file_match_scenarios():
-    '''match a file against a single policy'''
+def test_poor_results():
+    domain = 'CHASE'
+    header = ['Type', 'Trans Date', 'Post Date']
+    file_url = 'mzakany-perfin/Chase3507_Activity20190314.CSV'
+    analyzer = FileAnalyzer(header=header, filename=file_url)
+    assert analyzer.score.confidence == 'likely'
+    assert analyzer.top_match.domain == domain
 
-    return [
-        {
-            'domain' : 'CHASE',
-            'assertion' : 'is_greater_than_or_equal_to',
-            'should_be' : 198,
-            'filename' : 'mzakany-perfin/Chase3507_Activity20190314.CSV',
-            'policy_header' : ['Type', 'Trans Date', 'Post Date', 'Description', 'Amount'],
-            'header' : ['Type','TransDate','PostDate','Description','Amount'],
-        },
-        {
-            'domain' : 'CHASE',
-            'assertion' : 'is_less_than_or_equal_to',
-            'should_be' : 227,
-            'filename' : 'mzakany-perfin/CapitalOne3507_Activity20190314.CSV',
-            'policy_header' : ['Post Date', 'Description', 'Amount'],
-            'header' : ['Type','TransDate','PostDate','Description','Amount'],
-        },
-        {
-            'domain' : 'CHASE',
-            'assertion' : 'is_less_than',
-            'should_be' : 50,
-            'filename' : 'mzakany-perfin/FifthThird3507_Activity20190314.CSV',
-            'policy_header' : ['Post Date', 'Description', 'Amount'],
-            'header' : ['Type','TransDate','PostDate','Description','Amount'],
-        },
-        {
-            'domain' : 'CHASE',
-            'assertion' : 'is_greater_than',
-            'should_be' : 150,
-            'filename' : 'mzakany-perfin/chase_financial.CSV',
-            'policy_header' : ['Type', 'Trans Date', 'Post Date', 'Description', 'Amount'],
-            'header' : ['Type','Trans Date','Post Date','Description','Amount'],
-        },
-        {
-            'domain' : 'CHASE',
-            'assertion' : 'is_not_equal_to',
-            'should_be' : 'CHASE',
-            'policy_header' : ['Type','TransDate','PostDate','Description','Amount'],
-            'header' : ['Type','Trans Date','Post Date','Description','Amount'],
-            'filename' : 'mzakany-perfin/fifth_third3507_Activity20190314.CSV'
-        }
-    ]
-  
 
-# -------------------------------------------------------------------
-# 2. unit tests (es access stubbed)
-# -------------------------------------------------------------------
+def test_chase():
+    domain = 'CHASE'
+    filename = 'mzakany-perfin/Chase3507_Activity20190314.CSV'
+    header = ['Transaction Date', 'Post Date', 'Description', 'Category', 'Type', 'Amount']
+    analyzer = FileAnalyzer(header=header, filename=filename)
+    assert analyzer.top_match.domain == domain
 
+
+def test_capone():
+    domain = 'CAPITAL_ONE'
+    filename = 'mzakany-perfin/CapitalOne3507_Activity20190314.CSV'
+    header = [' Transaction Date', ' Posted Date', ' Card No.', ' Description', ' Category', ' Debit', ' Credit']
+    analyzer = FileAnalyzer(header=header, filename=filename)
+    assert analyzer.top_match.domain == domain
+
+
+def test_fifth_third_ambiguous():
+    domain = 'CHASE'
+    filename = 'mzakany-perfin/FifthThird3507_Activity20190314.CSV'
+    header = ['Type','TransDate','PostDate','Description','Amount']
+    analyzer = FileAnalyzer(header=header, filename=filename)
+    assert analyzer.top_match.domain == domain
+
+
+def test_chase_signature():
+    domain = 'CHASE'
+    filename = 'mzakany-perfin/chase_financial.CSV'
+    header = ['Type','Trans Date','Post Date','Description','Amount']
+    analyzer = FileAnalyzer(header=header, filename=filename)
+    assert analyzer.top_match.domain == domain
+
+
+def test_ambiguous():    
+    domain = 'CHASE'
+    header = ['Type','Trans Date','Post Date','Description','Amount']
+    filename = 'mzakany-perfin/fifth_third3507_Activity20190314.CSV'
+    analyzer = FileAnalyzer(header=header, filename=filename)
+    assert analyzer.score.confidence == 'likely'
     
-def test_file_match(file_match_scenarios):
-    def _fn(accum, current):
-        accum[current['key']] = current
-        return accum
-    base_policy = functools.reduce(_fn, BASE_POLICY)
-
-    for scenario in file_match_scenarios:
-        domain = scenario['domain']
-        filename = scenario['filename']
-        policy_header = scenario['policy_header']
-        header = scenario['header']
-        headers = [policy_header, header]
-
-        assertion = scenario['assertion']
-        should_be = scenario['should_be']
-        
-        policy_body = base_policy[domain]
-
-        policy = FilePolicy(
-            domain=domain,
-            policy_body=policy_body
-        )
-
-        match = FileMatch(
-            policy=policy,
-            header=header,
-            filename=filename
-        )
-        
-        assert_helper(assertion, match.total_score, should_be)
-        

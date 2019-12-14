@@ -1,6 +1,6 @@
 from .base import Base
 from .mapping import *
-
+import datetime
 
 
 
@@ -46,6 +46,11 @@ class FilePolicy(Base):
     def serialized_header(self):
         return '{}'.format(self.policy_header)
     
+    @property 
+    def unique_name(self):
+        date = datetime.datetime.now().isoformat()
+        return '{}.{}'.format(self.domain, date)
+
     def to_dict(self):
         return {self.domain : self.policy_body}
     

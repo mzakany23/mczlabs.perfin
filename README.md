@@ -36,3 +36,37 @@ Service uses [serverless](https://serverless.com/) to deploy lambda
 ```
 AWS_PROFILE=mzakany serverless deploy
 ```
+
+## File Analyzing
+```python
+BASE_POLICY = [
+    # chase
+    {
+        "key" : "CHASE",
+        "header" : ['Type', 'Trans Date', 'Post Date', 'Description', 'Amount'],
+        "trim" : {
+            "field" : "description",
+            "value" : 10
+        }, 
+        "fields" : {
+            "date" : 2,
+            "description" : 3,
+            "amount" : 4
+        }
+    }
+]
+
+```
+
+```python
+from perfin.lib.file_matching.analyzer import FileAnalyzer
+
+filename = 'mzakany-perfin/Chase3507_Activity20190314.CSV'
+header = ['Transaction Date', 'Post Date', 'Description', 'Category', 'Type', 'Amount']
+analyzer = FileAnalyzer(header=header, filename=filename)
+
+assert analyzer.top_match.domain == 'CHASE'
+
+```
+
+The idea is that a file's type will get decoded from a config file so that it can get properly named. When figuring out what file that it is.

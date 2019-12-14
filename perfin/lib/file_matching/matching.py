@@ -29,7 +29,7 @@ class FileMatchManager(Base):
     def top(self):
         score = self.descending
         return score[0] if len(score) > 0 else None
-
+    
     @property
     def descending(self):
         return [item[1] for item in self.matches]
@@ -39,10 +39,6 @@ class FileMatch(Base):
     def __init__(self, *args, **kwargs):
         super(FileMatch, self).__init__(*args, **kwargs)
         self.validate(['policy', 'header', 'filename'])
-        self.base_stat_fields = [
-            'header_score',
-            'filename_score',
-        ]
         self.policy_header = kwargs.get('header')
         self.policy = kwargs.get('policy')
         self.domain = self.policy.domain
@@ -56,21 +52,6 @@ class FileMatch(Base):
         self.header_score = self._header_score
         self.filename_score = self._filename_score
         
-        if self.header_score == 100:
-            self.header_score += 50
-
-        if  self.filename_score == 100:
-            self.filename_score += 50
-        
-        elif self.filename_score > 80:
-            self.filename_score += 10
-        
-        elif self.filename_score <= 50:
-            self.header_score -= 100
-        else:
-            self.header_score -= 30
-            self.filename_score -= 50
-
     @property
     def __info__(self):
         item = {
@@ -83,7 +64,7 @@ class FileMatch(Base):
 
     @property
     def total_score(self):
-        return sum([getattr(self, key) for key in self.base_stat_fields])
+        return self.filename_score + self.header_score
     
     @property
     def serialized_header(self):

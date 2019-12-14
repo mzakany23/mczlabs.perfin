@@ -2,40 +2,9 @@ from .config import BASE_POLICY
 from .base import Base
 from .policy import *
 from .matching import *
+from .scoring import ScoreResult
 
 
-
-
-class ScoreResult(Base):
-    def __init__(self, *args, **kwargs):
-        super(ScoreResult, self).__init__(*args, **kwargs)
-        self.validate(['match'])
-        match = kwargs.get('match')
-        self.score = match.total_score
-        self.domain = match.domain
-        self.match = match
-    
-    @property
-    def __info__(self):
-        self.header_print('Score Result')
-        self.match.__info__
-
-    @property
-    def confidence(self):
-        score = self.score 
-        confidence = ''
-
-        if score > 120:
-            confidence = 'very likely'
-        elif score > 80:
-            confidence = 'likely'
-        elif score > 50:
-            confidence = 'marginal'
-        elif score > 20:
-            confidence = 'poor'
-        else:
-            confidence = 'very poor'
-        return confidence
 
 
 class FileAnalyzer(Base):

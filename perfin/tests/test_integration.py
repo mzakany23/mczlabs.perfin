@@ -48,6 +48,7 @@ def file_paths():
 
 @pytest.mark.skipif(not os.environ.get('RUN_INTEGRATION_TESTS'), reason="Does not have local elasticsearch running")
 def test_integration(file_paths):
+    os.environ['ES_NODE'] = 'http://localhost:9200'
     ES_CONN = get_es_connection()
 
     '''
