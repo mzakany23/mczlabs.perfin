@@ -6,7 +6,8 @@ from cli.prompts import (
     show_cli_message, 
     generate_prompt, 
     RENAME_FILES_TYPE,
-    UPLOAD_S3_TYPE
+    UPLOAD_S3_TYPE,
+    DELETE_DIR_TYPE
 )
 
 def get_csv_files(directory):
@@ -65,4 +66,10 @@ if __name__ == '__main__':
         for lpath, filename, ext in get_csv_files(directory):
             rpath = f'{s3_path}/{filename}'
             s3.put(lpath, rpath)
-
+    elif action_type == DELETE_DIR_TYPE:
+        directory = generate_prompt(['directory'])
+        directory = os.path.expanduser(directory)
+        confirmation = generate_prompt(['confirm'])
+        if confirmation:
+            for lpath, filename, ext in get_csv_files(directory):
+                os.remove(lpath)
