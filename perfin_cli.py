@@ -5,6 +5,7 @@ from perfin.lib.file_matching.analyzer import FileAnalyzer
 from cli.prompts import (
     show_cli_message, 
     generate_prompt, 
+    LIST_DIR_TYPE,
     RENAME_FILES_TYPE,
     UPLOAD_S3_TYPE,
     DELETE_DIR_TYPE
@@ -73,3 +74,8 @@ if __name__ == '__main__':
         if confirmation:
             for lpath, filename, ext in get_csv_files(directory):
                 os.remove(lpath)
+    elif action_type == LIST_DIR_TYPE:
+        directory = generate_prompt(['directory'])
+        directory = os.path.expanduser(directory)
+        for lpath, filename, ext in get_csv_files(directory):
+            print(lpath)
