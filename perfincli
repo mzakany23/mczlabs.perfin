@@ -10,6 +10,8 @@ env=$1
 # export LOCAL_LAMBDA_TRIGGERS=1 ROUTE_ENV=gaea_${env} CONFIG_PREFIX=gaea-${env}
 # fi
 
+export AWS_PROFILE=mzakany
+
 cd ~/Desktop/perfin
 source ~/Desktop/perfin/env/bin/activate
 python ~/Desktop/perfin/perfin_cli.py $0 $1 $2
