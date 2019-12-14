@@ -1,0 +1,15 @@
+#!/bin/bash
+
+env=$1
+
+
+# if [ -z "$env" ]
+# then
+# export LOCAL_LAMBDA_TRIGGERS=1 ROUTE_ENV=gaea_stage CONFIG_PREFIX=gaea-stage
+# else
+# export LOCAL_LAMBDA_TRIGGERS=1 ROUTE_ENV=gaea_${env} CONFIG_PREFIX=gaea-${env}
+# fi
+
+cd ~/Desktop/perfin
+source ~/Desktop/perfin/env/bin/activate
+python ~/Desktop/perfin/perfin_cli.py $0 $1 $2
