@@ -5,9 +5,16 @@ from perfin.lib.file_matching.analyzer import FileAnalyzer
 from cli.prompts import (
     show_cli_message, 
     generate_prompt, 
-    RENAME_FILES_TYPE
+    RENAME_FILES_TYPE,
+    UPLOAD_S3_TYPE
 )
 
+def get_csv_files(directory):
+    for path in os.listdir(directory):
+        filename, file_extension = os.path.splitext(path)
+        if file_extension.lower() == '.csv':
+            full_path = '{}/{}'.format(directory, path)
+            yield full_path, filename, file_extension
 
 
 if __name__ == '__main__':
@@ -37,17 +44,25 @@ if __name__ == '__main__':
         else:
             directory = os.path.expanduser(report)
         
-        for path in os.listdir(directory):
-            filename, file_extension = os.path.splitext(path)
-            if file_extension.lower() == '.csv':
-                old_filename = '{}/{}'.format(directory, path)
-                reader = open_and_yield_csv_row(old_filename)
-                header = next(reader, None)
-                analyzer = FileAnalyzer(header=header, filename=old_filename)
-                new_filename = '{}/{}.csv'.format(directory, analyzer.policy.unique_name)
+        for old_filename, filename, ext in get_csv_files(directory):
+            reader = open_and_yield_csv_row(old_filename)
+            header = next(reader, None)
+            analyzer = FileAnalyzer(header=header, filename=old_filename)
+            new_filename = '{}/{}.csv'.format(directory, analyzer.policy.unique_name)
 
-                print(f'old: {old_filename}')
-                print(f'new: {new_filename}')
-                print('')
+            print(f'old: {old_filename}')
+            print(f'new: {new_filename}')
+            os.rename(old_filename, new_filename)
+            print('')
                 
+    elif action_type == UPLOAD_S3_TYPE:
+        from s3fs.core import S3FileSystem
+        s3_path, directory = generate_prompt(['s3_paths', 'directory'])
+        directory = os.path.expanduser(directory)
+        s3 = S3FileSystem(anon=False)
+        if not s3.exists(s3_path):
+            raise Exception(f'{s3_path} path does not exist')
+        for lpath, filename, ext in get_csv_files(directory):
+            rpath = f'{s3_path}/{filename}'
+            s3.put(lpath, rpath)
 

@@ -33,9 +33,16 @@ def last_x_days(num, fmt):
 
 class Prompt:
     @staticmethod
+    def s3_paths():
+        return inquirer.List('s3_paths',
+          message="Choose s3 path",
+          choices=S3_PATH_TYPES,
+          default=S3_PATH_TYPES[0]
+        )
+    @staticmethod
     def directory():
         return inquirer.List('directory',
-          message="Choose directory? -> Where perfin files are",
+          message="Choose directory",
           choices=DIRECTORY_TYPES,
           default=DIRECTORY_TYPES[0]
         )
@@ -43,47 +50,16 @@ class Prompt:
     @staticmethod
     def custom_directory():
         return inquirer.Text('custom_directory',
-          message="Directory path? -> Absolute path where files live",
+          message="Directory path",
         )
 
     @staticmethod
     def date():
         return inquirer.List('date',
-          message='Filter by date range?',
+          message='Filter by date range',
           choices=DATE_TYPES,
           default=DATE_TYPES[0]
-        )
-
-    @staticmethod
-    def platform_types():
-        return inquirer.Checkbox('platform_types',
-          message='What platforms do you want to export?',
-          choices=PLATFORM_TYPEsS,
-          default='twitter'
-        )
-
-    @staticmethod
-    def create_in_new_crowd():
-        return inquirer.Confirm('create_in_new_crowd',
-          message='Create entity in new crowd?',
-          default=False
-        )
-    @staticmethod
-    def report_type():
-        return inquirer.List('report_type',
-          message='What type of report do you want to do?',
-          choices=REPORT_TYPES,
-          default=REPORT_TYPES[0]
-        )
-
-    @staticmethod
-    def env():
-        return inquirer.List('env',
-          message='What entities do you want to see?',
-          choices=ENV_TYPES,
-          default=ENV_TYPES[0]
-        )
-
+        )    
     @staticmethod
     def action_type():
         return inquirer.List('action_type',
@@ -103,14 +79,19 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-RENAME_FILES_TYPE = f"rename_files -> rename all files in directory"
 
 NOW = datetime.datetime.utcnow()
 TODAY = NOW.strftime('%m-%d-%Y')
 
+RENAME_FILES_TYPE = f"rename_files -> rename all files in directory"
+UPLOAD_S3_TYPE = f"upload_s3 -> upload your files to s3 directory"
+
 ACTION_TYPES = [
   RENAME_FILES_TYPE,
+  UPLOAD_S3_TYPE
 ]
 
 DIRECTORY_TYPES = ['~/Desktop/perfin_files']
+S3_PATH_TYPES = ['mzakany-perfin']
+
 DATE_TYPES = ['all'] + last_x_days(5, '%m-%d-%Y')
