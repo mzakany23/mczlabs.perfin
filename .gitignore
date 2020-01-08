@@ -16,7 +16,7 @@ private_env.py
 *.egg-info/
 .installed.cfg
 *.egg
-
+dev.py
 # Serverless directories
 .serverless
 notes.txt

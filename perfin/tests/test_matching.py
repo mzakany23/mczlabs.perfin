@@ -1,5 +1,7 @@
+import os
 import pytest
 from perfin.lib.file_matching.analyzer import FileAnalyzer
+from perfin.util.csv_functions import open_and_yield_csv_row, get_files
 
 
 '''
@@ -8,6 +10,11 @@ from perfin.lib.file_matching.analyzer import FileAnalyzer
         pytest ./perfin/tests/test_matching.py -k 'test_poor_results test_fifth_third' -p no:warnings
 '''
 
+def test_get_docs():
+    directory = '{}/files'.format(os.path.dirname(os.path.abspath(__file__)))
+
+    for file_url, filename, ext in get_files(directory, '.csv'):
+        assert file_url
 
 
 def test_very_poor_results():
