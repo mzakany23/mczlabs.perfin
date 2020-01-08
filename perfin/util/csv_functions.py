@@ -1,9 +1,16 @@
 import csv
+import os
 from s3fs.core import S3FileSystem
 from ..lib.file_matching.analyzer import FileAnalyzer
 
 
-
+def get_files(directory, file_type):
+    for path in os.listdir(directory):
+        filename, file_extension = os.path.splitext(path)
+        if file_extension.lower() == file_type:
+            full_path = '{}/{}'.format(directory, path)
+            yield full_path, filename, file_extension
+            
 
 def open_and_yield_csv_row(file_url, **kwargs):
     s3 = kwargs.get("s3")

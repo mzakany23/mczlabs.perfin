@@ -1,5 +1,5 @@
-TEST_FILE_DIR = '/Users/mzakany/desktop/perfin/tests/files'
 
+TEST_FILE_DIR = '/Users/mzakany/desktop/perfin/tests/files'
 
 BASE_POLICY = [
     # chase
