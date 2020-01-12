@@ -1,13 +1,7 @@
 import os
 import pytest
-from .utils.helpers import *
-from assertpy import assert_that
-from ..lib.file_matching.config import *
-from ..lib.file_matching.analyzer import *
-from ..lib.file_matching.matching import *
-from ..lib.file_matching.mapping import *
-from ..lib.file_matching.policy import *
-from perfin.lib.file_matching.util.support import *
+from ..lib.file_matching.config import TRIM_FIELD
+from ..lib.file_matching.analyzer import FileAnalyzer
 
 
 '''
@@ -15,7 +9,7 @@ from perfin.lib.file_matching.util.support import *
         make sure python tls is 1.2 compatable
         make sure pytest is installed
         (with warnings)
-        pytest ./tests/test_files.py
+        pytest ./perfin/tests/test_analyzer.py -k 'test_random_filetype'  -p no:warnings
         (without warnings)
         pytest -q ./tests/test_files.py -p no:warnings
 '''
@@ -34,95 +28,66 @@ from perfin.lib.file_matching.util.support import *
 # 1. fixtures
 # -------------------------------------------------------------------
 
+DIR = os.path.dirname(os.path.abspath(__file__))
 
 @pytest.fixture
-def policy():
-    '''
-        TITLE
-            Test learning about the file
-        DESCRIPTION
-            Trying to test being able to know what file we are talking about.
-            This needs to very robust if don't know what file then can't parse!
-    '''
+def dummy_row():
+    return {
+      '_id': '3a34633eb9b64eaae92c5324f849b2caf9e5859dea6c24fce619110088efa24e',
+      'document': {
+        'account': 'CHASE',
+        'post date': '2019-03-13',
+        'description': 'CLEV HTS - PARKING',
+        'category': 'Travel',
+        'type': 'Sale',
+        'amount': -0.75
+      },
+      '_group': 'CLEV HTS -'
+    }
 
-    return BASE_POLICY
-        
 
 @pytest.fixture
-def file_analyzer_scenarios():
-    '''match a file against the policy as a whole'''
-    test_file_dir = '{}/files'.format(os.path.dirname(os.path.abspath(__file__)))
+def chase_file():
+    return f'{DIR}/files/chase____2019.01.12.CSV'
 
-    return [
-        {
-            'assertion' : 'is_equal_to',
-            'should_be' : 'CAPITAL_ONE',
-            'filename' : '{}/2019-03-14_transaction_download.csv'.format(test_file_dir), 
-        },
-        {
-            'assertion' : 'is_equal_to',
-            'should_be' : 'FIFTH_THIRD',
-            'filename' : '{}/53_03_07_09.CSV'.format(test_file_dir), 
-        },
-        {
-            'assertion' : 'is_equal_to',
-            'should_be' : 'FIFTH_THIRD',
-            'filename' : '{}/EXPORT3_14_2019.CSV'.format(test_file_dir), 
-        },
-        {
-            'assertion' : 'is_equal_to',
-            'should_be' : 'CHASE',
-            'filename' : '{}/Chase3507_Activity20190314.CSV'.format(test_file_dir), 
-        },
-        {
-            'assertion' : 'is_equal_to',
-            'should_be' : 'CHASE',
-            'header' : ['Type','TransDate','PostDate','Description','Amount'],
-            'filename' : 'mzakany-perfin/Chase3507_Activity20190314.CSV'
-        },
-        {
-            'assertion' : 'is_not_equal_to',
-            'should_be' : 'CHASE',
-            'header' : ['Type','TransDate','PostDate','Description','Amount'],
-            'filename' : 'mzakany-perfin/fifth_third3507_Activity20190314.CSV'
-        },
-        {
-            'assertion' : 'is_equal_to',
-            'should_be' : 'CAPITAL_ONE',
-            'header' : [' Transaction Date', ' Posted Date', ' Card No.', ' Description', ' Category', ' Debit', ' Credit'],
-            'filename' : 'mzakany-perfin/capitalone3507_Activity20190314.CSV'
-        },
-        {
-            'assertion' : 'is_equal_to',
-            'should_be' : 'CAPITAL_ONE',
-            'header' : [ ' Category', ' Debit', ' Credit'],
-            'filename' : 'mzakany-perfin/capitalone3507_Activity20190314.CSV'
-        }
-        
-    ]
 
+@pytest.fixture
+def fifth_third_file():
+    return f'{DIR}/files/fifth_third____2019.01.12.csv'
+
+
+@pytest.fixture
+def no_account_file():
+    return f'{DIR}/files/EXPORTS.csv'
 
 # -------------------------------------------------------------------
 # 2. unit tests (es access stubbed)
 # -------------------------------------------------------------------
 
+def test_account_name(chase_file):
+    analyzer = FileAnalyzer(chase_file, s3=False)
+    assert analyzer.account_name == 'CHASE'
 
-def test_file_analyzer(policy, file_analyzer_scenarios):
-    for scenario in file_analyzer_scenarios:
-        assertion = scenario['assertion']
-        should_be = scenario['should_be']
 
-        params = {
-            'policy' : policy,
-            'filename' : scenario['filename'],
-        }
+def test_chase_file(chase_file, dummy_row):
+    analyzer = FileAnalyzer(chase_file, s3=False, group_by='description')
+    for row in analyzer.get_rows():
+        assert row['document'] == dummy_row['document']
+        return
 
-        if 'header' in scenario:
-            params['header'] = scenario['header']
-        else:
-            with open(scenario['filename']) as f:
-                params['header'] = f.readline().strip().split(',')
 
-        analyzer = FileAnalyzer(**params)
+def test_fifth_third_file(fifth_third_file):
+    analyzer = FileAnalyzer(file_path=fifth_third_file, s3=False)
+    assert analyzer.account_name == 'FIFTH_THIRD'
+    assert analyzer.schema == {'date': 0, 'description': 1, 'amount': 2}
 
-        assert_helper(assertion, analyzer.top_match.domain, should_be)
+
+def test_no_account(no_account_file):
+    try:
+        analyzer = FileAnalyzer(file_path=no_account_file, s3=False)
+    except Exception as e:
+        assert str(e) == 'Account name EXPORTS.csv is invalid.'
+
+
+def test_globals():
+    assert TRIM_FIELD

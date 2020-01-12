@@ -3,3 +3,6 @@ class MalformedParams(Exception):
 
 class FileParseError(Exception):
     pass
+
+class AccountParseError(Exception):
+    pass
