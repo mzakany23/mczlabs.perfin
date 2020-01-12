@@ -18,7 +18,8 @@ class FileAnalyzer(Base):
         self.trim_length = kwargs.get('trim_length', 10)
         filename = os.path.basename(self.file_path)
         if '____' not in filename:
-            raise AccountParseError(f'Account name {filename} is invalid.')
+            message = f'Account name {filename} is invalid.'
+            raise AccountParseError(message)
         self.account_name = filename.split('____')[0].upper()
         self.reader = self.open_and_yield_csv_row(self.file_path)
         self.header = next(self.reader, None)
