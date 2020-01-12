@@ -3,12 +3,11 @@ import os
 import csv
 from s3fs.core import S3FileSystem
 import subprocess
-from perfin.util.csv_functions import open_and_yield_csv_row, get_files
 from perfin.lib.file_matching.analyzer import FileAnalyzer
 from perfin.util.transactions import get_transactions, get_client
 from cli.prompts import (
-    show_cli_message, 
-    generate_prompt, 
+    show_cli_message,
+    generate_prompt,
     LIST_DIR_TYPE,
     RENAME_FILES_TYPE,
     UPLOAD_S3_TYPE,
@@ -17,6 +16,14 @@ from cli.prompts import (
     SPIDER_ACCOUNT_TYPES,
     GENERATE_FILE_TYPE
 )
+
+
+def get_files(directory, file_type):
+    for path in os.listdir(directory):
+        filename, file_extension = os.path.splitext(path)
+        if file_extension.lower() == file_type:
+            full_path = '{}/{}'.format(directory, path)
+            yield full_path, filename, file_extension
 
 
 if __name__ == '__main__':
@@ -28,27 +35,28 @@ if __name__ == '__main__':
         one, two, command = args
     else:
         command = None
-    
+
     commands = ['shell']
     if command and command in commands:
         if command == 'shell':
             print('Opening {} shell...'.format(ENV))
             time.sleep(2)
             import pdb; pdb.set_trace()
-    
+
     show_cli_message()
-    
+
     action_type = generate_prompt(['action_type'])
-    
+
     if action_type == RENAME_FILES_TYPE:
         report = generate_prompt(['directory'])
         if report == 'custom directory':
             directory = generate_prompt(['custom_directory'])
         else:
             directory = os.path.expanduser(report)
-        
+
         for old_filename, filename, ext in get_files(directory, '.csv'):
-            reader = open_and_yield_csv_row(old_filename)
+            analyzer = FileAnalyzer(file_path=old_filename)
+            reader = analyzer.open_and_yield_csv_row(old_filename)
             header = next(reader, None)
             analyzer = FileAnalyzer(header=header, filename=old_filename)
             new_filename = '{}/{}.csv'.format(directory, analyzer.policy.unique_name)
@@ -57,7 +65,7 @@ if __name__ == '__main__':
             print(f'new: {new_filename}')
             os.rename(old_filename, new_filename)
             print('')
-                
+
     elif action_type == UPLOAD_S3_TYPE:
         s3_path, directory = generate_prompt(['s3_paths', 'directory'])
         directory = os.path.expanduser(directory)
@@ -73,7 +81,7 @@ if __name__ == '__main__':
         confirmation = generate_prompt(['confirm'])
         if confirmation:
             for old_filename, filename, ext in get_files(directory, '.csv'):
-                os.remove(lpath)
+                os.remove(old_filename)
     elif action_type == LIST_DIR_TYPE:
         directory = generate_prompt(['directory'])
         directory = os.path.expanduser(directory)
@@ -89,9 +97,9 @@ if __name__ == '__main__':
                 if not res:
                     continue
 
-                _file = f'~/Desktop/perfin_files/{account}-{from_date}-{to_date}.csv'
+                _file = f'~/Desktop/perfin_files/{account}____{from_date}-{to_date}.csv'
                 filename = os.path.expanduser(_file)
-                
+
                 with open(filename, 'w+') as file:
                     fieldnames = ['date', 'description', 'amount']
                     writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -105,4 +113,3 @@ if __name__ == '__main__':
                                 'amount': trans['amount']
                             }
                         )
-
