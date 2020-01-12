@@ -1,7 +1,9 @@
 import functools
-from .base import Base
-from .util.support import *
+
 from dateutil.parser import parse
+
+from .base import Base
+from .util.support import word_in_string
 
 
 class MappingType(Base):
@@ -12,7 +14,7 @@ class MappingType(Base):
         self._index = kwargs.get('index')
         self.columns = kwargs.get('columns')
         self.set_types()
-        
+
     @property
     def __info__(self):
         self.header_print('Mapping info')
@@ -21,7 +23,7 @@ class MappingType(Base):
     @property
     def success(self):
         return self.has('key') and self.has('index')
-        
+
     @property
     def data(self):
         return {
@@ -45,11 +47,10 @@ class MappingType(Base):
                 if item:
                     break
         return 0.0 if not item else item
-                
 
     def get_keys(self, item):
         return list(map(lambda x: x.lower(), item.strip().split(' ')))
-    
+
     def has_classification(self, item):
         checks = self.get_keys(item)
         for item in self.classification:
@@ -60,7 +61,7 @@ class MappingType(Base):
         matches = {}
         for i, item in enumerate(self.columns):
             if self.has_classification(item):
-                matches[i] = item 
+                matches[i] = item
 
         if self._index in matches:
             self.key = self.get_type(self._key)
@@ -73,7 +74,7 @@ class MappingType(Base):
 
     def process(self, row):
         return self.get_field(row)
-    
+
     def get_field(self, row):
         return row[self.index]
 
@@ -87,7 +88,7 @@ class MappingType(Base):
         if self.has('process') or self.has('processor_functions'):
             return (
                 functools.reduce(
-                    (lambda accum, fn: getattr(self, fn)(accum)), 
+                    (lambda accum, fn: getattr(self, fn)(accum)),
                     self.processor_functions, self.value
                 )
             )
@@ -96,21 +97,21 @@ class MappingType(Base):
         for item in self.classification:
             found = word_in_string(key, item)
             if found:
-                return found    
+                return found
 
 
 class DateMappingType(MappingType):
     name = 'date'
-    classification = ['date']
+    classification = ['date', 'post date']
 
     def process(self, row):
         try:
             return parse(self.get_field(row)).strftime("%Y-%m-%d")
         except:
-            item = False 
+            item = False
             for field in row:
                 try:
-                    found = parse(field).strftime("%Y-%m-%d") 
+                    found = parse(field).strftime("%Y-%m-%d")
                 except:
                     found = False
                 if found:
@@ -175,12 +176,8 @@ class Mapping(Base):
 
     def __init__(self, *args, **kwargs):
         super(Mapping, self).__init__(*args, **kwargs)
-        self.validate(['header', 'columns'])
+        self.validate(['header'])
         self.header = kwargs.get('header')
-        self.columns = kwargs.get('columns')
-        _default_types = kwargs.get('default_types')
-        if _default_types:
-            self.DEFAULT_TYPES += _default_types
         self.fields = []
         self.lookup = {}
         self.init_lookup()
@@ -190,34 +187,33 @@ class Mapping(Base):
     def __info__(self):
         self.header_print('Schema')
         return self.pretty_print(self.schema)
-    
+
     def init_lookup(self):
         for _type in self.DEFAULT_TYPES:
             self.lookup[_type.name] = _type
 
     def set_types(self):
-        for field, index in self.columns.items():
-            MappingTypeCls = (
-                self.lookup[field] 
-                if field in self.lookup 
-                else GenericMappingType
-            )
-            
-            mapping = MappingTypeCls(
-                key=field, 
-                index=index, 
-                columns=self.header
-            )
-            
-            if mapping.success:
-                self.fields.append(mapping)
-                self.set_self(mapping.key, mapping)
+        _columns = {}
+        for i, header in enumerate(self.header):
+            for mapping_type in self.DEFAULT_TYPES:
+                header = header.lower()
+                if header in mapping_type.classification:
+                    mapping = mapping_type(
+                        key=header,
+                        index=i,
+                        columns=self.header
+                    )
+                    if mapping.success:
+                        self.fields.append(mapping)
+                        self.set_self(mapping.key, mapping)
+                        _columns[mapping.key] = mapping.index
+                        break
+        self.columns = _columns
 
     @property
     def success(self):
         return len(self.columns.keys()) == len(self.fields)
-    
+
     @property
     def schema(self):
         return self.columns
-    

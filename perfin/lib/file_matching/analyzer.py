@@ -1,89 +1,72 @@
-from .config import BASE_POLICY
+import csv
+import os
+
+from s3fs.core import S3FileSystem
+
 from .base import Base
-from .policy import *
-from .matching import *
-from .scoring import ScoreResult
-
-
+from .exceptions import AccountParseError
+from .mapping import Mapping
+from .util.support import generate_specific_key
 
 
 class FileAnalyzer(Base):
-    def __init__(self, *args, **kwargs):
-        super(FileAnalyzer, self).__init__(*args, **kwargs)
+    def __init__(self, file_path, **kwargs):
+        super(FileAnalyzer, self).__init__(**kwargs)
+        self.file_path = file_path
+        self.group_by = kwargs.get('group_by', 'description')
+        self.s3 = kwargs.get('s3', True)
+        self.trim_length = kwargs.get('trim_length', 10)
+        filename = os.path.basename(self.file_path)
+        if '____' not in filename:
+            raise AccountParseError(f'Account name {filename} is invalid.')
+        self.account_name = filename.split('____')[0].upper()
+        self.reader = self.open_and_yield_csv_row(self.file_path)
+        self.header = next(self.reader, None)
+        self.mapping = Mapping(header=self.header)
 
-        self._policy = kwargs.get('policy', BASE_POLICY)
-        self.header = kwargs.get('header', [])
-        self.filename = kwargs.get('filename', [])
-        self.policy_manager = FilePolicyManager(policy=self._policy)
-        self.matches = self.calculate_matches()
-    
     @property
     def __info__(self):
         self.matches.__info__
-    
+
     @property
     def serialized_header(self):
         return '{}'.format(self.header)
-        
-    @property
-    def score(self):
-        return ScoreResult(match=self.matches.top)
 
     @property
-    def top_match(self):
-        return self.matches.top
+    def schema(self):
+        return self.mapping.schema
 
-    @property
-    def account(self):
-        return self.matches.top.domain
+    def open_and_yield_csv_row(self, file_path):
+        if self.s3:
+            s3 = S3FileSystem(anon=False)
+            _open = s3.open(file_path, mode="r")
+        else:
+            _open = open(file_path, mode="r")
 
-    @property
-    def mapping(self):
-        return self.top_match.policy.mapping
-    
-    @property
-    def policy(self):
-        return self.top_match.policy
+        with _open as f:
+            rows = csv.reader(f)
+            for row in rows:
+                yield row
 
-    @property
-    def fields(self):
-        return self.mapping.fields
-    
-    def get_doc(self, row):
-        policy = self.policy
+    def get_rows(self):
+        while True:
+            row = next(self.reader, None)
+            if not row:
+                break
+            yield self.build_doc(row, self.mapping)
+
+    def build_doc(self, row, mapping):
         id_key = ",".join(row).replace(",", "").replace(" ", "")
-
         doc = {
             "_id" : generate_specific_key(id_key),
             "document" : {
-                "account" : policy.domain
+                "account" : self.account_name
             }
         }
 
-        for field in policy.mapping.fields:
+        for field in mapping.fields:
             value = field.process(row)
             doc['document'][field.key] = value
 
-        account = policy.policy_trim
-        
-        try:
-            trim_key = account["field"]
-            trim_value = account["value"]
-        except:
-            trim_key, trim_value = False, False
-
-        if trim_key and trim_value:
-            doc["_group"] = doc['document'][trim_key][:trim_value]
+        doc["_group"] = doc['document'][self.group_by][:self.trim_length]
         return doc
-
-    def calculate_matches(self):
-        matches = FileMatchManager()
-        
-        for policy in self.policy_manager.policies:
-            file_match = FileMatch(
-                policy=policy,
-                header=self.header,
-                filename=self.filename,
-            )
-            matches.add(file_match)
-        return matches
