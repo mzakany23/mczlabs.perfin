@@ -104,8 +104,9 @@ if __name__ == '__main__':
                     fieldnames = ['date', 'description', 'amount']
                     writer = csv.DictWriter(file, fieldnames=fieldnames)
                     writer.writeheader()
-
                     for trans in res['transactions']:
+                        if trans['pending']:
+                            continue
                         writer.writerow(
                             {
                                 'date': trans['date'], 
