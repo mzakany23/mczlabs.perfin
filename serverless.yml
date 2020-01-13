@@ -16,10 +16,12 @@ package:
    - perfin/lib/**
  exclude:
    - docs/**
+   - cli/**
+   - perfin_cli*
    - perfin/tests/**
    - perfin/serverless.yml
-   - perfin/tests/*
    - .git/*
+   - .coverage
    - node_modules/*
    - serverless.yml
    - package-lock.json
