@@ -72,6 +72,16 @@ def test_account_name(chase_file):
 def test_chase_file(chase_file, dummy_row):
     analyzer = FileAnalyzer(chase_file, s3=False, group_by='description')
     for row in analyzer.get_rows():
+        document = row['document']
+        assert list(document.keys()) == [
+            'account', 
+            'post date', 
+            'description', 
+            'category', 
+            'type', 
+            'amount'
+        ]
+        assert '_group' in row
         assert row['document'] == dummy_row['document']
         return
 
