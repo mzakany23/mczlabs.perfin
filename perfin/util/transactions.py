@@ -28,7 +28,7 @@ def get_transactions(client, account_type, start_date, end_date):
         start_date,
         end_date,
     )
-
+    import pdb; pdb.set_trace()
     yield res
 
     total = res['total_transactions']
