@@ -4,6 +4,7 @@ from raven.contrib.awslambda import LambdaClient
 
 from .lib.file_matching.analyzer import FileAnalyzer
 from .util.es import get_es_connection, insert_document
+from .util.globals import INDEX
 
 ES_CONN = get_es_connection()
 
@@ -28,5 +29,5 @@ def process_files(event, context, **kwargs):
         for row in analyzer.get_rows():
             document = row["document"]
             document["group"] = row["_group"]
-            index = 'transactions_write'
-            insert_document(es_conn, index, row["_id"], document)
+            write_alias = '{}_write'.format(INDEX)
+            insert_document(es_conn, write_alias, row["_id"], document)

@@ -28,7 +28,7 @@ def get_transactions(client, account_type, start_date, end_date):
         start_date,
         end_date,
     )
-    
+
     yield res
 
     total = res['total_transactions']

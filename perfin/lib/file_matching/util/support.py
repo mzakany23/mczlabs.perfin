@@ -1,7 +1,6 @@
-import csv
 import hashlib
-import uuid
 import re
+import uuid
 
 from datetime import datetime
 
@@ -87,3 +86,10 @@ def generate_new_file_name(old_filename, header, rows):
 
         return _generate_new_file_name(old_filename, from_date, to_date)
     return None, None
+
+
+def get_account_lookup(accounts):
+    lookup = {}
+    for account in accounts:
+        lookup[account['account_id']] = account
+    return lookup

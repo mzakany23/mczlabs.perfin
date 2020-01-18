@@ -4,7 +4,7 @@ import csv
 from s3fs.core import S3FileSystem
 import subprocess
 from perfin.lib.file_matching.analyzer import FileAnalyzer
-from perfin.lib.file_matching.util.support import create_file_name
+from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup
 from perfin.util.transactions import get_transactions, get_client
 from cli.prompts import (
     show_cli_message,
@@ -93,14 +93,20 @@ def run_cli():
                     writer = csv.DictWriter(file, fieldnames=fieldnames)
                     writer.writeheader()
                     for trans in res:
-                        for trans in trans['transactions']:
+                        lookup = get_account_lookup(trans['accounts'])
+                        transactions = trans['transactions']
+
+                        for trans in transactions:
                             if trans['pending']:
                                 continue
+
+                            amount *= -1
+
                             writer.writerow(
                                 {
-                                    'date': trans['date'], 
+                                    'date': trans['date'],
                                     'description': trans['name'],
-                                    'amount': trans['amount']
+                                    'amount': amount
                                 }
                             )
 
@@ -125,5 +131,4 @@ if __name__ == '__main__':
             import pdb; pdb.set_trace()
 
     show_cli_message()
-    while True:
-        run_cli()
+    run_cli()
