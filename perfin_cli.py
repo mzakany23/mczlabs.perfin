@@ -27,25 +27,7 @@ def get_files(directory, file_type):
             yield full_path, filename, file_extension
 
 
-if __name__ == '__main__':
-    args = sys.argv
-
-    if len(args) == 4:
-        one, two, stage, command = args
-    elif len(args) == 3:
-        one, two, command = args
-    else:
-        command = None
-
-    commands = ['shell']
-    if command and command in commands:
-        if command == 'shell':
-            print('Opening {} shell...'.format(ENV))
-            time.sleep(2)
-            import pdb; pdb.set_trace()
-
-    show_cli_message()
-
+def run_cli():
     action_type = generate_prompt(['action_type'])
 
     if action_type == RENAME_FILES_TYPE:
@@ -78,6 +60,7 @@ if __name__ == '__main__':
             s3.put(old_filename, rpath)
             print(old_filename, rpath)
             # os.remove(old_filename)
+
     elif action_type == DELETE_DIR_TYPE:
         directory = generate_prompt(['directory'])
         directory = os.path.expanduser(directory)
@@ -85,11 +68,13 @@ if __name__ == '__main__':
         if confirmation:
             for old_filename, filename, ext in get_files(directory, '.csv'):
                 os.remove(old_filename)
+
     elif action_type == LIST_DIR_TYPE:
         directory = generate_prompt(['directory'])
         directory = os.path.expanduser(directory)
         for lpath, filename, ext in get_files(directory, '.csv'):
             print(lpath)
+
     elif action_type == RUN_SPIDER_ACTION_TYPE:
         account_action = generate_prompt(['account_action'])
         if account_action == GENERATE_FILE_TYPE:
@@ -118,3 +103,27 @@ if __name__ == '__main__':
                                     'amount': trans['amount']
                                 }
                             )
+
+    print('done.')
+    print()
+
+if __name__ == '__main__':
+    args = sys.argv
+
+    if len(args) == 4:
+        one, two, stage, command = args
+    elif len(args) == 3:
+        one, two, command = args
+    else:
+        command = None
+
+    commands = ['shell']
+    if command and command in commands:
+        if command == 'shell':
+            print('Opening {} shell...'.format(ENV))
+            time.sleep(2)
+            import pdb; pdb.set_trace()
+
+    show_cli_message()
+    while True:
+        run_cli()
