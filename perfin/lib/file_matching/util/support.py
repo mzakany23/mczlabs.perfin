@@ -1,12 +1,11 @@
 import csv
 import hashlib
+import uuid
 import re
 
 from datetime import datetime
 
 from dateutil.parser import parse
-
-from s3fs.core import S3FileSystem
 
 
 def word_in_string(word, string):
@@ -24,6 +23,12 @@ def strip_white(string):
     return re.sub(r'\s+', '', string)
 
 
+def generate_better_key():
+    hash_object = hashlib.sha256(str(uuid.uuid4()).encode('utf8'))
+    hex_dig = hash_object.hexdigest()
+    return hex_dig
+
+
 def generate_specific_key(key_string):
     key_string = key_string.encode('utf-8')
     hash_object = hashlib.sha256(key_string)
@@ -32,32 +37,31 @@ def generate_specific_key(key_string):
 
 
 def create_file_name(account, from_date, to_date):
-    return '{}____{}-{}'.format(account, from_date, to_date)
+    key = generate_better_key()[0:10]
+    return '{}____{}-{}.key={}'.format(account, from_date, to_date, key)
 
 
-def open_and_yield_csv_row(s3, file_path):
-    _open = s3.open(file_path, mode="r")
-    with _open as f:
-        rows = csv.reader(f)
-        for row in rows:
-            yield row
+def _generate_new_file_name(old_filename, from_date, to_date):
+    _name = old_filename.lower()
+
+    if 'export' in _name or 'fifth_third' in _name or '53' in _name:
+        file_name = 'fifth_third'
+    elif 'chase' in _name:
+        file_name = 'chase'
+    elif 'capone' in _name:
+        file_name = 'capital_one'
+    else:
+        file_name = 'capital_one'
+
+    new_file_name_name = create_file_name(file_name, from_date, to_date)
+
+    return new_file_name_name, file_name
 
 
-def get_s3_perfin_files():
-    s3 = S3FileSystem(anon=False)
-    s3_files = s3.ls('mzakany-perfin')
+def generate_new_file_name(old_filename, header, rows):
+    dates = []
 
-    for s3_file_name in s3_files:
-        body = [row for row in open_and_yield_csv_row(s3, s3_file_name)]
-        header = body[0]
-        rows = body[1:]
-
-        yield s3_file_name, header, rows
-
-
-def generate_new_file_names(old_filename, header, rows):
     for row in rows:
-        dates = []
         date_col = None
 
         for i, col in enumerate(header):
@@ -76,21 +80,10 @@ def generate_new_file_names(old_filename, header, rows):
             date = parse(date).strftime('%Y-%m-%d')
             dates.append(date)
 
+    if dates:
         dates.sort(key=lambda date: datetime.strptime(date, '%Y-%m-%d'))
 
         from_date, to_date = dates[0], dates[-1]
 
-        _name = old_filename.lower()
-
-        if 'export' in _name or 'fifth_third' in _name or '53' in _name:
-            file_name = 'fifth_third'
-        elif 'chase' in _name:
-            file_name = 'chase'
-        elif 'capone' in _name:
-            file_name = 'capital_one'
-        else:
-            file_name = 'capital_one'
-
-        new_file_name_name = create_file_name(file_name, from_date, to_date)
-
-        yield new_file_name_name, file_name
+        return _generate_new_file_name(old_filename, from_date, to_date)
+    return None, None
