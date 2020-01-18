@@ -8,12 +8,9 @@ from ..handler import process_files
 
 '''
     HOW_TO_RUN_TESTS
-        make sure python tls is 1.2 compatable
-        make sure pytest is installed
-        (with warnings)
-        pytest ./tests/test_files.py
-        (without warnings)
-        pytest -q ./tests/test_s3.py -p no:warnings
+        pytest ./perfin/tests/test_handler.py -p no:warnings
+        RUN_INTEGRATION_TESTS pytest ./perfin/tests/test_handler.py -p no:warnings
+        RUN_LIVE_LOCAL_TESTS=1 pytest ./perfin/tests/test_handler.py -p no:warnings
 '''
 
 # -------------------------------------------------------------------
@@ -87,6 +84,18 @@ class FakeFileAnalyzer:
 # -------------------------------------------------------------------
 
 @pytest.fixture
+def desktop_file_paths():
+    paths = []
+    directory = os.path.expanduser('~/Desktop/perfin_files')
+    for path in os.listdir(directory):
+        if '____' in path:
+            paths.append(f'{directory}/{path}')
+    if not paths:
+        raise Exception('there are no files in directory!')
+    return paths
+
+
+@pytest.fixture
 def file_paths():
     directory = '{}/files'.format(os.path.dirname(os.path.abspath(__file__)))
     paths = []
@@ -151,6 +160,34 @@ def events(file_paths):
     return records
 
 
+@pytest.fixture
+def local_events(desktop_file_paths):
+    records = {
+      'Records': []
+    }
+    for local_file_path in desktop_file_paths:
+        records['Records'].append({
+          's3': {
+            's3SchemaVersion': '1.0',
+            'configurationId': '07cdd4c6-53ea-41d1-9536-e64d6661708d',
+            'bucket': {
+              'name': 'mzakany-perfin',
+              'ownerIdentity': {
+                'principalId': 'A1KXLJ5C0RVBLI'
+              },
+              'arn': 'arn:aws:s3:::mzakany-perfin'
+            },
+            'object': {
+              'key' : local_file_path,
+              'size': 2577,
+              'eTag': '47eb72587b90a88cf07820543e938d11',
+              'sequencer': '005BB006BB55D4F51F'
+            }
+          }
+        })
+    return records
+
+
 @pytest.fixture 
 def context():
     return {}
@@ -175,3 +212,13 @@ def test_integration(events, context):
     files = process_files(events, context, es)
     res = es.search('transactions_write')
     assert res['hits']['total'] == 292
+
+
+@pytest.mark.skipif(not os.environ.get('RUN_LIVE_LOCAL_TESTS'), reason="Does not have local elasticsearch running")
+@mock.patch('perfin.handler.FileAnalyzer', LocalFileAnalyzer)
+@mock.patch('perfin.tests.test_handler.process_files', local_process_files)
+def test_upload_generated_files(local_events, context):
+    os.environ['ES_NODE'] = 'http://localhost:9200'
+    es = get_es_connection()
+    files = process_files(events, context, es)
+    res = es.search('transactions_write')

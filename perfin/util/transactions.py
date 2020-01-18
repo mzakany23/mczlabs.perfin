@@ -37,14 +37,9 @@ def get_transactions(client, account_type, start_date, end_date):
     current = 0
 
     current += len(trans)
-
+    
     while current < total:
-        res = client.Transactions.get(
-            item['token'],
-            start_date,
-            end_date,
-            offset=current
-        )
+        res = client.Transactions.get(item['token'],start_date,end_date,offset=current)
 
         current += len(res['transactions'])
         
