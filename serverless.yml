@@ -37,6 +37,7 @@ custom:
 functions:
   perfin_ingest:
     handler: perfin.handler.process_files
+    timeout: 60
 
 plugins:
   - serverless-python-requirements
