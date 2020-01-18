@@ -1,6 +1,9 @@
-import os
 import certifi
+
 from elasticsearch import Elasticsearch
+
+from .globals import ES_NODE, ES_PASS, ES_USER, INDEX
+
 
 perfin_schema = {
     "settings": {
@@ -8,8 +11,8 @@ perfin_schema = {
         "max_result_window": 1000000
     },
     "aliases" : {
-        "transactions_read" : {},
-        "transactions_write" : {},
+        "{}_read".format(INDEX) : {},
+        "{}_write".format(INDEX) : {},
     },
     "mappings": {
         "default": {
@@ -28,10 +31,6 @@ perfin_schema = {
 
 
 def get_es_connection(**kwargs):
-    ES_NODE = os.environ.get("ES_NODE")
-    ES_USER = os.environ.get("ES_USER")
-    ES_PASS = os.environ.get("ES_PASS")
-    
     if ES_USER and ES_PASS:
         params = {
             "http_auth" : (ES_USER, ES_PASS),
@@ -59,7 +58,7 @@ def delete_index(es, index_name):
 
 def insert_document(es, index, unique_doc_id, document, **kwargs):
     doc_type = kwargs.get("doc_type", "default")
-    
+
     return es.index(
         index=index,
         doc_type=doc_type,
