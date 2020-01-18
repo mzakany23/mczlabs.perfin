@@ -4,6 +4,7 @@ import csv
 from s3fs.core import S3FileSystem
 import subprocess
 from perfin.lib.file_matching.analyzer import FileAnalyzer
+from perfin.lib.file_matching.util.support import create_file_name
 from perfin.util.transactions import get_transactions, get_client
 from cli.prompts import (
     show_cli_message,
@@ -98,8 +99,8 @@ if __name__ == '__main__':
                 res = get_transactions(client, account, from_date, to_date)
                 if not res:
                     continue
-
-                _file = f'~/Desktop/perfin_files/{account}____{from_date}-{to_date}.csv'
+                _file = create_file_name(account, from_date, to_date)
+                _file = '~/Desktop/perfin_files/{}.csv'.format(_file)
                 filename = os.path.expanduser(_file)
 
                 with open(filename, 'w+') as file:

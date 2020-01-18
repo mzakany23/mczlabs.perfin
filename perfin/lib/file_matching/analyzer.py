@@ -37,7 +37,9 @@ class FileAnalyzer(Base):
     def schema(self):
         return self.mapping.schema
 
-    def open_and_yield_csv_row(self, file_path):
+    def open_and_yield_csv_row(self, file_path=None):
+        if not file_path:
+            file_path = self.file_path
         if self.s3:
             s3 = S3FileSystem(anon=False)
             _open = s3.open(file_path, mode="r")
