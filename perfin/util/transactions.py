@@ -1,11 +1,13 @@
 from plaid import Client
+
 from ..settings.base import (
-	CLIENT_ID, 
-	SECRET, 
-	PUBLIC_KEY, 
-	PLAID_ENV, 
-	ACCOUNT_LOOKUP
+    ACCOUNT_LOOKUP,
+    CLIENT_ID,
+    PLAID_ENV,
+    PUBLIC_KEY,
+    SECRET
 )
+
 
 def get_client():
     return Client(
@@ -15,8 +17,35 @@ def get_client():
         environment=PLAID_ENV
     )
 
+
 def get_transactions(client, account_type, start_date, end_date):
     if account_type not in ACCOUNT_LOOKUP:
         return
     item = ACCOUNT_LOOKUP[account_type]
-    return client.Transactions.get(item['token'], start_date, end_date)
+
+    res = client.Transactions.get(
+        item['token'],
+        start_date,
+        end_date,
+    )
+
+    yield res
+
+    total = res['total_transactions']
+    trans = res['transactions']
+
+    current = 0
+
+    current += len(trans)
+
+    while current < total:
+        res = client.Transactions.get(
+            item['token'],
+            start_date,
+            end_date,
+            offset=current
+        )
+
+        current += len(res['transactions'])
+        
+        yield res

@@ -1,6 +1,6 @@
 import os
 
-import sentry_sdk
+from raven.contrib.awslambda import LambdaClient
 
 from .lib.file_matching.analyzer import FileAnalyzer
 from .util.es import get_es_connection, insert_document
@@ -9,10 +9,10 @@ ES_CONN = get_es_connection()
 
 sentry_key = os.environ.get('SENTRY_KEY')
 
-if sentry_key:
-    sentry_sdk.init(sentry_key)
+client = LambdaClient()
 
 
+@client.capture_exceptions
 def process_files(event, context, **kwargs):
     es_conn = kwargs.get('es', ES_CONN)
     records = event["Records"]
