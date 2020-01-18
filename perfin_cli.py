@@ -74,7 +74,9 @@ if __name__ == '__main__':
             raise Exception(f'{s3_path} path does not exist')
         for old_filename, filename, ext in get_files(directory, '.csv'):
             rpath = f'{s3_path}/{filename}'
-            s3.put(lpath, rpath)
+            s3.put(old_filename, rpath)
+            print(old_filename, rpath)
+            # os.remove(old_filename)
     elif action_type == DELETE_DIR_TYPE:
         directory = generate_prompt(['directory'])
         directory = os.path.expanduser(directory)
