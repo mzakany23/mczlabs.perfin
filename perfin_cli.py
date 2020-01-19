@@ -56,7 +56,7 @@ def run_cli():
         if not s3.exists(s3_path):
             raise Exception(f'{s3_path} path does not exist')
         for old_filename, filename, ext in get_files(directory, '.csv'):
-            rpath = f'{s3_path}/{filename}'
+            rpath = f'{s3_path}/{filename}.csv'
             s3.put(old_filename, rpath)
             print(old_filename, rpath)
             # os.remove(old_filename)
