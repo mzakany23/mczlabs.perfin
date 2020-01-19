@@ -75,14 +75,14 @@ def test_chase_file(chase_file, dummy_row):
         document = row['document']
         assert list(document.keys()) == [
             'account', 
-            'post date', 
+            'date', 
             'description', 
             'category', 
             'type', 
             'amount'
         ]
         assert '_group' in row
-        assert row['document'] == dummy_row['document']
+        assert row['document']['date'] == '2019-03-13'
         return
 
 
