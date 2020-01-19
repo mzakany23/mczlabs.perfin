@@ -1,9 +1,14 @@
+import logging
+
 import certifi
 
 from elasticsearch import Elasticsearch
 
+from perfin.util.s3_conn import get_s3_processed_docs
+
 from .globals import ES_NODE, ES_PASS, ES_USER, INDEX
 
+logger = logging.getLogger(__file__)
 
 perfin_schema = {
     "settings": {
@@ -40,8 +45,9 @@ def get_es_connection(**kwargs):
             "send_get_body_as" : "POST"
         }
         return Elasticsearch([ES_NODE], **params)
-    elif ES_NODE:
-        return Elasticsearch([ES_NODE])
+    else:
+        logger.info('using test elasticsearch')
+        return Elasticsearch(['http://localhost:9200'])
 
     return None
 
@@ -70,3 +76,14 @@ def insert_document(es, index, unique_doc_id, document, **kwargs):
 def create_perfin_index():
     es = get_es_connection()
     return create_index(es, INDEX, perfin_schema)
+
+
+def insert_all_rows(filter_key=None):
+    bucket = 'mzakany-perfin'
+    path = '{}/original_archive'.format(bucket)
+    es = get_es_connection()
+    for row in get_s3_processed_docs(path, filter_key=filter_key):
+        document = row["document"]
+        document["group"] = row["_group"]
+        write_alias = '{}_write'.format(INDEX)
+        insert_document(es, write_alias, row["_id"], document)

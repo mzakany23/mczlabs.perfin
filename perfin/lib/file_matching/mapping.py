@@ -1,5 +1,7 @@
 import functools
 
+import re
+
 from dateutil.parser import parse
 
 from .base import Base
@@ -64,7 +66,10 @@ class MappingType(Base):
                 matches[i] = item
 
         if self._index in matches:
-            self.key = self.get_type(self._key)
+            if hasattr(self, 'name'):
+                self.key = self.name
+            else:
+                self.key = self.get_type(self._key)
             self.index = self._index
             self.value = self.columns[self.index]
         elif len(self.columns) >= self._index:
@@ -197,7 +202,13 @@ class Mapping(Base):
         for i, header in enumerate(self.header):
             for mapping_type in self.DEFAULT_TYPES:
                 header = header.lower()
-                if header in mapping_type.classification:
+                header_match = False
+                for key in mapping_type.classification:
+                    key = re.sub(r'\s+', '', key)
+                    if key in header:
+                        header_match = True
+                        break
+                if header_match:
                     mapping = mapping_type(
                         key=header,
                         index=i,
