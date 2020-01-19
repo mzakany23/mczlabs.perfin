@@ -10,19 +10,26 @@ from .util.support import generate_specific_key
 
 
 class FileAnalyzer(Base):
-    def __init__(self, file_path, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(FileAnalyzer, self).__init__(**kwargs)
-        self.file_path = file_path
-        self.group_by = kwargs.get('group_by', 'description')
-        self.s3 = kwargs.get('s3', True)
-        self.trim_length = kwargs.get('trim_length', 10)
+
+        if len(args) == 3:
+            self.file_path, self.header, self.rows = args[0], args[1], args[2]
+        else:
+            if args:
+                self.file_path = args[0]
+            else:
+                self.file_path = kwargs.get('file_path')
+            self.s3 = kwargs.get('s3', True)
+            self.reader = self.open_and_yield_csv_row(self.file_path)
+            self.header = next(self.reader, None)
         filename = os.path.basename(self.file_path)
         if '____' not in filename:
-            message = f'Account name {filename} is invalid.'
+            message = 'Account name {} is invalid.'.format(filename)
             raise AccountParseError(message)
+        self.trim_length = kwargs.get('trim_length', 10)
         self.account_name = filename.split('____')[0].upper()
-        self.reader = self.open_and_yield_csv_row(self.file_path)
-        self.header = next(self.reader, None)
+        self.group_by = kwargs.get('group_by', 'description')
         self.mapping = Mapping(header=self.header)
 
     @property
@@ -52,11 +59,15 @@ class FileAnalyzer(Base):
                 yield row
 
     def get_rows(self):
-        while True:
-            row = next(self.reader, None)
-            if not row:
-                break
-            yield self.build_doc(row, self.mapping)
+        if hasattr(self, 'rows'):
+            for row in self.rows:
+                yield self.build_doc(row, self.mapping)
+        elif hasattr(self, 'reader'):
+            while True:
+                row = next(self.reader, None)
+                if not row:
+                    break
+                yield self.build_doc(row, self.mapping)
 
     def build_doc(self, row, mapping):
         id_key = ",".join(row).replace(",", "").replace(" ", "")

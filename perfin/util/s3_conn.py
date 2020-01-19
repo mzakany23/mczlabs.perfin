@@ -1,5 +1,6 @@
 import csv
 
+from perfin.lib.file_matching.analyzer import FileAnalyzer
 from perfin.lib.file_matching.util.support import generate_new_file_name
 
 from s3fs.core import S3FileSystem
@@ -33,3 +34,12 @@ def rename_s3_files():
             print(old_filename)
             print(new_file_name)
             print()
+
+
+def get_s3_processed_docs():
+    for s3_file_name, header, rows in get_s3_perfin_files():
+        if '__' not in s3_file_name:
+            continue
+        analyzer = FileAnalyzer(s3_file_name, header, rows, trim_field='description')
+        for row in analyzer.get_rows():
+            yield row
