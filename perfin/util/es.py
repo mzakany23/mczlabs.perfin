@@ -69,4 +69,4 @@ def insert_document(es, index, unique_doc_id, document, **kwargs):
 
 def create_perfin_index():
     es = get_es_connection()
-    return create_index(es, "perfin", perfin_schema)
+    return create_index(es, INDEX, perfin_schema)
