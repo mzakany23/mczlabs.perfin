@@ -27,7 +27,7 @@ def configure_logging():
         },
         'loggers': {
             'es': {
-                'level': 'ERROR'
+                'level': 'INFO'
             },
             'perfin.lib' : {
                 'level': 'INFO'
