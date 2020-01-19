@@ -37,7 +37,7 @@ def generate_specific_key(key_string):
 
 def create_file_name(account, from_date, to_date):
     key = generate_better_key()[0:10]
-    return '{}____{}-{}.key={}'.format(account, from_date, to_date, key)
+    return '{}____{}-{}____{}'.format(account, from_date, to_date, key)
 
 
 def _generate_new_file_name(old_filename, from_date, to_date):
