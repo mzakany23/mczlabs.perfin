@@ -95,10 +95,12 @@ def run_cli():
                     for trans in res:
                         lookup = get_account_lookup(trans['accounts'])
                         transactions = trans['transactions']
-
+                        
                         for trans in transactions:
                             if trans['pending']:
                                 continue
+                            
+                            amount = trans['amount']
 
                             amount *= -1
 
