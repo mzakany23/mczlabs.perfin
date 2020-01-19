@@ -11,7 +11,9 @@ from .util.globals import INDEX
 ES_CONN = get_es_connection()
 
 sentry_key = os.environ.get('SENTRY_KEY')
-sentry_sdk.init(dsn=sentry_key, debug=True, integrations=[AwsLambdaIntegration()])
+
+if sentry_key:
+    sentry_sdk.init(dsn=sentry_key, debug=True, integrations=[AwsLambdaIntegration()])
 
 
 def process_files(event, context, **kwargs):
