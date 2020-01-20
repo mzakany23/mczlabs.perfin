@@ -1,3 +1,8 @@
 
+
 if __name__ == '__main__':
-    pass
+    # create_table()
+    # seed_account()
+    # query_items()
+    # PerfinAccount.username=
+    import pdb; pdb.set_trace()
