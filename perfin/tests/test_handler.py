@@ -3,7 +3,7 @@ import mock
 import pytest
 
 from ..lib.file_matching.analyzer import FileAnalyzer
-from ..util.es import get_es_connection, insert_document
+from ..util.es_conn import get_es_connection, insert_document
 from ..handler import process_files
 
 '''
