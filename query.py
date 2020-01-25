@@ -1,6 +1,7 @@
-from perfin.util.dynamodb_conn import get_accounts, seed_account
+from perfin.util.dynamodb_conn import get_user_accounts
 from perfin.util.es.es_conn import search
 from perfin.util.email.ses_conn import send_email
+
 
 '''
 	DESCRIPTION
@@ -44,8 +45,8 @@ if __name__ == '__main__':
 		try and see if can get good info
 	'''
 
-	res = search('stats', 'chase', '>0', '2020-01-01 TO *')
-	print(res)
+	# res = search('stats', 'chase', '>0', '2020-01-01 TO *')
+	# print(res)
 	# print('ok')
 
 
@@ -59,4 +60,15 @@ if __name__ == '__main__':
 	# equality = '<0'
 	# account = 'chase'
 	# send_email(date_range, equality, account)
-	# PerfinUploadLog.create_table()
+	# PerfinUploadLog.create_table(wait=True)
+	# log = PerfinUploadLog(
+	# 	filename='somefilename.txt',
+	#     from_date='2020-01-01',
+	#     to_date='*',
+	#     account_name='chase',
+	# )
+
+	# log.save()
+
+	for account in get_user_accounts('mzakany', 'chase'):
+		import pdb; pdb.set_trace()

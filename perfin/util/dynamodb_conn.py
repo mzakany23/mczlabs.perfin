@@ -1,22 +1,6 @@
 import datetime
 
-from perfin.lib.models.account import PerfinAccount
-from perfin.settings.base import ACCOUNT_LOOKUP
-
-
-def seed_account():
-    for k, v in ACCOUNT_LOOKUP.items():
-        account = PerfinAccount(
-            v['item'],
-            username='mzakany',
-            account_name=k,
-            first_name='mike',
-            last_name='zakany',
-            token=v['token'],
-            last_updated=datetime.datetime.now()
-        )
-
-        account.save()
+from perfin.lib.models import PerfinAccount
 
 
 def create_table():
@@ -29,7 +13,13 @@ def user_accounts(username):
         yield account
 
 
-def get_accounts(account_name):
-    query = PerfinAccount.account_name == account_name
+def get_user_accounts(username, account_name=None):
+    user_query = PerfinAccount.username == username
+
+    if account_name:
+    	query = user_query & (PerfinAccount.account_name == account_name)
+    else:
+    	query = user_query
+
     for account in PerfinAccount.scan(filter_condition=query):
         yield account
