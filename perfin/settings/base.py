@@ -3,6 +3,9 @@ import logging
 import logging.config
 import os
 
+import sentry_sdk
+from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +37,7 @@ def configure_logging():
                 'level': 'INFO'
             },
             'perfin.settings.base' : {
-                'level': 'DEBUG'
+                'level': 'INFO'
             },
             'perfin.lib' : {
                 'level': 'INFO'
@@ -48,7 +51,15 @@ def configure_logging():
 def configure_app():
     configure_logging()
     configure_env()
+    configure_sentry()
     log_env()
+
+
+def configure_sentry():
+    sentry_key = os.environ.get('SENTRY_KEY')
+
+    if sentry_key:
+        sentry_sdk.init(dsn=sentry_key, debug=True, integrations=[AwsLambdaIntegration()])
 
 
 def configure_env():
@@ -62,17 +73,16 @@ def log_env():
     logger.debug("enviornment:PERFIN_ENV={}".format(ENV))
     logger.debug(PERFIN_CONFIG)
 
+
 configure_app()
+
 
 CLIENT_ID = os.environ.get('CLIENT_ID')
 SECRET = os.environ.get('SECRET')
 PUBLIC_KEY = os.environ.get('PUBLIC_KEY')
 PLAID_ENV = os.environ.get('PLAID_ENV')
 
-
-INDEX = 'transactions_2020'
-# keeping the old index around for a while
-# INDEX = 'transactions'
+INDEX = os.environ.get('INDEX')
 ES_NODE = os.environ.get("ES_NODE")
 ES_USER = os.environ.get("ES_USER")
 ES_PASS = os.environ.get("ES_PASS")
