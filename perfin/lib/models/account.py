@@ -1,10 +1,11 @@
 from datetime import datetime
 
-from pynamodb.attributes import UnicodeAttribute, UTCDateTimeAttribute
-from pynamodb.models import Model
+from pynamodb.attributes import UTCDateTimeAttribute, UnicodeAttribute
+
+from .base import PerfinBase
 
 
-class PerfinAccount(Model):
+class PerfinAccount(PerfinBase):
     class Meta:
         table_name = "perfin-account"
         region = 'us-east-1'
@@ -18,4 +19,3 @@ class PerfinAccount(Model):
     last_name = UnicodeAttribute()
     last_updated = UTCDateTimeAttribute()
     created_at = UTCDateTimeAttribute(default=datetime.now)
-

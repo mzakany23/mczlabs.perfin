@@ -23,13 +23,13 @@ def create_table():
     PerfinAccount.create_table(wait=True)
 
 
-def query_items():
-    for account in PerfinAccount.query('mzakany'):
-        print(account)
-        # import pdb; pdb.set_trace()
-
-
 def user_accounts(username):
     query = PerfinAccount.username == username
     for account in PerfinAccount.scan(filter_condition=query, index_name='username-index'):
+        yield account
+
+
+def get_accounts(account_name):
+    query = PerfinAccount.account_name == account_name
+    for account in PerfinAccount.scan(filter_condition=query):
         yield account

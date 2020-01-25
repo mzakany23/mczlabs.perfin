@@ -1,3 +1,2 @@
-from perfin.settings.base import configure_logging
-
-configure_logging()
+from perfin.settings.base import configure_app
+configure_app()
