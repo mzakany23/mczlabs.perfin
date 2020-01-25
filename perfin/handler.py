@@ -1,21 +1,12 @@
 import logging
 
-import os
-
 import sentry_sdk
-
-from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
 from .lib.file_matching.analyzer import FileAnalyzer
 from .settings.base import INDEX
 from .util.es.es_conn import get_es_connection, insert_document
 
 ES_CONN = get_es_connection()
-
-sentry_key = os.environ.get('SENTRY_KEY')
-
-if sentry_key:
-    sentry_sdk.init(dsn=sentry_key, debug=True, integrations=[AwsLambdaIntegration()])
 
 logger = logging.getLogger(__file__)
 

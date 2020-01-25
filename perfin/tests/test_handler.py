@@ -52,7 +52,6 @@ def read_csv_fn(*args, **kwargs):
         '_id' : 'foo'
     }
 
-
 class LocalFileAnalyzer(FileAnalyzer):
     def __init__(self, **kwargs):
         kwargs.setdefault('s3', False)
@@ -188,7 +187,7 @@ def local_events(desktop_file_paths):
     return records
 
 
-@pytest.fixture 
+@pytest.fixture
 def context():
     return {}
 
@@ -206,6 +205,7 @@ def test_process_files(event, context):
 @pytest.mark.skipif(not os.environ.get('RUN_INTEGRATION_TESTS'), reason="Does not have local elasticsearch running")
 @mock.patch('perfin.handler.FileAnalyzer', LocalFileAnalyzer)
 @mock.patch('perfin.tests.test_handler.process_files', local_process_files)
+@mock.patch('perfin.handler.sentry_sdk', mock.MagicMock())
 def test_integration(events, context):
     os.environ['ES_NODE'] = 'http://localhost:9200'
     es = get_es_connection()
@@ -217,6 +217,7 @@ def test_integration(events, context):
 @pytest.mark.skipif(not os.environ.get('RUN_LIVE_LOCAL_TESTS'), reason="Does not have local elasticsearch running")
 @mock.patch('perfin.handler.FileAnalyzer', LocalFileAnalyzer)
 @mock.patch('perfin.tests.test_handler.process_files', local_process_files)
+@mock.patch('perfin.handler.sentry_sdk', mock.MagicMock())
 def test_upload_generated_files(local_events, context):
     os.environ['ES_NODE'] = 'http://localhost:9200'
     es = get_es_connection()

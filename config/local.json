@@ -1,5 +1,6 @@
 {
     "ES_NODE": "http://localhost:9200",
     "ES_USER": "elastic",
-    "ES_PASS": null
+    "ES_PASS": null,
+    "INDEX" : "transactions_2020"
 }
