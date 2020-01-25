@@ -1,7 +1,10 @@
-from perfin.util.dynamodb_conn import get_user_accounts
-from perfin.util.es.es_conn import search
-from perfin.util.email.ses_conn import send_email
+import logging
 
+from perfin.util.dynamodb_conn import get_user_accounts
+# from perfin.util.es.es_conn import search
+# from perfin.util.email.ses_conn import send_email
+
+logger = logging.getLogger(__file__)
 
 '''
 	DESCRIPTION
@@ -70,5 +73,7 @@ if __name__ == '__main__':
 
 	# log.save()
 
-	for account in get_user_accounts('mzakany', 'chase'):
-		import pdb; pdb.set_trace()
+	# for account in get_user_accounts('mzakany', 'chase'):
+	# 	import pdb; pdb.set_trace()
+
+	logger.debug('this is  a log message')
