@@ -6,6 +6,7 @@ from s3fs.core import S3FileSystem
 import subprocess
 from perfin.lib.file_matching.analyzer import FileAnalyzer
 from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup
+from perfin.lib.models import PerfinUploadLog
 from perfin.util.dynamodb_conn import get_user_accounts
 from perfin.util.plaid_conn import get_transactions, get_client
 from cli.prompts import (
@@ -78,9 +79,20 @@ if __name__ == '__main__':
         if not s3.exists(s3_path):
             raise Exception(f'{s3_path} path does not exist')
         for old_filename, filename, ext in get_files(directory, '.csv'):
+            fn = os.path.basename(old_filename)
+            fn_body = fn.split('____')
+            account_name, date_range, key = fn_body
+            from_date, to_date = date_range[0:10], date_range[11:]
             rpath = f'{s3_path}/{filename}.csv'
             s3.put(old_filename, rpath)
-            print(old_filename, rpath)
+            logger.info(old_filename, rpath)
+            log = PerfinUploadLog(
+                filename=fn_body,
+                from_date=from_date,
+                to_date=to_date,
+                account_name=account_name,
+            )
+            log.save()
             # os.remove(old_filename)
 
     elif action_type == DELETE_DIR_TYPE:
@@ -110,12 +122,10 @@ if __name__ == '__main__':
                 raise Exception('you have to select an account')
 
             for account in selected_accounts:
-                _file = create_file_name(account.account_name, from_date, to_date)
-                _file = '~/Desktop/perfin_files/{}.csv'.format(_file)
-                filename = os.path.expanduser(_file)
-
+                filename = create_file_name(account.account_name, from_date, to_date)
+                full_file_path = '~/Desktop/perfin_files/{}.csv'.format(filename)
+                filename = os.path.expanduser(full_file_path)
                 transactions = get_transactions(client, account, from_date, to_date)
-
                 with open(filename, 'w+') as file:
                     fieldnames = ['date', 'description', 'amount']
                     writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -139,6 +149,7 @@ if __name__ == '__main__':
                                     'amount': amount
                                 }
                             )
+                logger.info('{} successfully created'.format(account.account_name))
 
     print('done.')
     print()
