@@ -6,9 +6,15 @@ from elasticsearch import Elasticsearch
 
 from perfin.util.s3_conn import get_s3_processed_docs
 
-from .globals import ES_NODE, ES_PASS, ES_USER, INDEX
+from .queries import (
+    average,
+    extended_stats,
+    get_query_body,
+    top_x_transactions_per_period
+)
+from ..globals import ES_NODE, ES_PASS, ES_USER, INDEX
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 perfin_schema = {
     "settings": {
@@ -87,3 +93,25 @@ def insert_all_rows(filter_key=None):
         document["group"] = row["_group"]
         write_alias = '{}_write'.format(INDEX)
         insert_document(es, write_alias, row["_id"], document)
+
+
+def search(query_name, account, equality, date_range):
+    es = get_es_connection()
+    average, extended_stats, top_x_transactions_per_period
+    lookup = {
+        'average' : average,
+        'stats' : extended_stats,
+        'top_transactions' : top_x_transactions_per_period
+    }
+
+    fn = lookup[query_name]
+    query_body = get_query_body(account, equality, date_range)
+    body = fn(query_name, query_body)
+    res = es.search(INDEX, body=body)
+    total = res['hits']['total']
+    hits = res['hits']['hits']
+    return {
+        'hits' : hits,
+        'total' : total,
+        'aggregations' : res['aggregations']
+    }

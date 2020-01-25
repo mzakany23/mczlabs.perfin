@@ -1,7 +1,8 @@
+from perfin.util.dynamodb_conn import get_accounts
+
 from plaid import Client
 
 from ..settings.base import (
-    ACCOUNT_LOOKUP,
     CLIENT_ID,
     PLAID_ENV,
     PUBLIC_KEY,
@@ -19,12 +20,11 @@ def get_client():
 
 
 def get_transactions(client, account_type, start_date, end_date):
-    if account_type not in ACCOUNT_LOOKUP:
-        return
-    item = ACCOUNT_LOOKUP[account_type]
-
+    account = [account for account in get_accounts(account_type)][0]
+    token = account.token
+    
     res = client.Transactions.get(
-        item['token'],
+        account.token,
         start_date,
         end_date,
     )
@@ -37,10 +37,10 @@ def get_transactions(client, account_type, start_date, end_date):
     current = 0
 
     current += len(trans)
-    
+
     while current < total:
-        res = client.Transactions.get(item['token'],start_date,end_date,offset=current)
+        res = client.Transactions.get(token, start_date, end_date, offset=current)
 
         current += len(res['transactions'])
-        
+
         yield res

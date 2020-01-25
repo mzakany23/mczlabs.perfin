@@ -1,3 +1,5 @@
+import logging
+
 import os
 
 import sentry_sdk
@@ -5,7 +7,7 @@ import sentry_sdk
 from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
 from .lib.file_matching.analyzer import FileAnalyzer
-from .util.es_conn import get_es_connection, insert_document
+from .util.es.es_conn import get_es_connection, insert_document
 from .util.globals import INDEX
 
 ES_CONN = get_es_connection()
@@ -14,6 +16,8 @@ sentry_key = os.environ.get('SENTRY_KEY')
 
 if sentry_key:
     sentry_sdk.init(dsn=sentry_key, debug=True, integrations=[AwsLambdaIntegration()])
+
+logger = logging.getLogger(__file__)
 
 
 def process_files(event, context, **kwargs):
@@ -35,5 +39,6 @@ def process_files(event, context, **kwargs):
                 write_alias = '{}_write'.format(INDEX)
                 insert_document(es_conn, write_alias, row["_id"], document)
     except Exception as e:
-        sentry_sdk.capture_message(str(e))
-
+        message = str(e)
+        logging.exception(message)
+        sentry_sdk.capture_message(message)

@@ -5,7 +5,7 @@ from s3fs.core import S3FileSystem
 import subprocess
 from perfin.lib.file_matching.analyzer import FileAnalyzer
 from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup
-from perfin.util.transactions import get_transactions, get_client
+from perfin.util.plaid_conn import get_transactions, get_client
 from cli.prompts import (
     show_cli_message,
     generate_prompt,
@@ -95,11 +95,11 @@ def run_cli():
                     for trans in res:
                         lookup = get_account_lookup(trans['accounts'])
                         transactions = trans['transactions']
-                        
+
                         for trans in transactions:
                             if trans['pending']:
                                 continue
-                            
+
                             amount = trans['amount']
 
                             amount *= -1
