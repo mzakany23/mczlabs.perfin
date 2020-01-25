@@ -2,23 +2,26 @@ import csv
 import logging
 import os
 import sys
-from s3fs.core import S3FileSystem
-import subprocess
+
+from cli.prompts import (
+    DELETE_DIR_TYPE,
+    GENERATE_FILE_TYPE,
+    LIST_DIR_TYPE,
+    RENAME_FILES_TYPE,
+    RUN_SPIDER_ACTION_TYPE,
+    UPLOAD_S3_TYPE,
+    generate_prompt,
+    show_cli_message,
+)
+
 from perfin.lib.file_matching.analyzer import FileAnalyzer
 from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup
 from perfin.lib.models import PerfinUploadLog
 from perfin.util.dynamodb_conn import get_user_accounts
-from perfin.util.plaid_conn import get_transactions, get_client
-from cli.prompts import (
-    show_cli_message,
-    generate_prompt,
-    LIST_DIR_TYPE,
-    RENAME_FILES_TYPE,
-    UPLOAD_S3_TYPE,
-    DELETE_DIR_TYPE,
-    RUN_SPIDER_ACTION_TYPE,
-    GENERATE_FILE_TYPE
-)
+
+from perfin.util.plaid_conn import get_client, get_transactions
+
+from s3fs.core import S3FileSystem
 
 
 logger = logging.getLogger(__file__)
@@ -42,13 +45,6 @@ if __name__ == '__main__':
     else:
         command = None
 
-    commands = ['shell']
-    if command and command in commands:
-        if command == 'shell':
-            print('Opening {} shell...'.format(ENV))
-            time.sleep(2)
-            import pdb; pdb.set_trace()
-
     show_cli_message()
 
     action_type = generate_prompt(['action_type'])
@@ -67,8 +63,8 @@ if __name__ == '__main__':
             analyzer = FileAnalyzer(header=header, filename=old_filename)
             new_filename = '{}/{}.csv'.format(directory, analyzer.policy.unique_name)
 
-            print(f'old: {old_filename}')
-            print(f'new: {new_filename}')
+            print('old: {}'.format(old_filename))
+            print('new: {}'.format(new_filename))
             os.rename(old_filename, new_filename)
             print('')
 
@@ -77,23 +73,24 @@ if __name__ == '__main__':
         directory = os.path.expanduser(directory)
         s3 = S3FileSystem(anon=False)
         if not s3.exists(s3_path):
-            raise Exception(f'{s3_path} path does not exist')
+            raise Exception('{} path does not exist'.format(s3_path))
         for old_filename, filename, ext in get_files(directory, '.csv'):
             fn = os.path.basename(old_filename)
             fn_body = fn.split('____')
             account_name, date_range, key = fn_body
             from_date, to_date = date_range[0:10], date_range[11:]
-            rpath = f'{s3_path}/{filename}.csv'
+            rpath = '{}/{}.csv'.format(s3_path, filename)
             s3.put(old_filename, rpath)
             logger.info(old_filename, rpath)
+
             log = PerfinUploadLog(
-                filename=fn_body,
+                filename=fn,
                 from_date=from_date,
                 to_date=to_date,
                 account_name=account_name,
             )
             log.save()
-            # os.remove(old_filename)
+            os.remove(old_filename)
 
     elif action_type == DELETE_DIR_TYPE:
         directory = generate_prompt(['directory'])

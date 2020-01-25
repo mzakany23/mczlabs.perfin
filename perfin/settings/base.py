@@ -11,9 +11,9 @@ from perfin.lib.models import PerfinAccount
 logger = logging.getLogger(__name__)
 
 ENV = os.environ.get('PERFIN_ENV', 'base').lower()
+PERFIN_CLI = os.environ.get('PERFIN_CLI')
 SETTINGS_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 PERFIN_CONFIG = '{}/config/{}.json'.format(SETTINGS_DIR, ENV.lower())
-
 
 def configure_logging():
     config = {
@@ -55,7 +55,8 @@ def configure_logging():
 def configure_app():
     configure_logging()
     configure_env()
-    configure_sentry()
+    if not PERFIN_CLI:
+        configure_sentry()
     log_env()
 
 
