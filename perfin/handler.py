@@ -7,8 +7,8 @@ import sentry_sdk
 from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
 from .lib.file_matching.analyzer import FileAnalyzer
+from .settings.base import INDEX
 from .util.es.es_conn import get_es_connection, insert_document
-from .util.globals import INDEX
 
 ES_CONN = get_es_connection()
 

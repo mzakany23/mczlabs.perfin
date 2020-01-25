@@ -1,9 +1,12 @@
+import json
+
 import logging
 
 import certifi
 
 from elasticsearch import Elasticsearch
 
+from perfin.settings.base import ES_NODE, ES_PASS, ES_USER, INDEX
 from perfin.util.s3_conn import get_s3_processed_docs
 
 from .queries import (
@@ -12,7 +15,7 @@ from .queries import (
     get_query_body,
     top_x_transactions_per_period
 )
-from ..globals import ES_NODE, ES_PASS, ES_USER, INDEX
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +46,7 @@ perfin_schema = {
 
 def get_es_connection(**kwargs):
     if ES_USER and ES_PASS:
+        logger.info('using non local elasticsearch:{}'.format(ES_NODE))
         params = {
             "http_auth" : (ES_USER, ES_PASS),
             "send_get_body_as" : "POST",
@@ -103,10 +107,14 @@ def search(query_name, account, equality, date_range):
         'stats' : extended_stats,
         'top_transactions' : top_x_transactions_per_period
     }
-
     fn = lookup[query_name]
     query_body = get_query_body(account, equality, date_range)
     body = fn(query_name, query_body)
+    logger.info({
+        'query_name' : query_name,
+        'index' : INDEX,
+        'query' : json.dumps(body)
+    })
     res = es.search(INDEX, body=body)
     total = res['hits']['total']
     hits = res['hits']['hits']

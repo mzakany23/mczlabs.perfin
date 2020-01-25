@@ -4,24 +4,14 @@ from perfin.util.email.ses_conn import send_email
 
 '''
 	DESCRIPTION
-		PERFIN_ENV=DEV python query.py
-		PERFIN_ENV=BASE python query.py
+		PERFIN_ENV=local python query.py
+		PERFIN_ENV=base python query.py
 
-		# defaults to base.py
+		# defaults to base
 		python query.py
 '''
 
 if __name__ == '__main__':
-    # create_table()
-    # seed_account()
-    # query_items()
-    # PerfinAccount.username=
-
-    # username = 'mzakany'
-    # account_name = 'fifth_third'
-    # for foo in get_accounts(account_name):
-    #     import pdb; pdb.set_trace()
-
 	'''
 		ideas:
 		1. periodic automated ingest
@@ -54,8 +44,10 @@ if __name__ == '__main__':
 		try and see if can get good info
 	'''
 
-	# res = search('stats', 'chase', '>0', '2020-01-01 TO *')
-	# print(res)
+	res = search('stats', 'chase', '>0', '2020-01-01 TO *')
+	print(res)
+	# print('ok')
+
 
 	# for k, v in res['aggregations'].items():
 		# import pdb; pdb.set_trace()
@@ -68,5 +60,3 @@ if __name__ == '__main__':
 	# account = 'chase'
 	# send_email(date_range, equality, account)
 	# PerfinUploadLog.create_table()
-
-	print('ok')
