@@ -1,4 +1,4 @@
-from perfin.util.dynamodb_conn import get_accounts
+from perfin.util.dynamodb_conn import get_user_accounts
 
 from plaid import Client
 
@@ -19,10 +19,9 @@ def get_client():
     )
 
 
-def get_transactions(client, account_type, start_date, end_date):
-    account = [account for account in get_accounts(account_type)][0]
+def get_transactions(client, account, start_date, end_date):
     token = account.token
-    
+
     res = client.Transactions.get(
         account.token,
         start_date,

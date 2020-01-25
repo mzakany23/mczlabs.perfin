@@ -6,6 +6,7 @@ import os
 import sentry_sdk
 from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
+from perfin.lib.models import PerfinAccount
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,9 @@ def configure_logging():
         },
         'loggers': {
             'perfin.util.es.es_conn': {
+                'level': 'INFO'
+            },
+            'perfin.lib.models.base' : {
                 'level': 'INFO'
             },
             'perfin.settings.base' : {
@@ -86,8 +90,3 @@ INDEX = os.environ.get('INDEX')
 ES_NODE = os.environ.get("ES_NODE")
 ES_USER = os.environ.get("ES_USER")
 ES_PASS = os.environ.get("ES_PASS")
-
-try:
-    ACCOUNT_LOOKUP = json.loads(os.environ.get('ACCOUNT_LOOKUP'))
-except:
-    ACCOUNT_LOOKUP = None
