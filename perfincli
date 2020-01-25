@@ -11,6 +11,7 @@ env=$1
 # fi
 
 export AWS_PROFILE=mzakany
+export PERFIN_CLI=1
 
 cd ~/Desktop/perfin
 source ~/Desktop/perfin/env/bin/activate
