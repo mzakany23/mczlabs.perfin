@@ -18,3 +18,4 @@ raven==6.10.0
 fuzzywuzzy==0.17.0
 python-Levenshtein==0.12.0
 Jinja2==2.10.3
+pynamodb==4.2.0
