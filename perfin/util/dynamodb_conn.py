@@ -1,7 +1,7 @@
 import datetime
 
 from perfin.lib.models.account import PerfinAccount
-from perfin.settings.dev import ACCOUNT_LOOKUP
+from perfin.settings.base import ACCOUNT_LOOKUP
 
 
 def seed_account():
