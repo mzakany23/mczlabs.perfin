@@ -3,12 +3,14 @@ import logging
 import sentry_sdk
 
 from .lib.file_matching.analyzer import FileAnalyzer
-from .settings.base import INDEX
+from .settings.base import load_settings
 from .util.es.es_conn import get_es_connection, insert_document
 
 ES_CONN = get_es_connection()
 
 logger = logging.getLogger(__file__)
+
+INDEX = load_settings()['INDEX']
 
 
 def process_files(event, context, **kwargs):
