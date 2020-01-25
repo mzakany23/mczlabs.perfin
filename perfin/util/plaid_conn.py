@@ -19,11 +19,11 @@ def get_client():
     )
 
 
-def get_transactions(client, account, start_date, end_date):
-    token = account.token
+def get_transactions(client, plaid_account, start_date, end_date):
+    token = plaid_account.token
 
     res = client.Transactions.get(
-        account.token,
+        plaid_account.token,
         start_date,
         end_date,
     )

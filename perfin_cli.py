@@ -110,7 +110,7 @@ if __name__ == '__main__':
                 raise Exception('you have to select an account')
 
             for account in selected_accounts:
-                _file = create_file_name(account, from_date, to_date)
+                _file = create_file_name(account.account_name, from_date, to_date)
                 _file = '~/Desktop/perfin_files/{}.csv'.format(_file)
                 filename = os.path.expanduser(_file)
 
