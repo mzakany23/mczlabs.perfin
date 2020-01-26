@@ -11,12 +11,21 @@ from perfin.util.dynamodb_conn import get_user_accounts
 
 class Prompt:
     @staticmethod
+    def es_type(*args, **kwargs):
+        return inquirer.List('es_type',
+          message="Select ES Action",
+          choices=ES_ACTIONS,
+          default=ES_ACTIONS[0]
+        )
+
+    @staticmethod
     def username(*args, **kwargs):
         return inquirer.List('username',
           message="Select a user",
           choices=USERS,
           default=USERS[0]
         )
+
     @staticmethod
     def from_date(*args, **kwargs):
         now = datetime.datetime.now()
@@ -138,19 +147,20 @@ DELETE_DIR_TYPE = "delete_files -> delete files from local file directory"
 LIST_DIR_TYPE = "list_files -> list files from local file directory"
 DOWNLOAD_TRANSACTION_TYPE = "download_account_data -> use plaid api"
 GENERATE_FILE_TYPE = 'generate csv'
+ES_CONN_TYPE = 'manage_elasticsearch -> manage elasticsearch'
+DEPLOY_TYPE = 'serverless_deploy -> deploy new version'
 
 ACTION_TYPES = [
   LIST_DIR_TYPE,
   UPLOAD_S3_TYPE,
   # RENAME_FILES_TYPE,
   DELETE_DIR_TYPE,
-  DOWNLOAD_TRANSACTION_TYPE
+  DOWNLOAD_TRANSACTION_TYPE,
+  ES_CONN_TYPE,
+  DEPLOY_TYPE
 ]
+ES_ACTIONS = ['recreate_index']
 USERS = ['mzakany']
-SPIDER_ACTION_TYPES = [
-  GENERATE_FILE_TYPE
-]
-
 DIRECTORY_TYPES = ['~/Desktop/perfin_files']
 S3_PATH_TYPES = ['mzakany-perfin']
 DATE_TYPES = ['all'] + last_x_days(5, '%m-%d-%Y')

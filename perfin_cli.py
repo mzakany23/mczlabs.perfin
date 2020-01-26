@@ -5,6 +5,8 @@ import sys
 
 from cli.prompts import (
     DELETE_DIR_TYPE,
+    DEPLOY_TYPE,
+    ES_CONN_TYPE,
     GENERATE_FILE_TYPE,
     LIST_DIR_TYPE,
     RENAME_FILES_TYPE,
@@ -14,6 +16,7 @@ from cli.prompts import (
     show_cli_message,
 )
 
+from perfin.util.es.es_conn import create_index, get_es_config
 from perfin.lib.file_matching.analyzer import FileAnalyzer
 from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup
 from perfin.util.dynamodb_conn import get_user_accounts
@@ -66,6 +69,18 @@ if __name__ == '__main__':
             print('new: {}'.format(new_filename))
             os.rename(old_filename, new_filename)
             print('')
+    elif action_type == DEPLOY_TYPE:
+        confirm = generate_prompt(['confirm'])
+        if confirm:
+            env = os.environ['PERFIN_ENV']
+            logger.info('deploying {}'.format(env))
+            os.system('AWS_PROFILE=mzakany serverless deploy --stage {}'.format(env.lower()))
+    elif action_type == ES_CONN_TYPE:
+        es_type = generate_prompt(['es_type'])
+        if es_type == 'recreate_index':
+            index = get_es_config()[3]
+            # logger.info('creating index {}'.format(index))
+            create_index()
 
     elif action_type == UPLOAD_S3_TYPE:
         s3_path, directory = generate_prompt(['s3_paths', 'directory'])

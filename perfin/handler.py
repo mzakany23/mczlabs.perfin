@@ -25,6 +25,7 @@ def process_files(event, context, **kwargs):
             file_paths.append(file_path)
 
         for file_path in file_paths:
+            logger.info('inserting file_path {}'.format(file_path))
             analyzer = FileAnalyzer(file_path=file_path, trim_field='description')
             for row in analyzer.get_rows():
                 document = row["document"]

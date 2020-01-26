@@ -1,6 +1,9 @@
 {
     "ES_NODE": "http://localhost:9200",
-    "ES_USER": "elastic",
-    "ES_PASS": null,
-    "INDEX" : "transactions_2020"
+    "INDEX" : "transactions_2020_local",
+    "RESERVED": 10,
+	"CLIENT_ID" : "5cca1cf6f3f60100126bd097",
+	"SECRET" : "009e9533afb5de4da1957e9d21043b",
+	"PUBLIC_KEY" : "c5f75709bac4f803f7654b79fe4c13",
+	"PLAID_ENV" : "development"
 }

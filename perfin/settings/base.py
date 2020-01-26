@@ -11,13 +11,14 @@ from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
 logger = logging.getLogger(__name__)
 
-ENV = os.environ.get('PERFIN_ENV', 'base').lower()
-PERFIN_CLI = os.environ.get('PERFIN_CLI')
+ENV = os.environ.get('PERFIN_ENV', 'dev').lower()
+LOCAL_ENV = ENV == 'local'
+DEACTIVATE_SENTRY = os.environ.get('DEACTIVATE_SENTRY')
 SETTINGS_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 PERFIN_CONFIG = '{}/config/{}.json'.format(SETTINGS_DIR, ENV.lower())
 
 
-def configure_logging():
+def get_es_handler():
     es_node = os.environ.get('ES_NODE')
     es_user = os.environ.get('ES_USER')
     es_pass = os.environ.get('ES_PASS')
@@ -30,6 +31,24 @@ def configure_logging():
     else:
         use_ssl = False
 
+    return {
+        'level' : 'INFO',
+        'class': 'cmreslogging.handlers.CMRESHandler',
+        'hosts': [
+            {
+                'host': es_url,
+                'port' : es_port,
+            }
+        ],
+        'auth_details' : (es_user, es_pass),
+        'es_index_name': 'perfin_app_logs',
+        'es_additional_fields': {'enviornment': ENV},
+        'auth_type': CMRESHandler.AuthType.BASIC_AUTH,
+        'use_ssl': use_ssl,
+    }
+
+
+def configure_logging():
     config = {
         'version': 1,
         'formatters': {
@@ -41,26 +60,11 @@ def configure_logging():
             'console': {
                 'class': 'logging.StreamHandler',
                 'formatter': 'simple'
-            },
-            'elasticsearch' : {
-                'level' : 'INFO',
-                'class': 'cmreslogging.handlers.CMRESHandler',
-                'hosts': [
-                    {
-                        'host': es_url,
-                        'port' : es_port,
-                    }
-                ],
-                'auth_details' : (es_user, es_pass),
-                'es_index_name': 'perfin_app_logs',
-                'es_additional_fields': {'enviornment': ENV},
-                'auth_type': CMRESHandler.AuthType.BASIC_AUTH,
-                'use_ssl': use_ssl,
             }
         },
         'root': {
             'level': 'ERROR',
-            'handlers': ['console', 'elasticsearch']
+            'handlers': ['console']
         },
         'loggers': {
             'perfin.util.es.es_conn': {
@@ -71,9 +75,16 @@ def configure_logging():
             },
             'perfin.lib' : {
                 'level': 'INFO'
+            },
+            'query' : {
+                'level' : 'INFO'
             }
         }
     }
+
+    if os.environ.get('ES_NODE'):
+        config['handlers']['elasticsearch'] = get_es_handler()
+        config['root']['handlers'].append('elasticsearch')
 
     logging.config.dictConfig(config)
 
@@ -81,7 +92,7 @@ def configure_logging():
 def configure_app():
     configure_env()
     configure_logging()
-    if not PERFIN_CLI:
+    if not LOCAL_ENV or not DEACTIVATE_SENTRY:
         configure_sentry()
     log_env()
 
