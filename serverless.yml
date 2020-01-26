@@ -2,6 +2,15 @@ service: perfin
 
 provider:
   name: aws
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 's3:List'
+      Resource:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:s3:::'
+            - Ref: ServerlessDeploymentBucket
   stage: ${opt:stage, 'dev'}
   runtime: python3.7
   environment:
@@ -40,6 +49,9 @@ custom:
 functions:
   ingest_files:
     handler: perfin.handler.process_files
+    description: Uploads files from S3 into Elasticsearch
+    timeout: 30
+    reservedConcurrency: 10
     events:
       - s3:
           bucket: mzakany-perfin

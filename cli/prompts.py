@@ -12,7 +12,7 @@ from perfin.util.dynamodb_conn import get_user_accounts
 class Prompt:
     @staticmethod
     def local_file_type(*args, **kwargs):
-        _types = ['list', 'delete', 'upload_to_s3']
+        _types = ['list', 'delete']
         return inquirer.List('local_file_type',
           message="Select local file cmd",
           choices=_types,
