@@ -20,15 +20,15 @@ from .queries import (
 logger = logging.getLogger(__name__)
 
 
-def get_schema():
+def get_schema(index):
     return  {
         "settings": {
             "number_of_shards": 2,
             "max_result_window": 1000000
         },
         "aliases" : {
-            "{}_read".format(INDEX) : {},
-            "{}_write".format(INDEX) : {},
+            "{}_read".format(index) : {},
+            "{}_write".format(index) : {},
         },
         "mappings": {
             "default": {
@@ -47,6 +47,15 @@ def get_schema():
 
 
 def get_es_config():
+    '''
+        DESCRIPTION
+        es_node, es_user, es_pass, index = (
+            settings['ES_NODE'],
+            settings['ES_USER'],
+            settings['ES_PASS'],
+            settings['INDEX']
+        )
+    '''
     settings = load_settings()
     return (
         settings['ES_NODE'],
@@ -76,7 +85,17 @@ def get_es_connection(**kwargs):
     return None
 
 
-def create_index(es, index_name, schema):
+def create_index(*args):
+    if len(args) == 3:
+        es, index_name, schema = args
+    else:
+        es_node, es_user, es_pass, index_name = get_es_config()
+        es = get_es_connection()
+        schema = get_schema(index_name)
+
+    if es.indices.exists(index_name):
+        logger.info('host {} and index {} exists!'.format(es_node, index_name))
+        return
     return es.indices.create(
         index=index_name,
         body=schema)
