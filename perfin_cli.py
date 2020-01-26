@@ -8,7 +8,7 @@ from cli.prompts import (
     GENERATE_FILE_TYPE,
     LIST_DIR_TYPE,
     RENAME_FILES_TYPE,
-    RUN_SPIDER_ACTION_TYPE,
+    DOWNLOAD_TRANSACTION_TYPE,
     UPLOAD_S3_TYPE,
     generate_prompt,
     show_cli_message,
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         for lpath, filename, ext in get_files(directory, '.csv'):
             print(lpath)
 
-    elif action_type == RUN_SPIDER_ACTION_TYPE:
+    elif action_type == DOWNLOAD_TRANSACTION_TYPE:
         account_action = generate_prompt(['account_action'])
         if account_action == GENERATE_FILE_TYPE:
             username, from_date, to_date = generate_prompt(['username', 'from_date', 'to_date'])

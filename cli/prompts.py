@@ -107,7 +107,8 @@ class bcolors:
 
 
 def show_cli_message():
-    message = 'Perfin CLI'
+    env = os.environ.get('PERFIN_ENV', 'PROD')
+    message = 'Perfin CLI {}'.format(env)
     ascii_banner = pyfiglet.figlet_format(message)
     print(ascii_banner)
 
@@ -131,11 +132,11 @@ NOW = datetime.datetime.utcnow()
 TODAY = NOW.strftime('%m-%d-%Y')
 
 
-RENAME_FILES_TYPE = f"rename_files -> rename all files in directory"
-UPLOAD_S3_TYPE = f"upload_s3 -> upload your files to s3 directory"
-DELETE_DIR_TYPE = f"delete_files -> delete files from local file directory"
-LIST_DIR_TYPE = f"list_files -> list files from local file directory"
-RUN_SPIDER_ACTION_TYPE = f"download_account_data -> use plaid api"
+RENAME_FILES_TYPE = "rename_files -> rename all files in directory"
+UPLOAD_S3_TYPE = "upload_s3 -> upload your files to s3 directory"
+DELETE_DIR_TYPE = "delete_files -> delete files from local file directory"
+LIST_DIR_TYPE = "list_files -> list files from local file directory"
+DOWNLOAD_TRANSACTION_TYPE = "download_account_data -> use plaid api"
 GENERATE_FILE_TYPE = 'generate csv'
 
 ACTION_TYPES = [
@@ -143,7 +144,7 @@ ACTION_TYPES = [
   UPLOAD_S3_TYPE,
   # RENAME_FILES_TYPE,
   DELETE_DIR_TYPE,
-  RUN_SPIDER_ACTION_TYPE
+  DOWNLOAD_TRANSACTION_TYPE
 ]
 USERS = ['mzakany']
 SPIDER_ACTION_TYPES = [
