@@ -16,7 +16,6 @@ from cli.prompts import (
 
 from perfin.lib.file_matching.analyzer import FileAnalyzer
 from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup
-from perfin.lib.models import PerfinUploadLog
 from perfin.util.dynamodb_conn import get_user_accounts
 
 from perfin.util.plaid_conn import get_client, get_transactions
@@ -24,7 +23,7 @@ from perfin.util.plaid_conn import get_client, get_transactions
 from s3fs.core import S3FileSystem
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 def get_files(directory, file_type):
@@ -82,13 +81,6 @@ if __name__ == '__main__':
             rpath = '{}/{}.csv'.format(s3_path, filename)
             s3.put(old_filename, rpath)
             logger.info(old_filename, rpath)
-
-            log = PerfinUploadLog(
-                filename=fn,
-                from_date=from_date,
-                to_date=to_date,
-                account_name=account_name,
-            )
             log.save()
             os.remove(old_filename)
 
