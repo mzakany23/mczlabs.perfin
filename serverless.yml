@@ -3,25 +3,23 @@ service: perfin
 provider:
   name: aws
   iamRoleStatements:
-    - Effect: 'Allow'
+    - Effect: Allow
       Action:
-        - 's3:List'
-      Resource:
-        Fn::Join:
-          - ''
-          - - 'arn:aws:s3:::'
-            - Ref: ServerlessDeploymentBucket
+        - s3:*
+      Resource: "*"
   stage: ${opt:stage, 'dev'}
   runtime: python3.7
   environment:
     ES_NODE: ${file(./config/${self:provider.stage}.json):ES_NODE}
     ES_USER: ${file(./config/${self:provider.stage}.json):ES_USER, ''}
     ES_PASS: ${file(./config/${self:provider.stage}.json):ES_PASS, ''}
+    INDEX: ${file(./config/${self:provider.stage}.json):INDEX, ''}
     SENTRY_KEY: ${file(./config/${self:provider.stage}.json):SENTRY_KEY, ''}
     CLIENT_ID : ${file(./config/${self:provider.stage}.json):CLIENT_ID, ''}
     SECRET : ${file(./config/${self:provider.stage}.json):SECRET, ''}
     PUBLIC_KEY : ${file(./config/${self:provider.stage}.json):PUBLIC_KEY, ''}
     PLAID_ENV : ${file(./config/${self:provider.stage}.json):PLAID_ENV, ''}
+
 package:
  include:
    - perfin/util/**
@@ -57,5 +55,6 @@ functions:
           bucket: mzakany-perfin
           event: s3:ObjectCreated:*
           existing: true
+
 plugins:
   - serverless-python-requirements
