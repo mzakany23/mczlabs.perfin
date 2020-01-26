@@ -31,6 +31,11 @@ def get_s3_rows(file_path):
 
 
 def get_s3_full_file_paths(directory, filter_key=None):
+    '''
+        DESCRIPTION
+            get_s3_full_file_paths(directory, filter_key='chase')
+            get_s3_full_file_paths(directory, filter_key='fifth_third')
+    '''
     for s3_file_path in S3.ls(directory):
         if filter_key:
             if filter_key in s3_file_path:

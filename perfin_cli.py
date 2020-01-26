@@ -5,18 +5,20 @@ import sys
 
 from cli.prompts import (
     DELETE_DIR_TYPE,
+    DEPLOY_TYPE,
+    ES_CONN_TYPE,
     GENERATE_FILE_TYPE,
     LIST_DIR_TYPE,
     RENAME_FILES_TYPE,
-    RUN_SPIDER_ACTION_TYPE,
+    DOWNLOAD_TRANSACTION_TYPE,
     UPLOAD_S3_TYPE,
     generate_prompt,
     show_cli_message,
 )
 
+from perfin.util.es.es_conn import create_index, get_es_config
 from perfin.lib.file_matching.analyzer import FileAnalyzer
 from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup
-from perfin.lib.models import PerfinUploadLog
 from perfin.util.dynamodb_conn import get_user_accounts
 
 from perfin.util.plaid_conn import get_client, get_transactions
@@ -24,7 +26,7 @@ from perfin.util.plaid_conn import get_client, get_transactions
 from s3fs.core import S3FileSystem
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 def get_files(directory, file_type):
@@ -67,6 +69,18 @@ if __name__ == '__main__':
             print('new: {}'.format(new_filename))
             os.rename(old_filename, new_filename)
             print('')
+    elif action_type == DEPLOY_TYPE:
+        confirm = generate_prompt(['confirm'])
+        if confirm:
+            env = os.environ['PERFIN_ENV']
+            logger.info('deploying {}'.format(env))
+            os.system('AWS_PROFILE=mzakany serverless deploy --stage {}'.format(env.lower()))
+    elif action_type == ES_CONN_TYPE:
+        es_type = generate_prompt(['es_type'])
+        if es_type == 'recreate_index':
+            index = get_es_config()[3]
+            # logger.info('creating index {}'.format(index))
+            create_index()
 
     elif action_type == UPLOAD_S3_TYPE:
         s3_path, directory = generate_prompt(['s3_paths', 'directory'])
@@ -82,13 +96,6 @@ if __name__ == '__main__':
             rpath = '{}/{}.csv'.format(s3_path, filename)
             s3.put(old_filename, rpath)
             logger.info(old_filename, rpath)
-
-            log = PerfinUploadLog(
-                filename=fn,
-                from_date=from_date,
-                to_date=to_date,
-                account_name=account_name,
-            )
             log.save()
             os.remove(old_filename)
 
@@ -106,7 +113,7 @@ if __name__ == '__main__':
         for lpath, filename, ext in get_files(directory, '.csv'):
             print(lpath)
 
-    elif action_type == RUN_SPIDER_ACTION_TYPE:
+    elif action_type == DOWNLOAD_TRANSACTION_TYPE:
         account_action = generate_prompt(['account_action'])
         if account_action == GENERATE_FILE_TYPE:
             username, from_date, to_date = generate_prompt(['username', 'from_date', 'to_date'])
