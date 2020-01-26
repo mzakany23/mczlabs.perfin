@@ -43,6 +43,7 @@ def configure_logging():
                 'formatter': 'simple'
             },
             'elasticsearch' : {
+                'level' : 'INFO',
                 'class': 'cmreslogging.handlers.CMRESHandler',
                 'hosts': [
                     {
@@ -59,7 +60,7 @@ def configure_logging():
         },
         'root': {
             'level': 'ERROR',
-            'handlers': ['console']
+            'handlers': ['console', 'elasticsearch']
         },
         'loggers': {
             'perfin.util.es.es_conn': {
@@ -70,10 +71,6 @@ def configure_logging():
             },
             'perfin.lib' : {
                 'level': 'INFO'
-            },
-            'perfin.settings.base' : {
-                'handlers' : ['elasticsearch'],
-                'level' : 'INFO'
             }
         }
     }

@@ -1,12 +1,15 @@
-from perfin.util.dynamodb_conn import get_user_accounts
-
 from plaid import Client
 
-from ..settings.base import (
-    CLIENT_ID,
-    PLAID_ENV,
-    PUBLIC_KEY,
-    SECRET
+from ..settings.base import load_settings
+
+
+settings = load_settings()
+
+CLIENT_ID, SECRET, PUBLIC_KEY, PLAID_ENV = (
+    settings['CLIENT_ID'],
+    settings['SECRET'],
+    settings['PUBLIC_KEY'],
+    settings['PLAID_ENV']
 )
 
 

@@ -60,7 +60,7 @@ def get_es_connection(**kwargs):
     es_node, es_user, es_pass, index = get_es_config()
 
     if es_user and es_pass:
-        logger.info('using non local elasticsearch:{}'.format(es_node))
+        logger.debug('using non local elasticsearch:{}'.format(es_node))
         params = {
             "http_auth" : (es_user, es_pass),
             "send_get_body_as" : "POST",
@@ -70,7 +70,7 @@ def get_es_connection(**kwargs):
         }
         return Elasticsearch([es_node], **params)
     else:
-        logger.info('using test elasticsearch')
+        logger.debug('using test elasticsearch')
         return Elasticsearch(['http://localhost:9200'])
 
     return None
