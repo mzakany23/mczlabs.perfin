@@ -12,7 +12,6 @@ from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 logger = logging.getLogger(__name__)
 
 ENV = os.environ.get('PERFIN_ENV', 'dev').lower()
-LOCAL_ENV = ENV == 'local'
 DEACTIVATE_SENTRY = os.environ.get('DEACTIVATE_SENTRY')
 SETTINGS_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 PERFIN_CONFIG = '{}/config/{}.json'.format(SETTINGS_DIR, ENV.lower())
@@ -68,13 +67,15 @@ def configure_logging():
         },
         'loggers': {
             'perfin.util.es.es_conn': {
-                'level': 'INFO'
+                'level': 'INFO',
+                'handlers' : ['console', 'elasticsearch']
             },
             'perfin.lib.models.base' : {
                 'level': 'INFO'
             },
             'perfin.lib' : {
-                'level': 'INFO'
+                'level': 'INFO',
+                'handlers' : ['console', 'elasticsearch']
             },
             'query' : {
                 'level' : 'INFO'
@@ -92,7 +93,7 @@ def configure_logging():
 def configure_app():
     configure_env()
     configure_logging()
-    if not LOCAL_ENV or not DEACTIVATE_SENTRY:
+    if not DEACTIVATE_SENTRY:
         configure_sentry()
     log_env()
 

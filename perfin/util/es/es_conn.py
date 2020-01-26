@@ -66,7 +66,7 @@ def get_es_config():
 
 
 def get_es_connection(**kwargs):
-    es_node, es_user, es_pass, index = get_es_config()
+    es_node, es_user, es_pass, index_name = get_es_config()
 
     if es_user and es_pass:
         logger.debug('using non local elasticsearch:{}'.format(es_node))
@@ -124,7 +124,9 @@ def insert_all_rows(index, filter_key=None):
     bucket = 'mzakany-perfin'
     path = '{}/original_archive'.format(bucket)
     es = get_es_connection()
+    logger.info('uploading {}'.format(path))
     for row in get_s3_processed_docs(path, filter_key=filter_key):
+        logger.info(row)
         document = row["document"]
         document["group"] = row["_group"]
         write_alias = '{}_write'.format(index)

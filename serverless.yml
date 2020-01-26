@@ -40,6 +40,10 @@ custom:
 functions:
   ingest_files:
     handler: perfin.handler.process_files
-
+    events:
+      - s3:
+          bucket: mzakany-perfin
+          event: s3:ObjectCreated:*
+          existing: true
 plugins:
   - serverless-python-requirements
