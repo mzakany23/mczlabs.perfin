@@ -11,6 +11,15 @@ from perfin.util.dynamodb_conn import get_user_accounts
 
 class Prompt:
     @staticmethod
+    def serverless_cmd(*args, **kwargs):
+        _types = ['deploy', 'remove']
+        return inquirer.List('serverless_cmd',
+          message="Select serverless command",
+          choices=_types,
+          default=_types[0]
+        )
+
+    @staticmethod
     def es_type(*args, **kwargs):
         return inquirer.List('es_type',
           message="Select ES Action",
@@ -148,7 +157,7 @@ LIST_DIR_TYPE = "list_files -> list files from local file directory"
 DOWNLOAD_TRANSACTION_TYPE = "download_account_data -> use plaid api"
 GENERATE_FILE_TYPE = 'generate csv'
 ES_CONN_TYPE = 'manage_elasticsearch -> manage elasticsearch'
-DEPLOY_TYPE = 'serverless_deploy -> deploy new version'
+DEPLOY_TYPE = 'deployments -> run a serverless command'
 
 ACTION_TYPES = [
   LIST_DIR_TYPE,
