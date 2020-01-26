@@ -6,9 +6,10 @@ import sys
 from cli.prompts import (
     LOCAL_FILES_TYPE,
     DEPLOY_TYPE,
+    DOWNLOAD_TRANSACTION_TYPE,
     ES_CONN_TYPE,
     GENERATE_FILE_TYPE,
-    DOWNLOAD_TRANSACTION_TYPE,
+    UPLOAD_S3_TYPE,
     generate_prompt,
     show_cli_message,
 )
@@ -62,6 +63,21 @@ if __name__ == '__main__':
             if env == 'local':
                 raise Exception("you can't deploy local to serverless!")
             os.system('AWS_PROFILE=mzakany serverless {} --stage {}'.format(cmd, env.lower()))
+    elif action_type == UPLOAD_S3_TYPE:
+        s3_path, directory = generate_prompt(['s3_paths', 'directory'])
+        directory = os.path.expanduser(directory)
+        s3 = S3FileSystem(anon=False)
+        if not s3.exists(s3_path):
+            raise Exception('{} path does not exist'.format(s3_path))
+        for old_filename, filename, ext in get_files(directory, '.csv'):
+            fn = os.path.basename(old_filename)
+            fn_body = fn.split('____')
+            account_name, date_range, key = fn_body
+            from_date, to_date = date_range[0:10], date_range[11:]
+            rpath = '{}/{}.csv'.format(s3_path, filename)
+            s3.put(old_filename, rpath)
+            logger.info(old_filename, rpath)
+            # os.remove(old_filename)
     elif action_type == ES_CONN_TYPE:
         es_type = generate_prompt(['es_type'])
         if es_type == 'recreate_index':
@@ -86,22 +102,6 @@ if __name__ == '__main__':
             if confirmation:
                 for old_filename, filename, ext in get_files(directory, '.csv'):
                     os.remove(old_filename)
-        elif local_file_type == 'upload_to_s3':
-            s3_path, directory = generate_prompt(['s3_paths', 'directory'])
-            directory = os.path.expanduser(directory)
-            s3 = S3FileSystem(anon=False)
-            if not s3.exists(s3_path):
-                raise Exception('{} path does not exist'.format(s3_path))
-            for old_filename, filename, ext in get_files(directory, '.csv'):
-                fn = os.path.basename(old_filename)
-                fn_body = fn.split('____')
-                account_name, date_range, key = fn_body
-                from_date, to_date = date_range[0:10], date_range[11:]
-                rpath = '{}/{}.csv'.format(s3_path, filename)
-                s3.put(old_filename, rpath)
-                logger.info(old_filename, rpath)
-                os.remove(old_filename)
-
     elif action_type == DOWNLOAD_TRANSACTION_TYPE:
         account_action = generate_prompt(['account_action'])
         if account_action == GENERATE_FILE_TYPE:
