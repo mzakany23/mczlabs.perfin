@@ -38,7 +38,7 @@ custom:
     dockerizePip: true
 
 functions:
-  perfin_ingest:
+  ingest_files:
     handler: perfin.handler.process_files
 
 plugins:

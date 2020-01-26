@@ -70,11 +70,17 @@ if __name__ == '__main__':
             os.rename(old_filename, new_filename)
             print('')
     elif action_type == DEPLOY_TYPE:
-        confirm = generate_prompt(['confirm'])
+        serverless_cmd = generate_prompt(['serverless_cmd'])
+        if serverless_cmd == 'deploy':
+            cmd = 'deploy'
+        elif serverless_cmd == 'remove':
+            if serverless_cmd == 'remove':
+                cmd = 'remove'
+
         if confirm:
             env = os.environ['PERFIN_ENV']
             logger.info('deploying {}'.format(env))
-            os.system('AWS_PROFILE=mzakany serverless deploy --stage {}'.format(env.lower()))
+            os.system('AWS_PROFILE=mzakany serverless {} --stage {}'.format(cmd, env.lower()))
     elif action_type == ES_CONN_TYPE:
         es_type = generate_prompt(['es_type'])
         if es_type == 'recreate_index':
