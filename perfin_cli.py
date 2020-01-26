@@ -4,19 +4,16 @@ import os
 import sys
 
 from cli.prompts import (
-    DELETE_DIR_TYPE,
+    LOCAL_FILES_TYPE,
     DEPLOY_TYPE,
     ES_CONN_TYPE,
     GENERATE_FILE_TYPE,
-    LIST_DIR_TYPE,
-    RENAME_FILES_TYPE,
     DOWNLOAD_TRANSACTION_TYPE,
-    UPLOAD_S3_TYPE,
     generate_prompt,
     show_cli_message,
 )
 
-from perfin.util.es.es_conn import create_index, get_es_config
+from perfin.util.es.es_conn import create_index, get_es_config, insert_all_rows
 from perfin.lib.file_matching.analyzer import FileAnalyzer
 from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup
 from perfin.util.dynamodb_conn import get_user_accounts
@@ -51,73 +48,59 @@ if __name__ == '__main__':
 
     action_type = generate_prompt(['action_type'])
 
-    if action_type == RENAME_FILES_TYPE:
-        report = generate_prompt(['directory'])
-        if report == 'custom directory':
-            directory = generate_prompt(['custom_directory'])
-        else:
-            directory = os.path.expanduser(report)
-
-        for old_filename, filename, ext in get_files(directory, '.csv'):
-            analyzer = FileAnalyzer(file_path=old_filename)
-            reader = analyzer.open_and_yield_csv_row(old_filename)
-            header = next(reader, None)
-            analyzer = FileAnalyzer(header=header, filename=old_filename)
-            new_filename = '{}/{}.csv'.format(directory, analyzer.policy.unique_name)
-
-            print('old: {}'.format(old_filename))
-            print('new: {}'.format(new_filename))
-            os.rename(old_filename, new_filename)
-            print('')
-    elif action_type == DEPLOY_TYPE:
+    if action_type == DEPLOY_TYPE:
         serverless_cmd = generate_prompt(['serverless_cmd'])
         if serverless_cmd == 'deploy':
             cmd = 'deploy'
         elif serverless_cmd == 'remove':
             if serverless_cmd == 'remove':
                 cmd = 'remove'
-
+        confirm = generate_prompt(['confirm'])
         if confirm:
             env = os.environ['PERFIN_ENV']
             logger.info('deploying {}'.format(env))
+            if env == 'local':
+                raise Exception("you can't deploy local to serverless!")
             os.system('AWS_PROFILE=mzakany serverless {} --stage {}'.format(cmd, env.lower()))
     elif action_type == ES_CONN_TYPE:
         es_type = generate_prompt(['es_type'])
         if es_type == 'recreate_index':
             index = get_es_config()[3]
-            # logger.info('creating index {}'.format(index))
+            logger.info('creating index {}'.format(index))
             create_index()
-
-    elif action_type == UPLOAD_S3_TYPE:
-        s3_path, directory = generate_prompt(['s3_paths', 'directory'])
-        directory = os.path.expanduser(directory)
-        s3 = S3FileSystem(anon=False)
-        if not s3.exists(s3_path):
-            raise Exception('{} path does not exist'.format(s3_path))
-        for old_filename, filename, ext in get_files(directory, '.csv'):
-            fn = os.path.basename(old_filename)
-            fn_body = fn.split('____')
-            account_name, date_range, key = fn_body
-            from_date, to_date = date_range[0:10], date_range[11:]
-            rpath = '{}/{}.csv'.format(s3_path, filename)
-            s3.put(old_filename, rpath)
-            logger.info(old_filename, rpath)
-            log.save()
-            os.remove(old_filename)
-
-    elif action_type == DELETE_DIR_TYPE:
-        directory = generate_prompt(['directory'])
-        directory = os.path.expanduser(directory)
-        confirmation = generate_prompt(['confirm'])
-        if confirmation:
+        elif es_type == 'seed_files_from_s3':
+            index = get_es_config()[3]
+            logger.info('seeding index {}'.format(index))
+            insert_all_rows(index, filter_key=None)
+    elif action_type == LOCAL_FILES_TYPE:
+        local_file_type = generate_prompt(['local_file_type'])
+        if local_file_type == 'list':
+            directory = generate_prompt(['directory'])
+            directory = os.path.expanduser(directory)
+            for lpath, filename, ext in get_files(directory, '.csv'):
+                print(lpath)
+        elif local_file_type == 'delete':
+            directory = generate_prompt(['directory'])
+            directory = os.path.expanduser(directory)
+            confirmation = generate_prompt(['confirm'])
+            if confirmation:
+                for old_filename, filename, ext in get_files(directory, '.csv'):
+                    os.remove(old_filename)
+        elif local_file_type == 'upload_to_s3':
+            s3_path, directory = generate_prompt(['s3_paths', 'directory'])
+            directory = os.path.expanduser(directory)
+            s3 = S3FileSystem(anon=False)
+            if not s3.exists(s3_path):
+                raise Exception('{} path does not exist'.format(s3_path))
             for old_filename, filename, ext in get_files(directory, '.csv'):
+                fn = os.path.basename(old_filename)
+                fn_body = fn.split('____')
+                account_name, date_range, key = fn_body
+                from_date, to_date = date_range[0:10], date_range[11:]
+                rpath = '{}/{}.csv'.format(s3_path, filename)
+                s3.put(old_filename, rpath)
+                logger.info(old_filename, rpath)
                 os.remove(old_filename)
-
-    elif action_type == LIST_DIR_TYPE:
-        directory = generate_prompt(['directory'])
-        directory = os.path.expanduser(directory)
-        for lpath, filename, ext in get_files(directory, '.csv'):
-            print(lpath)
 
     elif action_type == DOWNLOAD_TRANSACTION_TYPE:
         account_action = generate_prompt(['account_action'])
@@ -160,6 +143,3 @@ if __name__ == '__main__':
                                 }
                             )
                 logger.info('{} successfully created'.format(account.account_name))
-
-    print('done.')
-    print()

@@ -11,6 +11,15 @@ from perfin.util.dynamodb_conn import get_user_accounts
 
 class Prompt:
     @staticmethod
+    def local_file_type(*args, **kwargs):
+        _types = ['list', 'delete', 'upload_to_s3']
+        return inquirer.List('local_file_type',
+          message="Select local file cmd",
+          choices=_types,
+          default=_types[0]
+        )
+
+    @staticmethod
     def serverless_cmd(*args, **kwargs):
         _types = ['deploy', 'remove']
         return inquirer.List('serverless_cmd',
@@ -57,8 +66,8 @@ class Prompt:
     def account_action(*args, **kwargs):
         return inquirer.List('account_action',
           message="Choose action",
-          choices=SPIDER_ACTION_TYPES,
-          default=SPIDER_ACTION_TYPES[0]
+          choices=TRANSACTION_TYPES,
+          default=TRANSACTION_TYPES[0]
         )
 
     @staticmethod
@@ -149,26 +158,22 @@ def last_x_days(num, fmt):
 NOW = datetime.datetime.utcnow()
 TODAY = NOW.strftime('%m-%d-%Y')
 
-
-RENAME_FILES_TYPE = "rename_files -> rename all files in directory"
-UPLOAD_S3_TYPE = "upload_s3 -> upload your files to s3 directory"
-DELETE_DIR_TYPE = "delete_files -> delete files from local file directory"
-LIST_DIR_TYPE = "list_files -> list files from local file directory"
-DOWNLOAD_TRANSACTION_TYPE = "download_account_data -> use plaid api"
-GENERATE_FILE_TYPE = 'generate csv'
-ES_CONN_TYPE = 'manage_elasticsearch -> manage elasticsearch'
-DEPLOY_TYPE = 'deployments -> run a serverless command'
+LOCAL_FILES_TYPE = "local_files -> manage local files"
+DOWNLOAD_TRANSACTION_TYPE = "plaid -> download account data"
+GENERATE_FILE_TYPE = 'generate_csv -> generate a csv'
+UPLOAD_S3_TYPE = "s3 -> upload files to s3"
+ES_CONN_TYPE = 'elasticsearch -> manage elasticsearch'
+DEPLOY_TYPE = 'serverless -> run a serverless command'
 
 ACTION_TYPES = [
-  LIST_DIR_TYPE,
+  LOCAL_FILES_TYPE,
   UPLOAD_S3_TYPE,
-  # RENAME_FILES_TYPE,
-  DELETE_DIR_TYPE,
   DOWNLOAD_TRANSACTION_TYPE,
   ES_CONN_TYPE,
   DEPLOY_TYPE
 ]
-ES_ACTIONS = ['recreate_index']
+TRANSACTION_TYPES = [GENERATE_FILE_TYPE]
+ES_ACTIONS = ['recreate_index', 'seed_files_from_s3']
 USERS = ['mzakany']
 DIRECTORY_TYPES = ['~/Desktop/perfin_files']
 S3_PATH_TYPES = ['mzakany-perfin']
