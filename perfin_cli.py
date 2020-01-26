@@ -35,6 +35,12 @@ def get_files(directory, file_type):
             yield full_path, filename, file_extension
 
 
+def list_local_files(directory):
+    directory = os.path.expanduser(directory)
+    for lpath, filename, ext in get_files(directory, '.csv'):
+        print(lpath)
+
+
 if __name__ == '__main__':
     args = sys.argv
 
@@ -65,19 +71,24 @@ if __name__ == '__main__':
             os.system('AWS_PROFILE=mzakany serverless {} --stage {}'.format(cmd, env.lower()))
     elif action_type == UPLOAD_S3_TYPE:
         s3_path, directory = generate_prompt(['s3_paths', 'directory'])
+        list_local_files(directory)
         directory = os.path.expanduser(directory)
         s3 = S3FileSystem(anon=False)
         if not s3.exists(s3_path):
             raise Exception('{} path does not exist'.format(s3_path))
-        for old_filename, filename, ext in get_files(directory, '.csv'):
-            fn = os.path.basename(old_filename)
-            fn_body = fn.split('____')
-            account_name, date_range, key = fn_body
-            from_date, to_date = date_range[0:10], date_range[11:]
-            rpath = '{}/{}.csv'.format(s3_path, filename)
-            s3.put(old_filename, rpath)
-            logger.info(old_filename, rpath)
-            # os.remove(old_filename)
+
+        confirm = generate_prompt(['confirm'])
+
+        if confirm:
+            for old_filename, filename, ext in get_files(directory, '.csv'):
+                fn = os.path.basename(old_filename)
+                fn_body = fn.split('____')
+                account_name, date_range, key = fn_body
+                from_date, to_date = date_range[0:10], date_range[11:]
+                rpath = '{}/{}.csv'.format(s3_path, filename)
+                s3.put(old_filename, rpath)
+                logger.info(old_filename, rpath)
+                # os.remove(old_filename)
     elif action_type == ES_CONN_TYPE:
         es_type = generate_prompt(['es_type'])
         if es_type == 'recreate_index':
@@ -92,9 +103,7 @@ if __name__ == '__main__':
         local_file_type = generate_prompt(['local_file_type'])
         if local_file_type == 'list':
             directory = generate_prompt(['directory'])
-            directory = os.path.expanduser(directory)
-            for lpath, filename, ext in get_files(directory, '.csv'):
-                print(lpath)
+            list_local_files(directory)
         elif local_file_type == 'delete':
             directory = generate_prompt(['directory'])
             directory = os.path.expanduser(directory)

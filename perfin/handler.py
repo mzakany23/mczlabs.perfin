@@ -15,7 +15,7 @@ INDEX = load_settings()['INDEX']
 
 def process_files(event, context, **kwargs):
     try:
-        logger.info('writing to es index {}'.index(INDEX))
+        logger.info('writing to es index {}'.format(INDEX))
         es_conn = kwargs.get('es', ES_CONN)
         records = event["Records"]
         file_paths = []
