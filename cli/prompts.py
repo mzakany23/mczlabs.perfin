@@ -11,6 +11,15 @@ from perfin.util.dynamodb_conn import get_user_accounts
 
 class Prompt:
     @staticmethod
+    def serverless_fn(*args, **kwargs):
+        _types = ['all', 'ingest_files']
+        return inquirer.List('serverless_fn',
+          message="What fn do you want to deploy?",
+          choices=_types,
+          default=_types[0]
+        )
+
+    @staticmethod
     def local_file_type(*args, **kwargs):
         _types = ['list', 'delete']
         return inquirer.List('local_file_type',

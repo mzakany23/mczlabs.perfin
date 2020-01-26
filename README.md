@@ -1,5 +1,5 @@
 # Perfin Ingestion
-Read financial CSV files, encode and upload transactions to elasticsearch. Checkout config/base.json and serverless.yaml to see how env vars are set. 
+Read financial CSV files, encode and upload transactions to elasticsearch. Checkout config/base.json and serverless.yaml to see how env vars are set.
 
 ### Running tests
 
@@ -30,11 +30,12 @@ ES_NODE=http://localhost:9200  python -c "exec(\"from util.es import create_perf
 #insert some docs
 ES_NODE=http://localhost:9200 RUN_INTEGRATION_TESTS=1 pytest -p no:warnings
 ```
-### Deploying 
+### Deploying
 Service uses [serverless](https://serverless.com/) to deploy lambda
 
+use the cli too that will take care of environments for you (under serverless tab)
 ```
-AWS_PROFILE=mzakany serverless deploy
+perfincli
 ```
 
 ## File Analyzing
@@ -47,7 +48,7 @@ BASE_POLICY = [
         "trim" : {
             "field" : "description",
             "value" : 10
-        }, 
+        },
         "fields" : {
             "date" : 2,
             "description" : 3,
