@@ -48,7 +48,7 @@ def dummy_row():
 
 @pytest.fixture
 def chase_file():
-    return f'{DIR}/files/chase____2019.01.12.CSV'
+    return f'{DIR}/files/chase____2019.01.12.csv'
 
 
 @pytest.fixture
@@ -74,11 +74,11 @@ def test_chase_file(chase_file, dummy_row):
     for row in analyzer.get_rows():
         document = row['document']
         assert list(document.keys()) == [
-            'account', 
-            'date', 
-            'description', 
-            'category', 
-            'type', 
+            'account',
+            'date',
+            'description',
+            'category',
+            'type',
             'amount'
         ]
         assert '_group' in row
