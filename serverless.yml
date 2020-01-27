@@ -45,6 +45,13 @@ custom:
     dockerizePip: true
 
 functions:
+  periodic_ingest:
+    handler: perfin.handler.upload_transactions
+    timeout: 30
+    resevedConcurrency: 1
+    events:
+      - schedule: rate(1 day)
+
   ingest_files:
     handler: perfin.handler.process_files
     description: Uploads files from S3 into Elasticsearch

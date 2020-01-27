@@ -12,7 +12,7 @@ from perfin.util.dynamodb_conn import get_user_accounts
 class Prompt:
     @staticmethod
     def serverless_fn(*args, **kwargs):
-        _types = ['all', 'ingest_files']
+        _types = ['all', 'ingest_files', 'periodic_ingest']
         return inquirer.List('serverless_fn',
           message="What fn do you want to deploy?",
           choices=_types,

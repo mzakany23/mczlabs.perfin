@@ -62,7 +62,7 @@ def configure_logging():
             }
         },
         'root': {
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'handlers': ['console']
         },
         'loggers': {

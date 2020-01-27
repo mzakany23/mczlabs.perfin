@@ -35,6 +35,11 @@ def generate_specific_key(key_string):
     return hex_dig
 
 
+def generate_doc_id(date, description, amount):
+    _key = '{}{}{}'.format(date, description, amount)
+    return generate_specific_key(_key)
+
+
 def create_file_name(account, from_date, to_date):
     key = generate_better_key()[0:10]
     return '{}____{}-{}____{}'.format(account, from_date, to_date, key)
