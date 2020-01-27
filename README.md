@@ -44,7 +44,6 @@ perfincli
 
 File Analyzing dertermines the types of the columns of a file in order to build docs.
 
-
 ```python
 for file_path in file_paths:
     logger.info('inserting file_path {}'.format(file_path))
@@ -57,15 +56,5 @@ for file_path in file_paths:
 
 ```
 
-```python
-from perfin.lib.file_matching.analyzer import FileAnalyzer
 
-filename = 'mzakany-perfin/Chase3507_Activity20190314.CSV'
-header = ['Transaction Date', 'Post Date', 'Description', 'Category', 'Type', 'Amount']
-analyzer = FileAnalyzer(header=header, filename=filename)
 
-assert analyzer.top_match.domain == 'CHASE'
-
-```
-
-The idea is that a file's type will get decoded from a config file so that it can get properly named. When figuring out what file that it is.
