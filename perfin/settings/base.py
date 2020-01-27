@@ -70,7 +70,7 @@ def configure_logging():
                 'level': 'INFO',
                 'handlers' : ['console', 'elasticsearch']
             },
-            'perfin.lib.models.base' : {
+            'perfin.lib.models' : {
                 'level': 'INFO'
             },
             'perfin.handler' : {
