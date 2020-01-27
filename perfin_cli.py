@@ -99,7 +99,10 @@ if __name__ == '__main__':
                 from_date, to_date = date_range[0:10], date_range[11:]
                 rpath = '{}/{}.csv'.format(s3_path, filename)
                 s3.put(old_filename, rpath)
-                logger.info(old_filename, rpath)
+                logger.info({
+                    'old_filename' : old_filename,
+                    'rpath' : rpath
+                })
                 # os.remove(old_filename)
     elif action_type == ES_CONN_TYPE:
         es_type = generate_prompt(['es_type'])
