@@ -4,20 +4,19 @@ import os
 import sys
 
 from cli.prompts import (
-    LOCAL_FILES_TYPE,
     DEPLOY_TYPE,
     DOWNLOAD_TRANSACTION_TYPE,
     ES_CONN_TYPE,
     GENERATE_FILE_TYPE,
+    LOCAL_FILES_TYPE,
     UPLOAD_S3_TYPE,
     generate_prompt,
     show_cli_message,
 )
 
-from perfin.util.es.es_conn import create_index, get_es_config, insert_all_rows
-from perfin.lib.file_matching.analyzer import FileAnalyzer
 from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup
 from perfin.util.dynamodb_conn import get_user_accounts
+from perfin.util.es.es_conn import create_index, get_es_config, insert_all_rows
 
 from perfin.util.plaid_conn import get_client, get_transactions
 
