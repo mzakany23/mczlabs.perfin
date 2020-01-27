@@ -34,7 +34,8 @@ jobs:
             . venv/bin/activate
             pip install -r requirements.txt
             pip install -r requirements-test.txt
-            pwd
+            ls ./perfin/tests/files
+            cd ./perfin/tests/files
             ls
 
       - save_cache:
