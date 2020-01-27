@@ -2,6 +2,8 @@
 # Perfin Ingestion
 Read financial CSV files, encode and upload transactions to elasticsearch. Checkout config/base.json and serverless.yaml to see how env vars are set.
 
+[![CircleCI](https://circleci.com/gh/mzakany23/mczlabs.perfin.svg?style=svg&circle-token=cfa32913f79d333af88dd96fbbe99a7809402027)](https://circleci.com/gh/mzakany23/mczlabs.perfin)
+
 ### Running tests
 
 ```
