@@ -6,7 +6,7 @@ from s3fs.core import S3FileSystem
 from .base import Base
 from .exceptions import AccountParseError
 from .mapping import Mapping
-from .util.support import generate_specific_key
+from .util.support import generate_doc_id
 
 
 class FileAnalyzer(Base):
@@ -70,9 +70,7 @@ class FileAnalyzer(Base):
                 yield self.build_doc(row, self.mapping)
 
     def build_doc(self, row, mapping):
-        id_key = ",".join(row).replace(",", "").replace(" ", "")
         doc = {
-            "_id" : generate_specific_key(id_key),
             "document" : {
                 "account" : self.account_name
             }
@@ -82,5 +80,12 @@ class FileAnalyzer(Base):
             value = field.process(row)
             doc['document'][field.key] = value
 
+        doc_id = generate_doc_id(
+            row[self.mapping.date.index],
+            row[self.mapping.description.index],
+            row[self.mapping.amount.index]
+        )
+
+        doc['_id'] = doc_id
         doc["_group"] = doc['document'][self.group_by][:self.trim_length]
         return doc

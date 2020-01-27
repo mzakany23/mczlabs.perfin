@@ -67,19 +67,19 @@ if __name__ == '__main__':
 
         confirm = generate_prompt(['confirm'])
         if confirm:
-            env = os.environ['PERFIN_ENV']
+            env = os.environ['PERFIN_ENV'].lower()
             logger.info('deploying {}'.format(env))
+
             if env == 'local':
                 raise Exception("you can't deploy local to serverless!")
 
-            if serverless_fn == 'ingest_files' and cmd != 'remove':
-                run_cmd = 'AWS_PROFILE=mzakany serverless {} --stage {} --function {}'.format(
-                    cmd, env.lower(),
-                    cmd
-                )
-            else:
-                run_cmd = 'AWS_PROFILE=mzakany serverless {} --stage {}'.format(cmd, env.lower())
+            if cmd == 'deploy':
+                run_cmd = 'AWS_PROFILE=mzakany serverless deploy --stage {}'.format(env)
+            elif cmd == 'remove':
+                run_cmd = 'AWS_PROFILE=mzakany serverless remove --stage {}'.format(env)
 
+            if serverless_fn is not 'all':
+                run_cmd += ' --function {}'.format(serverless_fn)
             os.system(run_cmd)
     elif action_type == UPLOAD_S3_TYPE:
         s3_path, directory = generate_prompt(['s3_paths', 'directory'])

@@ -3,7 +3,7 @@ import logging
 
 from datetime import timedelta
 
-from perfin.lib.file_matching.util.support import generate_specific_key
+from perfin.lib.file_matching.util.support import generate_doc_id
 from perfin.util.dynamodb_conn import get_user_accounts
 from perfin.util.plaid_conn import get_client, get_transactions
 
@@ -49,9 +49,8 @@ def upload_transactions(*args):
                     amount *= -1
                     date = transaction['date']
                     description = transaction['name']
-                    id_key = '{}{}{}'.format(date, description, amount)
                     document = {
-                        "_id" : generate_specific_key(id_key),
+                        "_id" : generate_doc_id(date, description, amount),
                         "document" : {
                             "group" : description[:10],
                             "account" : account_name

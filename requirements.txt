@@ -20,3 +20,4 @@ python-Levenshtein==0.12.0
 Jinja2==2.10.3
 pynamodb==4.2.0
 CMRESHandler==1.0.0
+plaid-python==3.4.0
