@@ -29,7 +29,7 @@ package:
    - perfin/util/**
    - perfin/lib/**
  exclude:
-   .circleci/**
+   - .circleci/**
    - docs/**
    - cli/**
    - perfin_cli.py
