@@ -13,11 +13,11 @@ def s3_move(old_filename, new_file_name):
     S3.mv(old_filename, new_file_name)
 
 
-def move_files_to_dir(original_directory, directory):
+def move_files_to_dir(bucket, original_directory, directory):
     for s3_file_path in get_s3_full_file_paths(original_directory):
         if directory not in s3_file_path:
             file_name = s3_file_path.split('/')[1]
-            full_dir = 'mzakany-perfin/{}'.format(directory)
+            full_dir = '{}/{}'.format(bucket, directory)
             new_path = '{}/{}'.format(full_dir, file_name)
             s3_move(s3_file_path, new_path)
 
