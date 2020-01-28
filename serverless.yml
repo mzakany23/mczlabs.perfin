@@ -7,6 +7,10 @@ provider:
       Action:
         - s3:*
       Resource: "*"
+    - Effect: 'Allow'
+      Action:
+        - 'dynamodb:*'
+      Resource: '*'
   stage: ${opt:stage, 'dev'}
   runtime: python3.7
   environment:
