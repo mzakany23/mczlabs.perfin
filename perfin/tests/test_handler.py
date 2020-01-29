@@ -4,7 +4,7 @@ import pytest
 
 from ..lib.file_matching.analyzer import FileAnalyzer
 from ..util.es.es_conn import get_es_connection, insert_document
-from ..handler import process_files
+from ..handler import process_files, upload_transactions
 
 '''
     HOW_TO_RUN_TESTS
@@ -27,6 +27,27 @@ from ..handler import process_files
 # -------------------------------------------------------------------
 # 0. test helpers
 # -------------------------------------------------------------------
+
+class FakeAccount:
+    account_name = 'foo'
+
+
+def fake_get_user_accounts(*args):
+    return [FakeAccount()]
+
+
+def fake_get_transactions(*args):
+    return [{
+        'transactions' : [
+            {
+                'pending' : False,
+                'date' : '2020-01-01',
+                'name' : 'foo',
+                'amount' : 20.20
+            }
+        ]
+    }]
+
 
 def local_process_files(event, context, es):
     file_paths = [record['s3']['object']['key'] for record in event["Records"]]
@@ -200,6 +221,14 @@ def context():
 def test_process_files(event, context):
     files = process_files(event, context)
     assert files is None
+
+
+@mock.patch('perfin.handler.insert_document', mock.MagicMock())
+@mock.patch('perfin.handler.get_user_accounts', fake_get_user_accounts)
+@mock.patch('perfin.handler.get_transactions', fake_get_transactions)
+def test_accounts():
+    transactions = upload_transactions()
+    assert transactions is None
 
 
 @pytest.mark.skipif(not os.environ.get('RUN_INTEGRATION_TESTS'), reason="Does not have local elasticsearch running")
