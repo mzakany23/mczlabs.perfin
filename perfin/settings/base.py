@@ -122,6 +122,7 @@ def log_env():
 
 
 def load_settings():
+    configure_app()
     return {
         'CLIENT_ID' : os.environ.get('CLIENT_ID'),
         'SECRET' : os.environ.get('SECRET'),

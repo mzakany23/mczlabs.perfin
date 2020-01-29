@@ -1,26 +1,27 @@
-import datetime
-import logging
+"""This is the main handler file that contains all the perfin lambda functions."""
 
+import logging
+import datetime
 from datetime import timedelta
 
 from perfin.lib.file_matching.util.support import generate_doc_id
 from perfin.util.dynamodb_conn import get_user_accounts
 from perfin.util.plaid_conn import get_client, get_transactions
 
-import sentry_sdk
-
 from .lib.file_matching.analyzer import FileAnalyzer
-from .settings.base import load_settings
+from .settings.base import configure_app, load_settings
 from .util.es.es_conn import get_es_connection, insert_document
 
+
 ES_CONN = get_es_connection()
+INDEX = load_settings()['INDEX']
+WRITE_ALIAS = '{}_write'.format(INDEX)
 
 logger = logging.getLogger(__name__)
 
-INDEX = load_settings()['INDEX']
-
 
 def upload_transactions(*args):
+    """Process periodic uploads."""
     if len(args) == 2:
         event, context = args
     client = get_client()
@@ -30,7 +31,6 @@ def upload_transactions(*args):
     accounts = get_user_accounts('mzakany')
     from_date = ago.strftime(fmt)
     to_date = now.strftime(fmt)
-    es_conn = get_es_connection()
     logger.info('getting accounts')
 
     for account in accounts:
@@ -49,39 +49,35 @@ def upload_transactions(*args):
                     amount *= -1
                     date = transaction['date']
                     description = transaction['name']
+                    _id = generate_doc_id(date, description, amount)
                     document = {
-                        "_id" : generate_doc_id(date, description, amount),
-                        "document" : {
-                            "group" : description[:10],
-                            "account" : account_name
-                        }
+                        "group" : description[:10],
+                        "account" : account_name,
+                        "date" : date,
+                        "description" : description,
+                        "amount" : amount
                     }
-                    write_alias = '{}_write'.format(INDEX)
-                    insert_document(es_conn, write_alias, document["_id"], document)
+                    insert_document(ES_CONN, WRITE_ALIAS, _id, document)
 
 
 def process_files(*args):
+    """Process file uploads."""
     if len(args) == 2:
         event, context = args
-    try:
-        logger.info('writing to es index {}'.format(INDEX))
-        records = event["Records"]
-        file_paths = []
-        for record in records:
-            file_name = record["s3"]["object"]["key"]
-            bucket_name = record["s3"]["bucket"]["name"]
-            file_path = "%s/%s" % (bucket_name, file_name)
-            file_paths.append(file_path)
 
-        for file_path in file_paths:
-            logger.info('inserting file_path {}'.format(file_path))
-            analyzer = FileAnalyzer(file_path=file_path, trim_field='description')
-            for row in analyzer.get_rows():
-                document = row["document"]
-                document["group"] = row["_group"]
-                write_alias = '{}_write'.format(INDEX)
-                insert_document(ES_CONN, write_alias, row["_id"], document)
-    except Exception as e:
-        message = str(e)
-        logging.exception(message)
-        sentry_sdk.capture_message(message)
+    logger.info('writing to es index {}'.format(INDEX))
+    records = event["Records"]
+    file_paths = []
+    for record in records:
+        file_name = record["s3"]["object"]["key"]
+        bucket_name = record["s3"]["bucket"]["name"]
+        file_path = "%s/%s" % (bucket_name, file_name)
+        file_paths.append(file_path)
+
+    for file_path in file_paths:
+        logger.info('inserting file_path {}'.format(file_path))
+        analyzer = FileAnalyzer(file_path=file_path, trim_field='description')
+        for row in analyzer.get_rows():
+            document = row["document"]
+            document["group"] = row["_group"]
+            insert_document(ES_CONN, WRITE_ALIAS, row["_id"], document)
