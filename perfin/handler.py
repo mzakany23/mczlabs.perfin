@@ -13,6 +13,7 @@ from .settings.base import configure_app, load_settings
 from .util.es.es_conn import get_es_connection, insert_document
 
 
+LOOKBACK_DAYS = 10
 ES_CONN = get_es_connection()
 INDEX = load_settings()['INDEX']
 WRITE_ALIAS = '{}_write'.format(INDEX)
@@ -27,7 +28,7 @@ def upload_transactions(*args):
     client = get_client()
     fmt = '%Y-%m-%d'
     now = datetime.datetime.utcnow()
-    ago = now - timedelta(days=2)
+    ago = now - timedelta(days=LOOKBACK_DAYS)
     accounts = get_user_accounts('mzakany')
     from_date = ago.strftime(fmt)
     to_date = now.strftime(fmt)
