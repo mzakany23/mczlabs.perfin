@@ -62,7 +62,7 @@ functions:
     timeout: 30
     resevedConcurrency: 1
     events:
-      - schedule: rate(7 day)
+      - schedule: rate(7 days)
 
   ingest_files:
     handler: perfin.handler.process_files
