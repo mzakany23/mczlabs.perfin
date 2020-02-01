@@ -70,8 +70,8 @@ functions:
     timeout: 30
     reservedConcurrency: 10
     events:
-      enabled: false
       - s3:
+          enabled: false
           bucket: mzakany-perfin
           event: s3:ObjectCreated:*
           existing: true
