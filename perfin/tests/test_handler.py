@@ -32,7 +32,7 @@ class FakeAccount:
     account_name = 'foo'
 
 
-def fake_get_user_accounts(*args):
+def fake_get_user_accounts(*args, **kwargs):
     return [FakeAccount()]
 
 
