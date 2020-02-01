@@ -2,9 +2,18 @@ import hashlib
 import re
 import uuid
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from dateutil.parser import parse
+
+
+def get_date_range(lookback=1):
+    fmt = '%Y-%m-%d'
+    now = datetime.utcnow()
+    ago = now - timedelta(days=lookback)
+    from_date = ago.strftime(fmt)
+    to_date = now.strftime(fmt)
+    return from_date, to_date
 
 
 def word_in_string(word, string):

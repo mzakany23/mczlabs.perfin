@@ -57,12 +57,20 @@ functions:
     events:
       - schedule: rate(1 day)
 
+  periodic_upload_files:
+    handler: perfin.handler.upload_files
+    timeout: 30
+    resevedConcurrency: 1
+    events:
+      - schedule: rate(7 day)
+
   ingest_files:
     handler: perfin.handler.process_files
     description: Uploads files from S3 into Elasticsearch
     timeout: 30
     reservedConcurrency: 10
     events:
+      enabled: false
       - s3:
           bucket: mzakany-perfin
           event: s3:ObjectCreated:*
