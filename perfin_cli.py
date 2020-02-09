@@ -9,6 +9,7 @@ from cli.prompts import (
     ES_CONN_TYPE,
     GENERATE_FILE_TYPE,
     LOCAL_FILES_TYPE,
+    STATS_TYPE,
     UPLOAD_S3_TYPE,
     generate_prompt,
     show_cli_message,
@@ -125,6 +126,10 @@ if __name__ == '__main__':
             if confirmation:
                 for old_filename, filename, ext in get_files(directory, '.csv'):
                     os.remove(old_filename)
+    elif action_type == STATS_TYPE:
+        stats_type = generate_prompt(['stats_type'])
+        if stats_type == 'all':
+            print('todo')
     elif action_type == DOWNLOAD_TRANSACTION_TYPE:
         account_action = generate_prompt(['account_action'])
         if account_action == GENERATE_FILE_TYPE:
