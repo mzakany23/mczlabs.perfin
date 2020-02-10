@@ -11,11 +11,15 @@ from cli.prompts import (
     LOCAL_FILES_TYPE,
     STATS_TYPE,
     UPLOAD_S3_TYPE,
+    UPLOAD_TRANS_TYPE,
     generate_prompt,
     show_cli_message,
 )
 
-from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup
+from perfin.settings.base import load_settings
+from perfin.util.es.es_conn import get_es_connection, insert_document
+
+from perfin.lib.file_matching.util.support import create_file_name, get_account_lookup, generate_doc_id
 from perfin.util.dynamodb_conn import get_user_accounts
 from perfin.util.es.es_conn import create_index, get_es_config, insert_all_rows
 
@@ -132,7 +136,50 @@ if __name__ == '__main__':
             print('todo')
     elif action_type == DOWNLOAD_TRANSACTION_TYPE:
         account_action = generate_prompt(['account_action'])
-        if account_action == GENERATE_FILE_TYPE:
+
+        if account_action == UPLOAD_TRANS_TYPE:
+            username, from_date, to_date = generate_prompt(['username', 'from_date', 'to_date'])
+            _accounts = [account for account in get_user_accounts(username)]
+            accounts = generate_prompt(['accounts'], _accounts)
+            selected_accounts = [account for account in _accounts if account.account_name in accounts]
+
+            ES_CONN = get_es_connection()
+            INDEX = load_settings()['INDEX']
+            WRITE_ALIAS = '{}_write'.format(INDEX)
+            client = get_client()
+            for account in selected_accounts:
+                account_name = account.account_name
+                account_items = get_transactions(client, account, from_date, to_date)
+                logger.info('processing periodic upload of {} {} {}'.format(account_name, from_date, to_date))
+
+                for item in account_items:
+                    transactions = item['transactions']
+                    for transaction in transactions:
+                        if transaction['pending']:
+                            continue
+
+                        amount = transaction['amount']
+                        amount *= -1
+                        date = transaction['date']
+                        description = transaction['name']
+                        _id = generate_doc_id(date, description, amount)
+                        document = {
+                            "group" : description[:10],
+                            "account" : account_name,
+                            "date" : date,
+                            "description" : description,
+                            "amount" : amount
+                        }
+                        insert_document(ES_CONN, WRITE_ALIAS, _id, document)
+        elif account_action == 'reset_account':
+            username, from_date, to_date = generate_prompt(['username', 'from_date', 'to_date'])
+            _accounts = [account for account in get_user_accounts(username)]
+            accounts = generate_prompt(['accounts'], _accounts)
+            selected_accounts = [account for account in _accounts if account.account_name in accounts]
+
+            for account in selected_accounts:
+                pass
+        elif account_action == GENERATE_FILE_TYPE:
             username, from_date, to_date = generate_prompt(['username', 'from_date', 'to_date'])
             _accounts = [account for account in get_user_accounts(username)]
             accounts = generate_prompt(['accounts'], _accounts)
