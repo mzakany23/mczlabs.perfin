@@ -11,6 +11,15 @@ from perfin.util.dynamodb_conn import get_user_accounts
 
 class Prompt:
     @staticmethod
+    def stats_type(*args, **kwargs):
+        _types = ['all']
+        return inquirer.List('stats_type',
+          message="What type of email to send?",
+          choices=_types,
+          default=_types[0]
+        )
+
+    @staticmethod
     def serverless_fn(*args, **kwargs):
         _types = ['all', 'ingest_files', 'periodic_ingest']
         return inquirer.List('serverless_fn',
@@ -170,18 +179,22 @@ TODAY = NOW.strftime('%m-%d-%Y')
 LOCAL_FILES_TYPE = "local_files -> manage local files"
 DOWNLOAD_TRANSACTION_TYPE = "plaid -> download account data"
 GENERATE_FILE_TYPE = 'generate_csv -> generate a csv'
+RESET_ACCOUNT_TYPE = 'reset_account -> reset account creds'
+UPLOAD_TRANS_TYPE = 'upload_transactions -> upload transactions directly'
 UPLOAD_S3_TYPE = "s3 -> upload files to s3"
 ES_CONN_TYPE = 'elasticsearch -> manage elasticsearch'
 DEPLOY_TYPE = 'serverless -> run a serverless command'
+STATS_TYPE = 'stats -> send emails of stats'
 
 ACTION_TYPES = [
   LOCAL_FILES_TYPE,
   UPLOAD_S3_TYPE,
   DOWNLOAD_TRANSACTION_TYPE,
   ES_CONN_TYPE,
-  DEPLOY_TYPE
+  DEPLOY_TYPE,
+  STATS_TYPE
 ]
-TRANSACTION_TYPES = [GENERATE_FILE_TYPE]
+TRANSACTION_TYPES = [UPLOAD_TRANS_TYPE, GENERATE_FILE_TYPE, RESET_ACCOUNT_TYPE]
 ES_ACTIONS = ['recreate_index', 'seed_files_from_s3']
 USERS = ['mzakany']
 DIRECTORY_TYPES = ['~/Desktop/perfin_files']
