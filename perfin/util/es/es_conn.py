@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_schema(index):
-    return  {
+    return {
         "settings": {
             "number_of_shards": 2,
             "max_result_window": 1000000
@@ -49,12 +49,12 @@ def get_schema(index):
 def get_es_config():
     '''
         DESCRIPTION
-        es_node, es_user, es_pass, index = (
-            settings['ES_NODE'],
-            settings['ES_USER'],
-            settings['ES_PASS'],
-            settings['INDEX']
-        )
+            es_node, es_user, es_pass, index = (
+                settings['ES_NODE'],
+                settings['ES_USER'],
+                settings['ES_PASS'],
+                settings['INDEX']
+            )
     '''
     settings = load_settings()
     return (
@@ -131,6 +131,19 @@ def insert_all_rows(index, filter_key=None):
         document["group"] = row["_group"]
         write_alias = '{}_write'.format(index)
         insert_document(es, write_alias, row["_id"], document)
+
+
+def _search(body):
+    es_node, es_user, es_pass, index = get_es_config()
+    es = get_es_connection()
+    res = es.search(index, body=body)
+    total = res['hits']['total']
+    hits = res['hits']['hits']
+    return {
+        'hits' : hits,
+        'total' : total,
+        'aggregations' : res['aggregations']
+    }
 
 
 def search(query_name, account, equality, date_range):

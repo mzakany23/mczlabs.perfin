@@ -1,9 +1,13 @@
+import logging
+
 from plaid import Client
 
 from ..settings.base import load_settings
 
 
 settings = load_settings()
+
+logger = logging.getLogger(__file__)
 
 CLIENT_ID, SECRET, PUBLIC_KEY, PLAID_ENV = (
     settings['CLIENT_ID'],
@@ -25,11 +29,15 @@ def get_client():
 def get_transactions(client, plaid_account, start_date, end_date):
     token = plaid_account.token
 
-    res = client.Transactions.get(
-        plaid_account.token,
-        start_date,
-        end_date,
-    )
+    try:
+        res = client.Transactions.get(
+            plaid_account.token,
+            start_date,
+            end_date,
+        )
+    except Exception as e:
+        logger.exception('account {} needs reset'.format(plaid_account.account_name))
+        raise
 
     yield res
 
