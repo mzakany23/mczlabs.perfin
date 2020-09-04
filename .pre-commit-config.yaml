@@ -1,0 +1,23 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.3.0
+  hooks:
+    - id: check-case-conflict
+    - id: check-json
+    - id: check-merge-conflict
+    - id: check-toml
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: flake8
+    - id: trailing-whitespace
+- repo: https://github.com/timothycrosley/isort
+  rev: a04700812bd4b9eb687065d1199b52bb8e045774
+  hooks:
+    - id: isort
+      additional_dependencies:
+        - toml
+- repo: https://github.com/psf/black
+  rev: 19.10b0
+  hooks:
+    - id: black
+      language_version: python3.7
