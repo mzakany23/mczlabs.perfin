@@ -3,3 +3,4 @@ pytest-cov
 pyflakes
 assertpy
 mock
+pre-commit==2.0.1
