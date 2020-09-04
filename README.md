@@ -1,5 +1,5 @@
-
 # Perfin Ingestion
+
 Read financial CSV files, encode and upload transactions to elasticsearch. Checkout config/base.json and serverless.yaml to see how env vars are set.
 
 [![CircleCI](https://circleci.com/gh/mzakany23/mczlabs.perfin.svg?style=svg&circle-token=cfa32913f79d333af88dd96fbbe99a7809402027)](https://circleci.com/gh/mzakany23/mczlabs.perfin)
@@ -24,8 +24,11 @@ ES_NODE=http://localhost:9200 RUN_INTEGRATION_TESTS=1 pytest -p no:warnings
  - sentry (optional)
  - [serverless](https://serverless.com/)
 
-## Setup Cluster Locally
+
+### Setup Cluster Locally
+
 Make sure you have elastisearch running locally (http://localhost:9200)
+
 ```
 #create index with default schema
 ES_NODE=http://localhost:9200  python -c "exec(\"from util.es import create_perfin_index\ncreate_perfin_index()\")"
@@ -33,7 +36,9 @@ ES_NODE=http://localhost:9200  python -c "exec(\"from util.es import create_perf
 #insert some docs
 ES_NODE=http://localhost:9200 RUN_INTEGRATION_TESTS=1 pytest -p no:warnings
 ```
+
 ### Deploying
+
 Service uses [serverless](https://serverless.com/) to deploy lambda
 
 Deploy using the cli tool (under serverless tab)
@@ -57,6 +62,3 @@ for file_path in file_paths:
         insert_document(ES_CONN, write_alias, row["_id"], document)
 
 ```
-
-
-
