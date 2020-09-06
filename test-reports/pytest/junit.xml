@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite errors="0" failures="0" hostname="Mike-Zakany-2.attlocal.net" name="pytest" skipped="0" tests="1" time="0.025" timestamp="2020-09-04T16:54:43.269177"><testcase classname="tests.test_cli" file="tests/test_cli.py" line="5" name="test_command" time="0.002"></testcase></testsuite></testsuites>

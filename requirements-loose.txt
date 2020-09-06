@@ -1,0 +1,4 @@
+elasticsearch
+pandas
+coloredlogs
+s3fs

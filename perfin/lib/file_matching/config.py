@@ -1,1 +1,0 @@
-TRIM_FIELD = 'description'
