@@ -1,12 +1,8 @@
 import csv
 
-from perfin.lib.file_matching.analyzer import FileAnalyzer
-from perfin.lib.file_matching.util.support import generate_new_file_name
+import s3fs
 
-from s3fs.core import S3FileSystem
-
-
-S3 = S3FileSystem(anon=False)
+S3 = s3fs.S3FileSystem(anon=False)
 
 
 def s3_move(old_filename, new_file_name):
@@ -16,9 +12,9 @@ def s3_move(old_filename, new_file_name):
 def move_files_to_dir(bucket, original_directory, directory):
     for s3_file_path in get_s3_full_file_paths(original_directory):
         if directory not in s3_file_path:
-            file_name = s3_file_path.split('/')[1]
-            full_dir = '{}/{}'.format(bucket, directory)
-            new_path = '{}/{}'.format(full_dir, file_name)
+            file_name = s3_file_path.split("/")[1]
+            full_dir = "{}/{}".format(bucket, directory)
+            new_path = "{}/{}".format(full_dir, file_name)
             s3_move(s3_file_path, new_path)
 
 
@@ -31,11 +27,11 @@ def get_s3_rows(file_path):
 
 
 def get_s3_full_file_paths(directory, filter_key=None):
-    '''
+    """
         DESCRIPTION
             get_s3_full_file_paths(directory, filter_key='chase')
             get_s3_full_file_paths(directory, filter_key='fifth_third')
-    '''
+    """
     for s3_file_path in S3.ls(directory):
         if filter_key:
             if filter_key in s3_file_path:
@@ -51,23 +47,3 @@ def get_s3_perfin_files(directory, filter_key=None):
         rows = body[1:]
 
         yield s3_file_name, header, rows
-
-
-def rename_s3_files(directory):
-    for old_filename, header, rows in get_s3_perfin_files(directory):
-        new_file_name, file_key = generate_new_file_name(old_filename, header, rows)
-        if new_file_name:
-            new_file_name = '{}/{}.csv'.format(directory, new_file_name)
-            s3_move(old_filename, new_file_name)
-            print(old_filename)
-            print(new_file_name)
-            print()
-
-
-def get_s3_processed_docs(directory, filter_key=None):
-    for s3_file_name, header, rows in get_s3_perfin_files(directory, filter_key):
-        if '__' not in s3_file_name:
-            continue
-        analyzer = FileAnalyzer(s3_file_name, header, rows, trim_field='description')
-        for row in analyzer.get_rows():
-            yield row
