@@ -1,4 +1,5 @@
 VENV := .venv
+VENV_ACTIVATE := $(VENV)/bin/activate
 VENV_SENTINEL := $(VENV)/.sentinel
 VENV_PIP := $(VENV)/bin/pip $(PIP_EXTRA_OPTS)
 VENV_AWS := $(VENV)/bin/aws
@@ -46,7 +47,6 @@ update_requirements:
 	$(VENV_PIP) install -r requirements-loose.txt
 	head -1 requirements-loose.txt > requirements.txt
 	$(VENV_PIP) freeze >> requirements.txt
-	make $(VENV)
 
 
 .PHONY: pre-commit

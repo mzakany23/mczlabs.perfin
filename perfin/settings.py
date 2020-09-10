@@ -5,35 +5,37 @@ import logging.config
 import os
 import threading
 import uuid
+from dataclasses import dataclass
+from pathlib import Path
 
 import coloredlogs
-from perfin.exceptions import MalformedParams
 
 local = threading.local()
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
 class Config:
+    ES_NODE: str
+    ES_USER: str
+    ES_PASS: str
+    ES_NODE: str
+    LOCAL_FILE_DIR: str = ""
+
     def __init__(self):
         env = os.environ.get("STAGE", "dev")
-        full_path = self.find_config_file(env)
 
         self.configure_logging()
         self.ENV = env
-        self.ES_NODE = os.environ.get("ES_NODE", "http://localhost:9200")
-        self.ES_USER = os.environ.get("ES_USER")
-        self.ES_PASS = os.environ.get("ES_PASS")
-        self.ES_NODE = os.environ.get("ES_NODE")
-
         self.body = {}
-
-        if os.path.exists(full_path):
-            self._full_path = full_path
-        else:
-            raise Exception("config file not found!!!")
-
-        self.init_file(full_path)
+        full_path = os.path.dirname(os.path.abspath(__name__))
+        self.init_file("{}/config/{}.json".format(full_path, env))
+        if self.LOCAL_FILE_DIR:
+            if "~" in self.LOCAL_FILE_DIR:
+                self.LOCAL_FILE_DIR = Path(self.LOCAL_FILE_DIR).expanduser()
+            else:
+                self.LOCAL_FILE_DIR = Path(self.LOCAL_FILE_DIR)
 
     def generate_better_key(self):
         hash_object = hashlib.sha256(str(uuid.uuid4()).encode("utf8"))
@@ -46,25 +48,17 @@ class Config:
         hex_dig = hash_object.hexdigest()
         return hex_dig
 
-    def create_file_name(self, account, from_date, to_date):
+    def create_file_name(self, name, from_date, to_date):
+        if "/" in from_date:
+            from_date = from_date.replace("/", ".")
+        if "/" in to_date:
+            to_date = to_date.replace("/", ".")
         key = self.generate_better_key()[0:10]
-        return "{}____{}-{}____{}".format(account, from_date, to_date, key)
-
-        def validate(self, keys):
-            kwargs = self.init_kwargs
-            if isinstance(kwargs, dict):
-                kwarg_keys = list(kwargs.keys())
-                listed = [
-                    key for key in keys if kwargs.get(key) or kwargs.get(key) == 0
-                ]
-                if len(kwarg_keys) != len(listed):
-                    raise MalformedParams(
-                        "{} {} {}".format(self.__class__.__name__, kwarg_keys, listed)
-                    )
+        return "{}____{}-{}____{}".format(name, from_date, to_date, key)
 
     def init_file(self, full_path):
         with open(full_path, "r+") as file:
-            logger.info("found {}".format(self._full_path))
+            logger.info("found {}".format(full_path))
             self.body = json.load(file)
             for k, v in self.body.items():
                 setattr(self, k, v)

@@ -8,24 +8,9 @@ from perfin.settings import config
 local = threading.local()
 logger = logging.getLogger(__name__)
 
-DOC_TYPE = "default"
-INDEX = "perfin"
-SCHEMA = {
-    "settings": {"number_of_shards": 2, "max_result_window": 1000000},
-    "aliases": {"{}_read".format(INDEX): {}, "{}_write".format(INDEX): {}},
-    "mappings": {
-        "default": {
-            "properties": {
-                "account": {"type": "keyword"},
-                "name": {"type": "keyword"},
-                "date": {"type": "date"},
-                "description": {"type": "text", "fielddata": True},
-                "amount": {"type": "float"},
-                "group": {"type": "keyword"},
-            }
-        }
-    },
-}
+DOC_TYPE = config.ES_DOC_TYPE
+INDEX = config.ES_INDEX
+SCHEMA = config.ES_SCHEMA
 
 
 def get_es():
@@ -33,7 +18,6 @@ def get_es():
         es_node = config.ES_NODE
         es_user = config.ES_USER
         es_pass = config.ES_PASS
-        es_node = config.ES_NODE
 
         if es_user and es_pass:
             logger.debug("using non local elasticsearch:{}".format(es_node))
