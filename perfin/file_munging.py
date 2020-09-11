@@ -2,7 +2,8 @@ import datetime
 import mimetypes
 
 import pandas as pd
-from settings import config
+
+from .settings import config
 
 
 def rename_files(lookup, path):
@@ -15,7 +16,7 @@ def rename_files(lookup, path):
 
 def get_file_names(lookup, root_path):
     """Just gets the file names"""
-    for path in root_path.iterdir():
+    for path in root_path.glob("*.csv"):
         file_name = path.name.lower()
         new_file_name = None
         account = None
