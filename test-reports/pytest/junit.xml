@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite errors="0" failures="0" hostname="ip-192-168-1-78.ec2.internal" name="pytest" skipped="0" tests="1" time="0.328" timestamp="2020-09-11T17:16:49.047894"><testcase classname="tests.test_file_munging" file="tests/test_file_munging.py" line="9" name="test_get_file_names" time="0.022"></testcase></testsuite></testsuites>

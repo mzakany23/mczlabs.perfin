@@ -8,6 +8,16 @@
             "sort_key" : "Transaction Date",
             "date_format" : "%m/%d/%Y"
         },
+        "fifth_third" : {
+            "key" : "fifth_third",
+            "sort_key" : "Date",
+            "date_format" : "%m/%d/%Y"
+        },
+        "53" : {
+            "key" : "fifth_third",
+            "sort_key" : "Date",
+            "date_format" : "%m/%d/%Y"
+        },
         "export" : {
             "key" : "fifth_third",
             "sort_key" : "Date",
