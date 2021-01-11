@@ -55,8 +55,20 @@ pre-commit: $(VENV)
 
 
 .PHONY: test
-test: $(VENV)
-	$(VENV_PYTEST) --cov-report term-missing --junitxml=test-reports/pytest/junit.xml tests/
+.PHONY: test
+test:
+ifeq ($(TEST_FILE),)
+	SKIP_SENTRY=1 \
+	$(VENV_PYTEST) --cov=perfin --cov-report term-missing --junitxml=test-reports/pytest/junit.xml tests/
+else
+ifeq ($(TEST_FN),)
+	SKIP_SENTRY=1 \
+	$(VENV_PYTEST) ./tests/$(TEST_FILE).py
+else
+	SKIP_SENTRY=1 \
+	$(VENV_PYTEST) ./tests/$(TEST_FILE).py -k $(TEST_FN)
+endif
+endif
 
 
 .PHONY: ci_deploy
