@@ -8,8 +8,6 @@ VENV_PYTEST := $(VENV)/bin/pytest
 EXAMPLE_FILE ?= upload_example
 GIT_COMMIT_HASH := $$(git rev-parse HEAD)
 
-STAGE ?= dev
-
 # Deploys generally want to have a clean git state to ensure consistency
 .PHONY: ensure_git_clean
 ensure_git_clean:

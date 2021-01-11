@@ -16,3 +16,7 @@ def test_get_file_names(mocker):
     assert filenames
     assert isinstance(old_filename, Path)
     assert isinstance(new_filename, Path)
+
+
+def test_get_file_rows():
+    pass
