@@ -1,21 +1,18 @@
 import datetime
 import mimetypes
+from pathlib import Path
 
 import pandas as pd
 
 from .settings import config
 
 
-def rename_files(lookup, path):
-    """ Actually renames the files
-        ofn is a Path instance
-    """
+def rename_files(lookup: dict, path: Path):
     for ofn, nfn in get_file_names(lookup, path):
         ofn.rename(nfn)
 
 
-def get_file_names(lookup, root_path):
-    """Just gets the file names"""
+def get_file_names(lookup: dict, root_path: Path):
     for path in root_path.glob("*.csv"):
         file_name = path.name.lower()
         new_file_name = None
@@ -65,4 +62,4 @@ def get_file_names(lookup, root_path):
         if not mt[0] == "text/csv":
             raise Exception("can only handle csv files")
         nfn = f"{path.parent}/{fn}.csv"
-        yield ofn, nfn
+        yield ofn, Path(nfn)

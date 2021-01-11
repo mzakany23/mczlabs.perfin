@@ -5,7 +5,7 @@ VENV_PIP := $(VENV)/bin/pip $(PIP_EXTRA_OPTS)
 VENV_AWS := $(VENV)/bin/aws
 VENV_PRECOMMIT := $(VENV)/bin/pre-commit
 VENV_PYTEST := $(VENV)/bin/pytest
-
+EXAMPLE_FILE ?= upload_example
 GIT_COMMIT_HASH := $$(git rev-parse HEAD)
 
 STAGE ?= dev
@@ -82,6 +82,13 @@ ci_deploy: ensure_git_clean
 deploy: ensure_git_clean
 	$(MAKE) ensure_no_venv
 	@echo Implement me
+
+
+.PHONY: examples
+example:
+	. $(VENV_ACTIVATE) ;\
+	python ./examples/$(EXAMPLE_FILE).py
+
 
 clean:
 	rm -rf $(VENV)

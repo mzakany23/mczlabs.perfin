@@ -1,7 +1,4 @@
 {
-    "PLAID_ENV" : "development",
-    "LOCAL_FILE_DIR" : "~/Desktop/perfin_downloads",
-    "DATE_FMT" : "%m/%d/%Y",
     "ACCOUNT_LOOKUP" : {
         "chase" : {
             "key" : "chase",
@@ -28,8 +25,5 @@
             "sort_key" : "Transaction Date",
             "date_format" : "%Y-%m-%d"
         }
-    },
-    "ES_NODE" : "http://localhost:9200",
-    "ES_DOC_TYPE" : "default",
-    "ES_INDEX" : "transactions_2020_dev"
+    }
 }

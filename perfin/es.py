@@ -8,8 +8,8 @@ from perfin.settings import config
 local = threading.local()
 logger = logging.getLogger(__name__)
 
-DOC_TYPE = config.ES_DOC_TYPE
-INDEX = config.ES_INDEX
+DOC_TYPE = "default"
+INDEX = "transactions"
 SCHEMA = config.ES_SCHEMA
 
 
@@ -47,7 +47,7 @@ def create_index():
         return es.indices.create(index=INDEX, body=SCHEMA)
 
 
-def insert_document(document, **kwargs):
+def insert_document(document: dict):
     es = get_es()
     unique_doc_id = config.generate_specific_key(*document.values())
     return es.index(

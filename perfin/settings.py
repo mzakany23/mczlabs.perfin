@@ -14,28 +14,51 @@ local = threading.local()
 
 logger = logging.getLogger(__name__)
 
+DATE_FMT = "%m/%d/%Y"
+ACCOUNTS_CONFIG_FILE = "config/accounts.json"
+LOGGING_CONFIG = config = {
+    "version": 1,
+    "formatters": {
+        "simple": {
+            "format": "[%(asctime)s] [%(name)s|%(levelname)s@%(filename)s:%(lineno)d] %(message)s"
+        }
+    },
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "simple"}},
+    "root": {"level": "DEBUG", "handlers": ["console"]},
+    "loggers": {
+        "selenium": {"level": "INFO"},
+        "pynamodb": {"level": "INFO"},
+        "s3transfer": {"level": "INFO"},
+        "botocore": {"level": "INFO"},
+        "boto3": {"level": "INFO"},
+    },
+}
+
 
 @dataclass
 class Config:
     ES_NODE: str
     ES_USER: str
     ES_PASS: str
-    ES_NODE: str
-    LOCAL_FILE_DIR: str = ""
+    body: dict
 
     def __init__(self):
-        env = os.environ.get("STAGE", "dev")
-
         self.configure_logging()
-        self.ENV = env
-        self.body = {}
-        full_path = os.path.dirname(os.path.abspath(__name__))
-        self.init_file("{}/config/{}.json".format(full_path, env))
-        if self.LOCAL_FILE_DIR:
-            if "~" in self.LOCAL_FILE_DIR:
-                self.LOCAL_FILE_DIR = Path(self.LOCAL_FILE_DIR).expanduser()
-            else:
-                self.LOCAL_FILE_DIR = Path(self.LOCAL_FILE_DIR)
+        self.init_file()
+
+    def __post_init__(self):
+        for attr in ["ES_NODE", "ES_USER", "ES_PASS"]:
+            config = getattr(self, attr)
+            if not config:
+                setattr(self, attr, os.environ.get(attr))
+
+    @property
+    def DATE_FMT(self):
+        return DATE_FMT
+
+    @property
+    def root(self):
+        return Path(".").parent.resolve()
 
     def generate_better_key(self):
         hash_object = hashlib.sha256(str(uuid.uuid4()).encode("utf8"))
@@ -54,46 +77,18 @@ class Config:
         if "/" in to_date:
             to_date = to_date.replace("/", ".")
         key = self.generate_better_key()[0:10]
-        return "{}____{}-{}____{}".format(name, from_date, to_date, key)
+        return f"{name}____{from_date}-{to_date}____{key}"
 
-    def init_file(self, full_path):
-        with open(full_path, "r+") as file:
-            logger.info("found {}".format(full_path))
+    def init_file(self):
+        full_path = self.root.joinpath(ACCOUNTS_CONFIG_FILE)
+        with full_path.open("r+") as file:
             self.body = json.load(file)
             for k, v in self.body.items():
                 setattr(self, k, v)
-            logger.info("file contents {}".format(self.body))
             return self
 
-    def find_config_file(self, env):
-        logger.info("Looking for: %s" % env)
-        directory = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        file_path = "{}/configs/{}.json".format(directory, env)
-        return file_path
-
     def configure_logging(self):
-        config = {
-            "version": 1,
-            "formatters": {
-                "simple": {
-                    "format": "[%(asctime)s] [%(name)s|%(levelname)s@%(filename)s:%(lineno)d] %(message)s"
-                }
-            },
-            "handlers": {
-                "console": {"class": "logging.StreamHandler", "formatter": "simple"}
-            },
-            "root": {"level": "DEBUG", "handlers": ["console"]},
-            "loggers": {
-                "selenium": {"level": "INFO"},
-                "pynamodb": {"level": "INFO"},
-                "s3transfer": {"level": "INFO"},
-                "botocore": {"level": "INFO"},
-                "boto3": {"level": "INFO"},
-            },
-        }
-        logging.config.dictConfig(config)
+        logging.config.dictConfig(LOGGING_CONFIG)
         coloredlogs.install(
             level="DEBUG",
             fmt="[%(asctime)s] [%(name)s|%(levelname)s@%(filename)s:%(lineno)d] %(message)s",
