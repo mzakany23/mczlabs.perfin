@@ -1,22 +1,33 @@
 import os
 from pathlib import Path
 
-from perfin.file_munging import get_file_names
-from perfin.settings import config
+from perfin import get_file_names, get_transactions
 
 TEST_FILE_DIR = "{}/files".format(os.path.dirname(os.path.abspath(__name__)))
 
+"""
+    how to run
+
+    make test TEST_FILE=test_file_munging
+"""
+
 
 def test_get_file_names(mocker):
-    lookup = config.ACCOUNT_LOOKUP
-    root_path = Path(TEST_FILE_DIR)
-    file_names = get_file_names(lookup, root_path)
-    filenames = [fn for fn in file_names]
-    old_filename, new_filename = filenames[0]
-    assert filenames
-    assert isinstance(old_filename, Path)
-    assert isinstance(new_filename, Path)
+    """
+        how to run
+
+        make test TEST_FILE=test_file_munging TEST_FN=test_get_file_names
+    """
+    for old_file, new_file in get_file_names():
+        assert isinstance(old_file, Path)
+        assert isinstance(new_file, Path)
 
 
-def test_get_file_rows():
-    pass
+def test_get_transactions():
+    """
+        how to run
+
+        make test TEST_FILE=test_file_munging TEST_FN=test_get_transactions
+    """
+    for trans in get_transactions():
+        pass

@@ -1,29 +1,113 @@
 {
     "ACCOUNT_LOOKUP" : {
         "chase" : {
-            "key" : "chase",
-            "sort_key" : "Transaction Date",
-            "date_format" : "%m/%d/%Y"
+            "search" : ["chase"],
+            "sort_key": 1,
+            "file_columns" : [
+                {
+                    "column_name" : "Transaction Date",
+                    "key" : "transaction_date",
+                    "date_format" : "%m/%d/%Y",
+                    "schema_type" : "date"
+                },
+                {
+                    "column_name" : "Post Date",
+                    "key" : "transaction_posted_date",
+                    "date_format" : "%m/%d/%Y",
+                    "schema_type" : "date"
+                },
+                {
+                    "column_name" : "Description",
+                    "key" : "description",
+                    "schema_type" : "string"
+                },
+                {
+                    "column_name" : "Category",
+                    "key" : "category",
+                    "schema_type" : "string"
+                },
+                {
+                    "column_name" : "Type",
+                    "key" : "transaction_type",
+                    "schema_type" : "string"
+                },
+                {
+                    "column_name" : "Amount",
+                    "key" : "amount",
+                    "schema_type" : "float"
+                }
+            ]
         },
         "fifth_third" : {
-            "key" : "fifth_third",
-            "sort_key" : "Date",
-            "date_format" : "%m/%d/%Y"
+            "search" : ["fifth_third", "exports", "53"],
+            "sort_key" : 0,
+            "file_columns" : [
+                {
+                    "column_name" : "Date",
+                    "date_format" : "%m/%d/%Y",
+                    "key" : "transaction_posted_date",
+                    "schema_type" : "date"
+                },
+                {
+                    "column_name" : "Description",
+                    "key" : "description",
+                    "schema_type" : "string"
+                },
+                {
+                    "column_name" : "Check Number",
+                    "key" : "check_num",
+                    "schema_type" : "int"
+                },
+                {
+                    "column_name" : "Amount",
+                    "key" : "amount",
+                    "schema_type" : "float"
+                }
+
+            ]
         },
-        "53" : {
-            "key" : "fifth_third",
-            "sort_key" : "Date",
-            "date_format" : "%m/%d/%Y"
-        },
-        "export" : {
-            "key" : "fifth_third",
-            "sort_key" : "Date",
-            "date_format" : "%m/%d/%Y"
-        },
-        "transaction_download" : {
-            "key" : "capital_one",
-            "sort_key" : "Transaction Date",
-            "date_format" : "%Y-%m-%d"
+        "capital_one" : {
+            "search" : ["transaction_download"],
+            "sort_key" : 1,
+            "file_columns" : [
+                {
+                    "column_name" : "Transaction Date",
+                    "date_format" : "%Y-%m-%d",
+                    "key" : "transaction_date",
+                    "schema_type" : "date"
+                },
+                {
+                    "column_name" : "Posted Date",
+                    "date_format" : "%Y-%m-%d",
+                    "key" : "transaction_posted_date",
+                    "schema_type" : "date"
+                },
+                {
+                    "column_name" : "Card Number",
+                    "key" : "card_num",
+                    "schema_type" : "int"
+                },
+                {
+                    "column_name" : "Description",
+                    "key" : "description",
+                    "schema_type" : "string"
+                },
+                {
+                    "column_name" : "Category",
+                    "key" : "category",
+                    "schema_type" : "string"
+                },
+                {
+                    "column_name" : "Debit",
+                    "key" : "debit",
+                    "schema_type" : "float"
+                },
+                {
+                    "column_name" : "Credit",
+                    "key" : "credit",
+                    "schema_type" : "float"
+                }
+            ]
         }
     }
 }

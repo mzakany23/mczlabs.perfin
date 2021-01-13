@@ -14,8 +14,9 @@ local = threading.local()
 
 logger = logging.getLogger(__name__)
 
-DATE_FMT = "%m/%d/%Y"
+DATE_FMT = "%Y-%m-%d"
 ACCOUNTS_CONFIG_FILE = "config/accounts.json"
+FILES_PATH = "files"
 LOGGING_CONFIG = config = {
     "version": 1,
     "formatters": {
@@ -53,12 +54,20 @@ class Config:
                 setattr(self, attr, os.environ.get(attr))
 
     @property
-    def DATE_FMT(self):
+    def date_fmt(self):
         return DATE_FMT
+
+    @property
+    def csv_files(self):
+        return self.root.joinpath("files").glob("*.csv")
 
     @property
     def root(self):
         return Path(".").parent.resolve()
+
+    @property
+    def files_path(self):
+        return self.root.joinpath(FILES_PATH)
 
     def generate_better_key(self):
         hash_object = hashlib.sha256(str(uuid.uuid4()).encode("utf8"))
