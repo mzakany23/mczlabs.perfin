@@ -82,12 +82,23 @@ deploy: ensure_git_clean
 	@echo Implement me
 
 
-.PHONY: examples
-example:
-	. $(VENV_ACTIVATE) ;\
-	python ./examples/$(EXAMPLE_FILE).py
-
-
 clean:
 	rm -rf $(VENV)
 	rm -rf tasks/node_modules
+
+
+install_docker:
+	git clone https://github.com/deviantony/docker-elk.git
+
+
+install: install_docker
+
+
+start_elk: install_docker
+	cd ./docker-elk ;\
+	docker-compose up
+
+
+stop_elk:
+	cd ./docker-elk ;\
+	docker-compose down -v

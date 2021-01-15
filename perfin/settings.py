@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import json
 import logging
@@ -15,8 +16,32 @@ local = threading.local()
 logger = logging.getLogger(__name__)
 
 DATE_FMT = "%Y-%m-%d"
-ACCOUNTS_CONFIG_FILE = "config/accounts.json"
-FILES_PATH = "files"
+ENV_VARS = ["ES_NODE", "ES_USER", "ES_PASS"]
+COLOR_LOGS = {
+    "level": "DEBUG",
+    "fmt": "[%(asctime)s] [%(name)s|%(levelname)s@%(filename)s:%(lineno)d] %(message)s",
+    "level_styles": {
+        "critical": {"bold": True, "color": "red"},
+        "debug": {"color": "blue"},
+        "error": {"color": "red"},
+        "info": {"color": "green"},
+        "notice": {"color": "magenta"},
+        "spam": {"color": "green", "faint": True},
+        "success": {"bold": True, "color": "green"},
+        "verbose": {"color": "blue"},
+        "warning": {"color": "yellow"},
+    },
+    "field_styles": {
+        "asctime": {"color": "magenta"},
+        "hostname": {"color": "magenta"},
+        "message": {"color": "green", "bold": True},
+        "levelname": {"bold": True, "color": "green"},
+        "name": {"color": "blue"},
+        "programname": {"color": "cyan"},
+        "username": {"color": "yellow"},
+    },
+}
+
 LOGGING_CONFIG = config = {
     "version": 1,
     "formatters": {
@@ -38,20 +63,10 @@ LOGGING_CONFIG = config = {
 
 @dataclass
 class Config:
-    ES_NODE: str
-    ES_USER: str
-    ES_PASS: str
-    body: dict
-
-    def __init__(self):
+    def __post_init__(self):
         self.configure_logging()
         self.init_file()
-
-    def __post_init__(self):
-        for attr in ["ES_NODE", "ES_USER", "ES_PASS"]:
-            config = getattr(self, attr)
-            if not config:
-                setattr(self, attr, os.environ.get(attr))
+        self.set_env_vars()
 
     @property
     def date_fmt(self):
@@ -65,9 +80,9 @@ class Config:
     def root(self):
         return Path(".").parent.resolve()
 
-    @property
-    def files_path(self):
-        return self.root.joinpath(FILES_PATH)
+    def set_env_vars(self):
+        for attr in ENV_VARS:
+            setattr(self, attr, os.environ.get(attr))
 
     def generate_better_key(self):
         hash_object = hashlib.sha256(str(uuid.uuid4()).encode("utf8"))
@@ -86,42 +101,25 @@ class Config:
         if "/" in to_date:
             to_date = to_date.replace("/", ".")
         key = self.generate_better_key()[0:10]
-        return f"{name}____{from_date}-{to_date}____{key}"
+        return f"{name}____{from_date}--{to_date}____{key}"
 
     def init_file(self):
-        full_path = self.root.joinpath(ACCOUNTS_CONFIG_FILE)
-        with full_path.open("r+") as file:
-            self.body = json.load(file)
-            for k, v in self.body.items():
-                setattr(self, k, v)
-            return self
+        paths = self.root.joinpath("config").glob("*.json")
+        for path in paths:
+            with path.open("r+") as file:
+                self.body = json.load(file)
+                for k, v in self.body.items():
+                    setattr(self, k, v)
+                return self
+
+    def dfmt(self, d):
+        if d is None:
+            return None
+        return datetime.datetime.strftime(d, self.date_fmt)
 
     def configure_logging(self):
         logging.config.dictConfig(LOGGING_CONFIG)
-        coloredlogs.install(
-            level="DEBUG",
-            fmt="[%(asctime)s] [%(name)s|%(levelname)s@%(filename)s:%(lineno)d] %(message)s",
-            level_styles={
-                "critical": {"bold": True, "color": "red"},
-                "debug": {"color": "blue"},
-                "error": {"color": "red"},
-                "info": {"color": "green"},
-                "notice": {"color": "magenta"},
-                "spam": {"color": "green", "faint": True},
-                "success": {"bold": True, "color": "green"},
-                "verbose": {"color": "blue"},
-                "warning": {"color": "yellow"},
-            },
-            field_styles={
-                "asctime": {"color": "magenta"},
-                "hostname": {"color": "magenta"},
-                "message": {"color": "green", "bold": True},
-                "levelname": {"bold": True, "color": "green"},
-                "name": {"color": "blue"},
-                "programname": {"color": "cyan"},
-                "username": {"color": "yellow"},
-            },
-        )
+        coloredlogs.install(**COLOR_LOGS)
 
 
 try:

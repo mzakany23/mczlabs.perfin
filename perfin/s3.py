@@ -5,8 +5,13 @@ import s3fs
 S3 = s3fs.S3FileSystem(anon=False)
 
 
-def s3_move(old_filename, new_file_name):
-    S3.mv(old_filename, new_file_name)
+def get_s3_full_file_paths(directory, filter_key=None):
+    for s3_file_path in S3.ls(directory):
+        if filter_key:
+            if filter_key in s3_file_path:
+                yield s3_file_path
+        else:
+            yield s3_file_path
 
 
 def move_files_to_dir(bucket, original_directory, directory):
@@ -15,7 +20,7 @@ def move_files_to_dir(bucket, original_directory, directory):
             file_name = s3_file_path.split("/")[1]
             full_dir = "{}/{}".format(bucket, directory)
             new_path = "{}/{}".format(full_dir, file_name)
-            s3_move(s3_file_path, new_path)
+            S3.mv(s3_file_path, new_path)
 
 
 def get_s3_rows(file_path):
@@ -24,20 +29,6 @@ def get_s3_rows(file_path):
         rows = csv.reader(f)
         for row in rows:
             yield row
-
-
-def get_s3_full_file_paths(directory, filter_key=None):
-    """
-        DESCRIPTION
-            get_s3_full_file_paths(directory, filter_key='chase')
-            get_s3_full_file_paths(directory, filter_key='fifth_third')
-    """
-    for s3_file_path in S3.ls(directory):
-        if filter_key:
-            if filter_key in s3_file_path:
-                yield s3_file_path
-        else:
-            yield s3_file_path
 
 
 def get_s3_perfin_files(directory, filter_key=None):

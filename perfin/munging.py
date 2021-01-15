@@ -1,4 +1,5 @@
 import datetime
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -37,7 +38,7 @@ class Row:
             )
             setattr(self, field.key, field)
 
-    def _get_field(self, field):
+    def _get_field(self, field: str):
         if hasattr(self, field):
             return getattr(self, field).processed_value
 
@@ -72,7 +73,7 @@ class Row:
     @property
     def pamount(self):
         if hasattr(self, "amount"):
-            val = self.amount
+            val = self.amount.processed_value
         elif hasattr(self, "debit"):
             val = self.debit.processed_value * -1
         elif hasattr(self, "credit"):
@@ -82,18 +83,20 @@ class Row:
     @property
     def doc(self):
         return {
+            "category": re.sub(r"\s+", "", self.pdescription)[0:10],
+            "account": self.account_name,
             "amount": self.pamount,
             "description": self.pdescription,
             "check_num": self.pcheck_num,
-            "date": self.pdate,
-            "posted_date": self.ppost_date,
-            "trans_date": self.ptrans_date,
+            "date": config.dfmt(self.pdate),
+            "posted_date": config.dfmt(self.ppost_date),
+            "trans_date": config.dfmt(self.ptrans_date),
             "credit": self._get_field("credit"),
             "debit": self._get_field("debit"),
         }
 
 
-def convert_field(value, stype):
+def convert_field(value: str, stype: dict):
     def _convert_date(value, stype):
         return datetime.datetime.strptime(value, stype["date_format"])
 
@@ -115,8 +118,8 @@ def convert_field(value, stype):
     return fn(value, stype)
 
 
-def get_transactions():
-    for account, path, df in load_files():
+def get_transactions(path: Path):
+    for account, path, df in load_files(path):
         for _, row in df.iterrows():
             file_columns = account["file_columns"]
             assert len(df.columns) == len(file_columns)
@@ -128,8 +131,10 @@ def get_transactions():
             yield Row(account["account_name"], row)
 
 
-def load_files():
-    for path in config.csv_files:
+def load_files(path: Path = None):
+    paths = config.csv_files if path is None else path.glob("*.csv")
+
+    for path in paths:
         account = None
 
         df = pandas.read_csv(f"{path}", keep_default_na=False)
@@ -151,13 +156,8 @@ def load_files():
         yield account, path, df
 
 
-def rename_files():
-    for ofn, nfn in get_file_names():
-        ofn.rename(nfn)
-
-
-def get_file_names():
-    for account, path, df in load_files():
+def get_file_names(path: Path):
+    for account, path, df in load_files(path):
         sk = account["sort_key"]
         sort_key = account["file_columns"][sk]
         column_name = sort_key["column_name"]
@@ -168,6 +168,8 @@ def get_file_names():
         dates = [datetime.datetime.strptime(date, date_format) for date in dates]
         start_date = datetime.datetime.strftime(dates[0], config.date_fmt)
         end_date = datetime.datetime.strftime(dates[-1], config.date_fmt)
-        new_file_path = f"{config.files_path}/{config.create_file_name(account_name, start_date, end_date)}.csv"
+        new_file_path = (
+            f"{path}/{config.create_file_name(account_name, start_date, end_date)}.csv"
+        )
         new_path = Path(new_file_path)
         yield path, new_path
