@@ -5,6 +5,8 @@ VENV_PIP := $(VENV)/bin/pip $(PIP_EXTRA_OPTS)
 VENV_AWS := $(VENV)/bin/aws
 VENV_PRECOMMIT := $(VENV)/bin/pre-commit
 VENV_PYTEST := $(VENV)/bin/pytest
+CURRENT_PASSWORD ?=
+NEW_PASSWORD ?=
 EXAMPLE_FILE ?= upload_example
 GIT_COMMIT_HASH := $$(git rev-parse HEAD)
 
@@ -85,20 +87,3 @@ deploy: ensure_git_clean
 clean:
 	rm -rf $(VENV)
 	rm -rf tasks/node_modules
-
-
-install_docker:
-	git clone https://github.com/deviantony/docker-elk.git
-
-
-install: install_docker
-
-
-start_elk: install_docker
-	cd ./docker-elk ;\
-	docker-compose up
-
-
-stop_elk:
-	cd ./docker-elk ;\
-	docker-compose down -v

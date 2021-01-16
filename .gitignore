@@ -25,4 +25,4 @@ __pycache__
 node_modules
 *.pyc
 test-reports/*
-docker-elk
+elk_stack
