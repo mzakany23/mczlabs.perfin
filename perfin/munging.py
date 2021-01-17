@@ -27,6 +27,7 @@ class RowField:
 @dataclass
 class Row:
     account_name: str
+    account_type: str
     row: dict
 
     def __post_init__(self):
@@ -66,7 +67,8 @@ class Row:
         return {
             "category": self._get_field("category"),
             "key": re.sub(r"\s+", "", description)[0:12],
-            "account": self.account_name,
+            "account_name": self.account_name,
+            "account_type": self.account_type,
             "amount": self.pamount,
             "description": description,
             "check_num": self._get_field("check_num", int),
@@ -120,7 +122,7 @@ def get_transactions(path: Path):
                 stype["processed_value"] = convert_field(row[i], stype)
                 row[i] = stype
 
-            yield Row(account["account_name"], row)
+            yield Row(account["account_name"], account["account_type"], row)
 
 
 def load_files(base_path: Path = None, patterns=["*.csv"]):

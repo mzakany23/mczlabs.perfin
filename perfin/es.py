@@ -15,7 +15,8 @@ def get_date(**kwargs):
 class Transaction(Document):
     created_at = get_date()
     category = Keyword()
-    account = Keyword()
+    account_name = Keyword()
+    account_type = Keyword()
     amount = Float()
     description = Text(fielddata=True)
     check_num = Long()

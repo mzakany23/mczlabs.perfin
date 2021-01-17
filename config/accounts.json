@@ -3,6 +3,7 @@
         "chase" : {
             "search" : ["chase"],
             "sort_key": 1,
+            "account_type" : "credit_card",
             "file_columns" : [
                 {
                     "column_name" : "Transaction Date",
@@ -46,6 +47,7 @@
         "fifth_third" : {
             "search" : ["fifth_third", "exports", "export", "53"],
             "sort_key" : 0,
+            "account_type" : "checking",
             "file_columns" : [
                 {
                     "column_name" : "Date",
@@ -74,6 +76,7 @@
         "capital_one" : {
             "search" : ["transaction_download"],
             "sort_key" : 1,
+            "account_type" : "credit_card",
             "file_columns" : [
                 {
                     "column_name" : "Transaction Date",
