@@ -39,7 +39,7 @@
             ]
         },
         "fifth_third" : {
-            "search" : ["fifth_third", "exports", "53"],
+            "search" : ["fifth_third", "exports", "export", "53"],
             "sort_key" : 0,
             "file_columns" : [
                 {

@@ -1,4 +1,5 @@
 import datetime
+import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -7,6 +8,8 @@ from typing import Any
 import pandas
 
 from .settings import config
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -91,6 +94,7 @@ class Row:
             "date": config.dfmt(self.pdate),
             "posted_date": config.dfmt(self.ppost_date),
             "trans_date": config.dfmt(self.ptrans_date),
+            "trans_type": self.ptransaction_type,
             "credit": self._get_field("credit"),
             "debit": self._get_field("debit"),
         }
@@ -131,33 +135,34 @@ def get_transactions(path: Path):
             yield Row(account["account_name"], row)
 
 
-def load_files(path: Path = None):
-    paths = config.csv_files if path is None else path.glob("*.csv")
+def load_files(base_path: Path = None, patterns=["*.csv"]):
+    for pattern in patterns:
 
-    for path in paths:
-        account = None
+        for path in base_path.glob(pattern):
+            account = None
 
-        df = pandas.read_csv(f"{path}", keep_default_na=False)
+            df = pandas.read_csv(f"{path}", keep_default_na=False)
 
-        def find_account():
-            for account_name, account_config in config.ACCOUNT_LOOKUP.items():
-                for account_alias in account_config["search"]:
-                    alias_match = account_alias.lower() in path.name.lower()
+            def find_account():
+                for account_name, account_config in config.ACCOUNT_LOOKUP.items():
+                    for account_alias in account_config["search"]:
+                        alias_match = account_alias.lower() in path.name.lower()
 
-                    if alias_match:
-                        account_config["account_name"] = account_name
-                        return account_config
+                        if alias_match:
+                            account_config["account_name"] = account_name
+                            return account_config
 
-        account = find_account()
+            account = find_account()
 
-        if not account:
-            raise Exception(f"could not match file alias {path.name.lower()}")
+            if not account:
+                logger.warning(f"could not match file alias {path.name.lower()}")
+                continue
 
-        yield account, path, df
+            yield account, path, df
 
 
-def get_file_names(path: Path):
-    for account, path, df in load_files(path):
+def get_file_names(path: Path, ext_globs=["*.csv"], new_file_ext="csv"):
+    for account, path, df in load_files(path, ext_globs):
         sk = account["sort_key"]
         sort_key = account["file_columns"][sk]
         column_name = sort_key["column_name"]
@@ -168,8 +173,12 @@ def get_file_names(path: Path):
         dates = [datetime.datetime.strptime(date, date_format) for date in dates]
         start_date = datetime.datetime.strftime(dates[0], config.date_fmt)
         end_date = datetime.datetime.strftime(dates[-1], config.date_fmt)
-        new_file_path = (
-            f"{path}/{config.create_file_name(account_name, start_date, end_date)}.csv"
-        )
-        new_path = Path(new_file_path)
-        yield path, new_path
+        new_file_name = f"{config.create_file_name(account_name, start_date, end_date)}.{new_file_ext}"
+        yield path, new_file_name
+
+
+def move_files(path: Path):
+    for file, new_file_name in get_file_names(path, ["*.csv", "*.CSV"]):
+        nfp = config.root_path.joinpath(f"files/{new_file_name}")
+        file.rename(nfp)
+        logger.info(f"successfully moved {nfp}")

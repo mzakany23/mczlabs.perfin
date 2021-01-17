@@ -9,6 +9,7 @@ CURRENT_PASSWORD ?=
 NEW_PASSWORD ?=
 EXAMPLE_FILE ?= upload_example
 GIT_COMMIT_HASH := $$(git rev-parse HEAD)
+CMD ?= run
 
 # Deploys generally want to have a clean git state to ensure consistency
 .PHONY: ensure_git_clean
@@ -40,13 +41,14 @@ $(VENV_SENTINEL): requirements.txt requirements-test.txt .pre-commit-config.yaml
 
 
 .PHONY: update_requirements
-update_requirements:
+update_requirements: requirements-test.txt
 	$(MAKE) ensure_no_venv
+	rm requirements.txt
 	rm -rf $(VENV)
 	python3.7 -m venv $(VENV)
 	$(VENV_PIP) install -r requirements-loose.txt
-	head -1 requirements-loose.txt > requirements.txt
 	$(VENV_PIP) freeze >> requirements.txt
+	make $(VENV)
 
 
 .PHONY: pre-commit
@@ -87,3 +89,9 @@ deploy: ensure_git_clean
 clean:
 	rm -rf $(VENV)
 	rm -rf tasks/node_modules
+
+
+.PHONY: cli
+cli:
+	. $(VENV_ACTIVATE) ;\
+	python ./cli.py $(CMD)

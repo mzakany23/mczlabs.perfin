@@ -20,14 +20,15 @@ def test_get_file_names(mocker, file_dir):
 
         make test TEST_FILE=test_munging TEST_FN=test_get_file_names
     """
-    for old_file, new_file in get_file_names(file_dir):
-        parts = new_file.name.split("____")
+    for old_file, new_file_name in get_file_names(file_dir):
+        parts = new_file_name.split("____")
         fd, td = parts[1].split("--")
         fd = datetime.datetime.strptime(fd, config.date_fmt)
+
         assert len(parts) == 3
         assert isinstance(fd, datetime.datetime)
         assert isinstance(old_file, Path)
-        assert isinstance(new_file, Path)
+        assert isinstance(new_file_name, str)
 
 
 def test_get_transactions(file_dir):

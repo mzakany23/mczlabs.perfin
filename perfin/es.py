@@ -1,59 +1,34 @@
-import logging
-import threading
+from datetime import datetime
 
-import certifi
-from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Date, Document, Float, Integer, Keyword, Text, connections
 from perfin.settings import config
 
-local = threading.local()
-logger = logging.getLogger(__name__)
+date_fmt = config.es_date_fmt
 
-DOC_TYPE = "default"
-INDEX = "transactions"
-SCHEMA = config.ES_SCHEMA
+connections.create_connection(**config.es_config)
 
 
-def get_es():
-    def _conn():
-        es_node = config.ES_NODE
-        es_user = config.ES_USER
-        es_pass = config.ES_PASS
-
-        if es_user and es_pass:
-            logger.debug("using non local elasticsearch:{}".format(es_node))
-            params = {
-                "http_auth": (es_user, es_pass),
-                "send_get_body_as": "POST",
-                "ca_certs": certifi.where(),
-                "use_ssl": True,
-                "send_get_body_as": "POST",
-            }
-            return Elasticsearch([es_node], **params)
-
-        return Elasticsearch([config.ES_NODE])
-
-    try:
-        es = local.es
-    except AttributeError:
-        es = _conn()
-        local.es = es
-    return es
+def get_date(format=date_fmt):
+    return Date(format=date_fmt)
 
 
-def create_index():
-    es = get_es()
+class Transaction(Document):
+    created_at = get_date()
+    category = Keyword()
+    account = Keyword()
+    amount = Float()
+    description = Text(fielddata=True)
+    check_num = Integer()
+    date = get_date()
+    posted_date = get_date()
+    trans_date = get_date()
+    trans_type = Keyword()
+    credit = Float()
+    debit = Float()
 
-    if not es.indices.exists(INDEX):
-        return es.indices.create(index=INDEX, body=SCHEMA)
+    class Index:
+        name = "transactions"
 
-
-def insert_document(document: dict):
-    es = get_es()
-    unique_doc_id = config.generate_specific_key(*document.values())
-    return es.index(
-        index=INDEX,
-        doc_type=DOC_TYPE,
-        body=document,
-        id=unique_doc_id,
-        request_timeout=60,
-    )
+    def save(self, **kwargs):
+        self.created_at = datetime.utcnow()
+        return super().save(**kwargs)

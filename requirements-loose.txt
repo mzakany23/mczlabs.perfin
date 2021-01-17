@@ -1,4 +1,4 @@
-elasticsearch
+elasticsearch-dsl
 pandas
 coloredlogs
 s3fs

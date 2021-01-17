@@ -16,7 +16,9 @@ local = threading.local()
 logger = logging.getLogger(__name__)
 
 DATE_FMT = "%Y-%m-%d"
+ES_DATE_FMT = "yyyy-MM-dd"
 ENV_VARS = ["ES_NODE", "ES_USER", "ES_PASS"]
+ES_CONFIG = {"hosts": ["localhost"], "timeout": 20}
 COLOR_LOGS = {
     "level": "DEBUG",
     "fmt": "[%(asctime)s] [%(name)s|%(levelname)s@%(filename)s:%(lineno)d] %(message)s",
@@ -73,11 +75,15 @@ class Config:
         return DATE_FMT
 
     @property
-    def csv_files(self):
-        return self.root.joinpath("files").glob("*.csv")
+    def es_date_fmt(self):
+        return ES_DATE_FMT
 
     @property
-    def root(self):
+    def es_config(self):
+        return ES_CONFIG
+
+    @property
+    def root_path(self):
         return Path(".").parent.resolve()
 
     def set_env_vars(self):
@@ -104,7 +110,7 @@ class Config:
         return f"{name}____{from_date}--{to_date}____{key}"
 
     def init_file(self):
-        paths = self.root.joinpath("config").glob("*.json")
+        paths = self.root_path.joinpath("config").glob("*.json")
         for path in paths:
             with path.open("r+") as file:
                 self.body = json.load(file)
