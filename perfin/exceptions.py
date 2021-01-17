@@ -1,0 +1,2 @@
+class PerfinColumnParseError(Exception):
+    pass

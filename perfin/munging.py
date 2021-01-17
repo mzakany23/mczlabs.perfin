@@ -7,6 +7,7 @@ from typing import Any
 
 import pandas
 
+from .exceptions import PerfinColumnParseError
 from .settings import config
 
 logger = logging.getLogger(__name__)
@@ -41,37 +42,13 @@ class Row:
             )
             setattr(self, field.key, field)
 
-    def _get_field(self, field: str):
+    def _get_field(self, field: Any, coerce_type: Any = None):
+        item = None
         if hasattr(self, field):
-            return getattr(self, field).processed_value
-
-    @property
-    def ptrans_date(self):
-        return self._get_field("transaction_date")
-
-    @property
-    def ppost_date(self):
-        return self._get_field("transaction_posted_date")
-
-    @property
-    def pdate(self):
-        return self._get_field("transaction_posted_date")
-
-    @property
-    def pdescription(self):
-        return self._get_field("description")
-
-    @property
-    def pcategory(self):
-        return self._get_field("category")
-
-    @property
-    def ptransaction_type(self):
-        return self._get_field("transaction_type")
-
-    @property
-    def pcheck_num(self):
-        return int(self._get_field("check_num"))
+            item = getattr(self, field).processed_value
+        if item and coerce_type:
+            return coerce_type(item)
+        return item
 
     @property
     def pamount(self):
@@ -85,17 +62,20 @@ class Row:
 
     @property
     def doc(self):
+        description = self._get_field("description")
         return {
-            "category": re.sub(r"\s+", "", self.pdescription)[0:10],
+            "category": self._get_field("category"),
+            "key": re.sub(r"\s+", "", description)[0:12],
             "account": self.account_name,
             "amount": self.pamount,
-            "description": self.pdescription,
-            "check_num": self.pcheck_num,
-            "date": self.pdate,
-            "posted_date": self.ppost_date,
-            "trans_date": self.ptrans_date,
-            "trans_type": self.ptransaction_type,
+            "description": description,
+            "check_num": self._get_field("check_num", int),
+            "date": self._get_field("transaction_posted_date"),
+            "posted_date": self._get_field("transaction_posted_date"),
+            "trans_date": self._get_field("transaction_date"),
+            "trans_type": self._get_field("transaction_type"),
             "credit": self._get_field("credit"),
+            "memo": self._get_field("memo"),
             "debit": self._get_field("debit"),
         }
 
@@ -126,7 +106,15 @@ def get_transactions(path: Path):
     for account, path, df in load_files(path):
         for _, row in df.iterrows():
             file_columns = account["file_columns"]
-            assert len(df.columns) == len(file_columns)
+            try:
+                assert len(df.columns) == len(file_columns)
+            except AssertionError:
+                cols = [col for col in df.columns]
+                spec = [f["key"] for f in file_columns]
+                raise PerfinColumnParseError(
+                    f"column error! Data frame shows {len(cols)} columns\ndf columns: {cols} \nspec columns: {spec}"
+                )
+
             for i, stype in enumerate(file_columns):
                 stype["original_value"] = row[i]
                 stype["processed_value"] = convert_field(row[i], stype)

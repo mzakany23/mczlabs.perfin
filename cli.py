@@ -57,6 +57,17 @@ def reboot_index():
     create_index()
 
 
+def reindex_index():
+    """
+        How to run
+
+        make cli CMD=reindex_index
+    """
+    reboot_index()
+    move_files_to_root()
+    insert_transactions()
+
+
 def insert_transactions():
     """
         How to run

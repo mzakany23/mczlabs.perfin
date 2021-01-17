@@ -35,6 +35,11 @@
                     "column_name" : "Amount",
                     "key" : "amount",
                     "schema_type" : "float"
+                },
+                {
+                    "column_name" : "Memo",
+                    "key" : "memo",
+                    "schema_type" : "string"
                 }
             ]
         },
