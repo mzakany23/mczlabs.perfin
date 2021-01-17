@@ -38,6 +38,25 @@ def create_index():
     Transaction.init()
 
 
+def destroy_index():
+    """
+        How to run
+
+        make cli CMD=destroy_index
+    """
+    Transaction._index.delete()
+
+
+def reboot_index():
+    """
+        How to run
+
+        make cli CMD=reboot_index
+    """
+    destroy_index()
+    create_index()
+
+
 def insert_transactions():
     """
         How to run
@@ -47,8 +66,8 @@ def insert_transactions():
     path = config.root_path.joinpath("files")
 
     for t in get_transactions(path):
-        pd = Transaction(**t.doc)
-        pd.save()
+        trans = Transaction(**t.doc)
+        trans.save()
 
 
 def move_files_to_root():

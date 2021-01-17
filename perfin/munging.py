@@ -71,7 +71,7 @@ class Row:
 
     @property
     def pcheck_num(self):
-        return self._get_field("check_num")
+        return int(self._get_field("check_num"))
 
     @property
     def pamount(self):
@@ -81,7 +81,7 @@ class Row:
             val = self.debit.processed_value * -1
         elif hasattr(self, "credit"):
             val = self.credit.processed_value * -1
-        return val
+        return float(val)
 
     @property
     def doc(self):
@@ -91,9 +91,9 @@ class Row:
             "amount": self.pamount,
             "description": self.pdescription,
             "check_num": self.pcheck_num,
-            "date": config.dfmt(self.pdate),
-            "posted_date": config.dfmt(self.ppost_date),
-            "trans_date": config.dfmt(self.ptrans_date),
+            "date": self.pdate,
+            "posted_date": self.ppost_date,
+            "trans_date": self.ptrans_date,
             "trans_type": self.ptransaction_type,
             "credit": self._get_field("credit"),
             "debit": self._get_field("debit"),
