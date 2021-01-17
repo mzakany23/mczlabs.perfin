@@ -44,7 +44,8 @@ def destroy_index():
 
         make cli CMD=destroy_index
     """
-    Transaction._index.delete()
+    if Transaction._index.exists():
+        Transaction._index.delete()
 
 
 def reboot_index():
