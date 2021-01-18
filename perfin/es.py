@@ -26,6 +26,7 @@ class Transaction(Document):
     trans_type = Keyword()
     credit = Float()
     debit = Float()
+    key = Keyword()
     memo = Text(fielddata=True)
 
     class Index:

@@ -58,17 +58,6 @@ def reboot_index():
     create_index()
 
 
-def reindex_index():
-    """
-        How to run
-
-        make cli CMD=reindex_index
-    """
-    reboot_index()
-    move_files_to_root()
-    insert_transactions()
-
-
 def insert_transactions():
     """
         How to run
@@ -95,6 +84,17 @@ def move_files_to_root():
     """
     path = Path("~/Desktop").expanduser()
     move_files(path)
+
+
+def reindex_index():
+    """
+        How to run
+
+        make cli CMD=reindex_index
+    """
+    reboot_index()
+    move_files_to_root()
+    insert_transactions()
 
 
 def run():

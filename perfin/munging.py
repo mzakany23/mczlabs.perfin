@@ -51,6 +51,13 @@ class Row:
             return coerce_type(item)
         return item
 
+    def _make_key(self, description):
+        desc = re.sub(r"\d+", "", description)
+        desc = re.sub(r"\s+", "", desc)[0:10].upper()
+        for key in ["*", "-", "&", "/", ".", ";"]:
+            desc = desc.replace(key, "")
+        return desc
+
     @property
     def pamount(self):
         if hasattr(self, "amount"):
@@ -66,7 +73,7 @@ class Row:
         description = self._get_field("description")
         return {
             "category": self._get_field("category"),
-            "key": re.sub(r"\s+", "", description)[0:12],
+            "key": self._make_key(description),
             "account_name": self.account_name,
             "account_type": self.account_type,
             "amount": self.pamount,
@@ -147,7 +154,7 @@ def load_files(base_path: Path = None, patterns=["*.csv"]):
             if not account:
                 logger.warning(f"could not match file alias {path.name.lower()}")
                 continue
-
+            logger.info(f"found {path.name.lower()}")
             yield account, path, df
 
 
