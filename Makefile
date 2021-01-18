@@ -10,6 +10,7 @@ NEW_PASSWORD ?=
 EXAMPLE_FILE ?= upload_example
 GIT_COMMIT_HASH := $$(git rev-parse HEAD)
 CMD ?= run
+ELK_VERSION ?= 7.10.2
 
 # Deploys generally want to have a clean git state to ensure consistency
 .PHONY: ensure_git_clean
@@ -87,11 +88,24 @@ deploy: ensure_git_clean
 
 
 clean:
-	rm -rf $(VENV)
-	rm -rf tasks/node_modules
+	docker volume rm $(docker volume ls -qf dangling=true) ;\
+	docker system prune ;\
+	docker system df ;\
+	docker container prune ;\
+	docker network prune ;\
 
 
 .PHONY: cli
 cli:
 	. $(VENV_ACTIVATE) ;\
 	python ./cli.py $(CMD)
+
+
+.PHONY: run
+run:
+	TAG=$(ELK_VERSION) docker-compose up --remove-orphans
+
+
+.PHONY: stop
+stop:
+	docker-compose down
