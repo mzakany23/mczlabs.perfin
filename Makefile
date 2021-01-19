@@ -11,6 +11,7 @@ EXAMPLE_FILE ?= upload_example
 GIT_COMMIT_HASH := $$(git rev-parse HEAD)
 CMD ?= run
 ELK_VERSION ?= 7.10.2
+AWS_PROFILE ?= mzakany
 
 # Deploys generally want to have a clean git state to ensure consistency
 .PHONY: ensure_git_clean
@@ -98,6 +99,7 @@ clean:
 .PHONY: cli
 cli:
 	. $(VENV_ACTIVATE) ;\
+	export AWS_PROFILE=$(AWS_PROFILE);\
 	python ./cli.py $(CMD)
 
 
@@ -109,3 +111,7 @@ run:
 .PHONY: stop
 stop:
 	docker-compose down
+
+
+.PHONY: run_elk
+run_elk: run

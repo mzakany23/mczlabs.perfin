@@ -2,13 +2,7 @@ import datetime
 import logging
 import re
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
-
-import pandas
-
-from .exceptions import PerfinColumnParseError
-from .settings import config
 
 logger = logging.getLogger(__name__)
 
@@ -109,73 +103,3 @@ def convert_field(value: str, stype: dict):
         return value
 
     return fn(value, stype)
-
-
-def get_transactions(path: Path):
-    for account, path, df in load_files(path):
-        for _, row in df.iterrows():
-            file_columns = account["file_columns"]
-            try:
-                assert len(df.columns) == len(file_columns)
-            except AssertionError:
-                cols = [col for col in df.columns]
-                spec = [f["key"] for f in file_columns]
-                raise PerfinColumnParseError(
-                    f"column error! Data frame shows {len(cols)} columns\ndf columns: {cols} \nspec columns: {spec}"
-                )
-
-            for i, stype in enumerate(file_columns):
-                stype["original_value"] = row[i]
-                stype["processed_value"] = convert_field(row[i], stype)
-                row[i] = stype
-
-            yield Row(account["account_name"], account["account_type"], row)
-
-
-def load_files(base_path: Path = None, patterns=["*.csv"]):
-    for pattern in patterns:
-
-        for path in base_path.glob(pattern):
-            account = None
-
-            df = pandas.read_csv(f"{path}", keep_default_na=False)
-
-            def find_account():
-                for account_name, account_config in config.ACCOUNT_LOOKUP.items():
-                    for account_alias in account_config["search"]:
-                        alias_match = account_alias.lower() in path.name.lower()
-
-                        if alias_match:
-                            account_config["account_name"] = account_name
-                            return account_config
-
-            account = find_account()
-
-            if not account:
-                logger.warning(f"could not match file alias {path.name.lower()}")
-                continue
-            logger.info(f"found {path.name.lower()}")
-            yield account, path, df
-
-
-def get_file_names(path: Path, ext_globs=["*.csv"], new_file_ext="csv"):
-    for account, path, df in load_files(path, ext_globs):
-        sk = account["sort_key"]
-        sort_key = account["file_columns"][sk]
-        column_name = sort_key["column_name"]
-        dates = df[column_name].to_list()
-        date_format = sort_key["date_format"]
-        account_name = account["account_name"]
-        dates.sort(key=lambda date: datetime.datetime.strptime(date, date_format))
-        dates = [datetime.datetime.strptime(date, date_format) for date in dates]
-        start_date = datetime.datetime.strftime(dates[0], config.date_fmt)
-        end_date = datetime.datetime.strftime(dates[-1], config.date_fmt)
-        new_file_name = f"{config.create_file_name(account_name, start_date, end_date)}.{new_file_ext}"
-        yield path, new_file_name
-
-
-def move_files(path: Path):
-    for file, new_file_name in get_file_names(path, ["*.csv", "*.CSV"]):
-        nfp = config.root_path.joinpath(f"files/{new_file_name}")
-        file.rename(nfp)
-        logger.info(f"successfully moved {nfp}")

@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-from perfin import Transaction, get_transactions, move_files
+from perfin import PathFinder, Transaction, get_transactions, move_files
 from perfin.settings import config
 
 
@@ -65,8 +65,8 @@ def insert_transactions():
         make cli CMD=insert_transactions
     """
     path = config.root_path.joinpath("files")
-
-    for t in get_transactions(path):
+    finder = PathFinder(csv_path=path)
+    for t in get_transactions(finder):
         trans = Transaction(**t.doc)
         trans.save()
 
@@ -103,7 +103,11 @@ def run():
 
         make cli CMD=run
     """
-    print("do something")
+    finder = PathFinder(s3_path="mzakany-perfin")
+    for t in get_transactions(finder):
+        import pdb
+
+        pdb.set_trace()
 
 
 if __name__ == "__main__":

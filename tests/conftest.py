@@ -1,1 +1,1 @@
-from .fixtures import file_dir  # noqa
+from .fixtures import finder  # noqa
