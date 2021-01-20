@@ -6,8 +6,9 @@ import logging.config
 import os
 import threading
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Dict
 
 import coloredlogs
 
@@ -65,6 +66,8 @@ LOGGING_CONFIG = config = {
 
 @dataclass
 class Config:
+    body: Dict = field(default_factory=lambda: {})
+
     def __post_init__(self):
         self.configure_logging()
         self.init_file()
@@ -113,10 +116,11 @@ class Config:
         paths = self.root_path.joinpath("config").glob("*.json")
         for path in paths:
             with path.open("r+") as file:
-                self.body = json.load(file)
-                for k, v in self.body.items():
+                inner = json.load(file)
+                for k, v in inner.items():
                     setattr(self, k, v)
-                return self
+                self.body.update(inner)
+        return self
 
     def dfmt(self, d):
         if d is None:

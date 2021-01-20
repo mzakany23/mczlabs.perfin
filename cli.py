@@ -2,31 +2,8 @@ import sys
 from pathlib import Path
 
 from perfin import PathFinder, Transaction, get_transactions, move_files
+from perfin.s3 import get_s3_conn
 from perfin.settings import config
-
-
-def schema_fields():
-    """
-        How to run
-
-        make cli CMD=schema_fields
-
-        Description
-
-        Show me what the schema should look like
-    """
-    lookup = set()
-    for k, v in config.ACCOUNT_LOOKUP.items():
-        for item in v["file_columns"]:
-            k = item["key"]
-            t = item["schema_type"]
-            lookup.add(f"{k}:{t}")
-    print("----------------")
-    print("fields")
-    print("----------------")
-    print()
-    for item in lookup:
-        print(item)
 
 
 def create_index():
@@ -64,7 +41,7 @@ def sync_s3_data_locally():
 
         make cli CMD=sync_s3_data_locally
     """
-    finder = PathFinder(s3_bucket_path="mzakany-perfin")
+    finder = PathFinder(s3_bucket_path=config.AWS["bucket_path"])
     for t in get_transactions(finder):
         trans = Transaction(**t.doc)
         trans.save()
@@ -97,6 +74,18 @@ def move_files_to_root():
     path = Path("~/Desktop").expanduser()
     finder = PathFinder(csv_path=path)
     move_files(finder)
+
+
+def move_files_to_s3():
+    """
+        How to run
+
+        make cli CMD=move_files_to_s3
+    """
+    path = config.root_path.joinpath("files")
+    finder = PathFinder(csv_path=path)
+    for path in finder.paths:
+        get_s3_conn().put(str(path), config.AWS["bucket_path"])
 
 
 def reindex_index():
