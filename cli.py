@@ -95,7 +95,8 @@ def move_files_to_root():
         into files folder
     """
     path = Path("~/Desktop").expanduser()
-    move_files(path)
+    finder = PathFinder(csv_path=path)
+    move_files(finder)
 
 
 def reindex_index():
