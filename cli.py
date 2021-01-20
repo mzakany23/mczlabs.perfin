@@ -58,6 +58,18 @@ def reboot_index():
     create_index()
 
 
+def sync_s3_data_locally():
+    """
+        How to run
+
+        make cli CMD=sync_s3_data_locally
+    """
+    finder = PathFinder(s3_bucket_path="mzakany-perfin")
+    for t in get_transactions(finder):
+        trans = Transaction(**t.doc)
+        trans.save()
+
+
 def insert_transactions():
     """
         How to run
@@ -103,11 +115,7 @@ def run():
 
         make cli CMD=run
     """
-    finder = PathFinder(s3_path="mzakany-perfin")
-    for t in get_transactions(finder):
-        import pdb
-
-        pdb.set_trace()
+    print("do something here")
 
 
 if __name__ == "__main__":

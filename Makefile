@@ -104,7 +104,7 @@ cli:
 
 
 .PHONY: run
-run:
+start:
 	TAG=$(ELK_VERSION) docker-compose up --remove-orphans
 
 

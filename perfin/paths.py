@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class PathFinder:
     csv_path: Path = None
     csv_patterns: List = field(default_factory=lambda: ["*.csv", "*.CSV"])
-    s3_path: str = None
+    s3_bucket_path: str = None
 
     @property
     def paths(self):
@@ -29,8 +29,8 @@ class PathFinder:
     def load_files(self):
         if self.csv_path:
             return load_files(self)
-        elif self.s3_path:
-            return load_s3_files(self)
+        elif self.s3_bucket_path:
+            return load_s3_files(self.s3_bucket_path)
 
 
 def load_files(finder: PathFinder):
@@ -48,10 +48,20 @@ def load_files(finder: PathFinder):
         yield account, path, df
 
 
+def get_sort_key(account):
+    fc = account if isinstance(account, list) else account["file_columns"]
+
+    for col in fc:
+        if isinstance(col, list):
+            return get_sort_key(col)
+        if col.get("sort_key"):
+            return col
+    raise Exception(f"could not find a sort_key attr in {fc}")
+
+
 def get_file_names(finder: PathFinder, new_file_ext="csv"):
     for account, path, df in finder.load_files():
-        sk = account["sort_key"]
-        sort_key = account["file_columns"][sk]
+        sort_key = get_sort_key(account)
         column_name = sort_key["column_name"]
         dates = df[column_name].to_list()
         date_format = sort_key["date_format"]
