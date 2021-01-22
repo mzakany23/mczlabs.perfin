@@ -13,7 +13,7 @@ def stop():
 
         make cli CMD=start
     """
-    os.system("TAG=7.10.2 docker-compose down --remove-orphans")
+    os.system("cd ~/Desktop/perfin;TAG=7.10.2 docker-compose down --remove-orphans")
 
 
 def start():
@@ -22,7 +22,7 @@ def start():
 
         make cli CMD=start
     """
-    os.system("TAG=7.10.2 docker-compose up --remove-orphans")
+    os.system("cd ~/Desktop/perfin;TAG=7.10.2 docker-compose up --remove-orphans")
 
 
 def create_index():
