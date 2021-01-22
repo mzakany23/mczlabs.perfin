@@ -7,6 +7,15 @@ from perfin.s3 import get_s3_conn
 from perfin.settings import config
 
 
+def stop():
+    """
+        How to run
+
+        make cli CMD=start
+    """
+    os.system("TAG=7.10.2 docker-compose down --remove-orphans")
+
+
 def start():
     """
         How to run
