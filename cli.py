@@ -1,9 +1,19 @@
+import os
 import sys
 from pathlib import Path
 
 from perfin import PathFinder, Transaction, get_transactions, move_files
 from perfin.s3 import get_s3_conn
 from perfin.settings import config
+
+
+def start():
+    """
+        How to run
+
+        make cli CMD=start
+    """
+    os.system("TAG=7.10.2 docker-compose up --remove-orphans")
 
 
 def create_index():
@@ -84,8 +94,22 @@ def move_files_to_s3():
     """
     path = config.root_path.joinpath("files")
     finder = PathFinder(csv_path=path)
+    bucket = config.AWS["bucket_path"]
     for path in finder.paths:
-        get_s3_conn().put(str(path), config.AWS["bucket_path"])
+        filename = f"{bucket}/{path.name}"
+        get_s3_conn().put(str(path), filename)
+
+
+def delete_local_files():
+    """
+        How to run
+
+        make cli CMD=delete_local_files
+    """
+    path = config.root_path.joinpath("files")
+    finder = PathFinder(csv_path=path)
+    for path in finder.paths:
+        path.unlink()
 
 
 def reindex_index():
@@ -97,6 +121,18 @@ def reindex_index():
     reboot_index()
     move_files_to_root()
     insert_transactions()
+
+
+def move_ingest_and_delete():
+    """
+        How to run
+
+        make cli CMD=move_ingest_and_delete
+    """
+    move_files_to_root()
+    insert_transactions()
+    move_files_to_s3()
+    delete_local_files()
 
 
 def run():

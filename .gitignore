@@ -26,3 +26,4 @@ node_modules
 *.pyc
 test-reports/*
 elk_stack
+queries.md

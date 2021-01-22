@@ -44,7 +44,9 @@ def load_files(finder: PathFinder):
         if not account:
             logger.warning(f"could not match file alias {path.name.lower()}")
             continue
+
         logger.info(f"found {path.name.lower()}")
+
         yield account, path, df
 
 
