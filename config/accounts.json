@@ -66,7 +66,7 @@
             ]
         },
         "fifth_third" : {
-            "file_name_search" : ["fifth_third", "exports", "export", "53"],
+            "file_name_search" : ["fifth_third", "fifththird", "exports", "export", "53"],
             "account_type" : "checking",
             "file_columns" : [
                 [
@@ -115,7 +115,7 @@
             ]
         },
         "capital_one" : {
-            "file_name_search" : ["transaction_download"],
+            "file_name_search" : ["transaction_download", "capital_one", "capitalone", "capone"],
             "account_type" : "credit_card",
             "file_columns" : [
                 [
