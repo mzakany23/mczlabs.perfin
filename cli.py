@@ -132,11 +132,11 @@ def reindex_index():
     insert_transactions()
 
 
-def move_ingest_and_delete():
+def upload():
     """
         How to run
 
-        make cli CMD=move_ingest_and_delete
+        make cli CMD=upload
     """
     move_files_to_root()
     insert_transactions()
