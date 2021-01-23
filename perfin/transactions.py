@@ -21,7 +21,7 @@ def get_transactions(finder: PathFinder):
             except AssertionError:
                 spec = [f["key"] for f in file_columns]
                 logger.warning(
-                    f"\n{account_name} parsing error! Data frame shows {len(cols)} columns\ndf columns: {cols} \nspec columns: {spec}"
+                    f"\n{account_name} parsing error! Data frame shows {len(cols)} columns but spec is {len(spec)}\ndf columns: {cols} \nspec columns: {spec}"
                 )
                 continue
 
@@ -34,3 +34,4 @@ def get_transactions(finder: PathFinder):
                     row[i] = stype
 
                 yield Row(account_name, account["account_type"], row)
+            break

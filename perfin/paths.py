@@ -66,6 +66,9 @@ def get_file_names(finder: PathFinder, new_file_ext="csv"):
         sort_key = get_sort_key(account)
         column_name = sort_key["column_name"]
         dates = df[column_name].to_list()
+        if not dates:
+            logger.warning(f"found {path.name} but is blank, so skipping...")
+            continue
         date_format = sort_key["date_format"]
         account_name = account["account_name"]
         dates.sort(key=lambda date: datetime.datetime.strptime(date, date_format))
