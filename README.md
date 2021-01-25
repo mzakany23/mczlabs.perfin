@@ -1,5 +1,8 @@
 # Perfin
 
+[![CircleCI](https://circleci.com/gh/mzakany23/mczlabs.perfin.svg?style=svg&circle-token=7cf7c24bd0574883c1c2a0abf849736a1126395f)](https://circleci.com/gh/mzakany23/mczlabs.perfin)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 Personal Finance Transaction Management.
 
 This repo aims to aid in the munging, ingestion, and viewing of personal finance transactions gathered through bank csv report exports.
