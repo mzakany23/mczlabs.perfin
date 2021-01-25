@@ -9,14 +9,14 @@ It originally used plaid for data pipe but I've found working with csv's more re
 
 ## TODO
 
-[ ] make deployment env (terraform/aws/digitalocean/azure)
-[ ] setup circleci
-[ ] setup sentry
-[ ] document build commands/images etc
-[ ] github project
-[x] local development/ingesting
-[ ] pypi cli package
-[x] tests/setup
+- [ ] make deployment env (terraform/aws/digitalocean/azure)
+- [ ] setup circleci
+- [ ] setup sentry
+- [ ] document build commands/images etc
+- [ ] github project
+- [x] local development/ingesting
+- [ ] pypi cli package
+- [x] tests/setup
 
 
 ## Steps
