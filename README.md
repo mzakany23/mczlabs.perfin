@@ -25,7 +25,7 @@ It originally used plaid for data pipe but I've found working with csv's more re
 2. Drop the files on the desktop
 3. Set account names in the config/accounts.json
 4. Turn on local ingestion
-5. run the upload
+5. run the upload command (e.g. make run CMD=upload)
 
 
 ## Stack
