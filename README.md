@@ -31,7 +31,7 @@ open http://localhost:5601
 ## TODO
 
 - [ ] make deployment env (terraform/aws/digitalocean/azure)
-- [ ] setup circleci
+- [x] setup circleci
 - [ ] setup sentry
 - [ ] document build commands/images etc
 - [ ] github project
