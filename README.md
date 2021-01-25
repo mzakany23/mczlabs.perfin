@@ -7,7 +7,7 @@ Personal Finance Transaction Management.
 
 This repo aims to aid in the munging, ingestion, and viewing of personal finance transactions gathered through bank csv report exports.
 
-It originally used plaid for data pipe but I've found working with csv's more reliable (working with source vs. middleman).
+It originally used plaid for data pipe but I've found working with csv's more reliable.
 
 
 ## Quick Start
