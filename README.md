@@ -7,6 +7,24 @@ This repo aims to aid in the munging, ingestion, and viewing of personal finance
 It originally used plaid for data pipe but I've found working with csv's more reliable (working with source vs. middleman).
 
 
+## Quick Start
+
+Assuming osx >= 10.13.4 and docker is installed.
+
+```bash
+# setup virtualenv
+make .venv
+
+# start elasticsearch/kibana
+make start
+
+# assuming you have transactions downloaded locally and have set config/accounts.json
+make cli CMD=upload
+
+# go to kibana and make some charts
+open http://localhost:5601
+```
+
 ## TODO
 
 - [ ] make deployment env (terraform/aws/digitalocean/azure)
@@ -36,25 +54,6 @@ It originally used plaid for data pipe but I've found working with csv's more re
 - Sentry (bug reporting)
 - Circle ci (tests and deploy automation)
 - Local development (docker/docker-compose)
-
-
-## Quick Start
-
-Assuming osx >= 10.13.4 and docker is installed.
-
-```bash
-# setup virtualenv
-make .venv
-
-# start elasticsearch/kibana
-make start
-
-# assuming you have transactions downloaded locally and have set config/accounts.json
-make cli CMD=upload
-
-# go to kibana and make some charts
-open http://localhost:5601
-```
 
 
 ## Tests
