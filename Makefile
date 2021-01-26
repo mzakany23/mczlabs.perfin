@@ -115,6 +115,7 @@ stop:
 
 .PHONY: terraform_init
 terraform_init:
+	export AWS_PROFILE=perfin_terraform;\
 	cd ./terraform ;\
 	terraform init
 
@@ -126,12 +127,16 @@ create_ssh_keys:
 
 
 .PHONY: terraform_plan
-terraform_plan: terraform_init
-	terraform apply
+terraform_plan:
+	export AWS_PROFILE=perfin_terraform;\
+	cd ./terraform ;\
+	terraform plan
 
 
 .PHONY: terraform_apply
 terraform_apply: terraform_init
+	export AWS_PROFILE=perfin_terraform;\
+	cd ./terraform ;\
 	terraform apply
 
 
