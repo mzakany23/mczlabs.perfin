@@ -1,0 +1,46 @@
+provider "aws" {
+  profile = var.profile
+  region  = var.region
+}
+
+terraform {
+  backend "s3" {
+    bucket = "perfin-terraform"
+    key    = "all"
+    region = "us-east-1"
+  }
+}
+
+module "vpc" {
+  source = "./modules/vpcs"
+}
+
+module "public_subnet" {
+  source = "./modules/subnets"
+
+  vpc_id = module.vpc.vpc_id
+}
+
+module "internet_gateway" {
+  source = "./modules/internet-gateways"
+
+  vpc_id = module.vpc.vpc_id
+}
+
+module "route_table" {
+  source = "./modules/route-tables"
+
+  vpc_id              = module.vpc.vpc_id
+  internet_gateway_id = module.internet_gateway.internet_gateway_id
+  public_subnet_id    = module.public_subnet.public_subnet_id
+}
+
+module "ec2" {
+  source = "./modules/ec2s"
+
+  vpc_id           = module.vpc.vpc_id
+  public_subnet_id = module.public_subnet.public_subnet_id
+
+  ec2_ssh_key_name        = var.ec2_ssh_key_name
+  ec2_ssh_public_key_path = var.ec2_ssh_public_key_path
+}

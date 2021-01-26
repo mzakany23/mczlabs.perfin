@@ -113,5 +113,26 @@ stop:
 	docker-compose down
 
 
-.PHONY: run_elk
-run_elk: run
+.PHONY: terraform_init
+terraform_init:
+	terraform init
+
+
+.PHONY: create_ssh_keys
+create_ssh_keys:
+	cd ./terraform/access ;\
+	ssh-keygen -f free-tier-ec2-key
+
+
+.PHONY: terraform_plan
+terraform_plan:
+	echo "write this"
+
+
+.PHONY: terraform_apply
+terraform_apply:
+	echo "write this"
+
+
+.PHONY: deploy
+deploy: terraform_apply
