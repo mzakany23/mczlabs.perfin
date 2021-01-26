@@ -27,3 +27,4 @@ node_modules
 test-reports/*
 elk_stack
 queries.md
+.terraform

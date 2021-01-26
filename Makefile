@@ -115,6 +115,7 @@ stop:
 
 .PHONY: terraform_init
 terraform_init:
+	cd ./terraform ;\
 	terraform init
 
 
@@ -125,13 +126,13 @@ create_ssh_keys:
 
 
 .PHONY: terraform_plan
-terraform_plan:
-	echo "write this"
+terraform_plan: terraform_init
+	terraform apply
 
 
 .PHONY: terraform_apply
-terraform_apply:
-	echo "write this"
+terraform_apply: terraform_init
+	terraform apply
 
 
 .PHONY: deploy

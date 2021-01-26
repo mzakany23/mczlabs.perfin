@@ -12,23 +12,23 @@ terraform {
 }
 
 module "vpc" {
-  source = "./modules/vpcs"
+  source = "./modules/vpc"
 }
 
 module "public_subnet" {
-  source = "./modules/subnets"
+  source = "./modules/subnet"
 
   vpc_id = module.vpc.vpc_id
 }
 
 module "internet_gateway" {
-  source = "./modules/internet-gateways"
+  source = "./modules/internet-gateway"
 
   vpc_id = module.vpc.vpc_id
 }
 
 module "route_table" {
-  source = "./modules/route-tables"
+  source = "./modules/route-table"
 
   vpc_id              = module.vpc.vpc_id
   internet_gateway_id = module.internet_gateway.internet_gateway_id
@@ -36,7 +36,7 @@ module "route_table" {
 }
 
 module "ec2" {
-  source = "./modules/ec2s"
+  source = "./modules/ec2"
 
   vpc_id           = module.vpc.vpc_id
   public_subnet_id = module.public_subnet.public_subnet_id
