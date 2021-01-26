@@ -140,5 +140,16 @@ terraform_apply: terraform_init
 	terraform apply
 
 
+.PHONY: terraform_apply
+terraform_apply: terraform_init
+	export AWS_PROFILE=perfin_terraform;\
+	cd ./terraform ;\
+	terraform destroy
+
+
 .PHONY: deploy
 deploy: terraform_apply
+
+
+.PHONY: destroy
+destroy: terraform_destroy
