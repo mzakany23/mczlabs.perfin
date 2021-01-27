@@ -120,24 +120,18 @@ terraform_init:
 	terraform init
 
 
-.PHONY: create_ssh_keys
-create_ssh_keys:
-	cd ./terraform/access ;\
-	ssh-keygen -f free-tier-ec2-key
-
-
 .PHONY: terraform_plan
 terraform_plan:
 	export AWS_PROFILE=perfin_terraform;\
 	cd ./terraform ;\
-	terraform plan
+	terraform plan -var-file=dev.tfvars
 
 
 .PHONY: terraform_apply
 terraform_apply: terraform_init
 	export AWS_PROFILE=perfin_terraform;\
 	cd ./terraform ;\
-	terraform apply
+	terraform apply -var-file=dev.tfvars
 
 
 .PHONY: terraform_apply
