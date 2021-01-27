@@ -113,5 +113,37 @@ stop:
 	docker-compose down
 
 
-.PHONY: run_elk
-run_elk: run
+.PHONY: terraform_init
+terraform_init:
+	export AWS_PROFILE=perfin_terraform;\
+	cd ./terraform ;\
+	terraform init
+
+
+.PHONY: terraform_plan
+terraform_plan:
+	export AWS_PROFILE=perfin_terraform;\
+	cd ./terraform ;\
+	terraform plan -var-file=dev.tfvars
+
+
+.PHONY: terraform_apply
+terraform_apply: terraform_init
+	export AWS_PROFILE=perfin_terraform;\
+	cd ./terraform ;\
+	terraform apply -var-file=dev.tfvars
+
+
+.PHONY: terraform_apply
+terraform_apply: terraform_init
+	export AWS_PROFILE=perfin_terraform;\
+	cd ./terraform ;\
+	terraform destroy
+
+
+.PHONY: deploy
+deploy: terraform_apply
+
+
+.PHONY: destroy
+destroy: terraform_destroy
