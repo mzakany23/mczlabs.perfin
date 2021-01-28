@@ -39,6 +39,7 @@ def get_s3_rows(file_path: str):
 def load_s3_files(directory: str, filter_key: str = None):
     for file_path in get_s3_full_file_paths(directory, filter_key):
         account = find_account(file_path)
+
         if not account:
             logger.warning(f"could not parse {file_path}")
             continue
