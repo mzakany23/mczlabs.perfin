@@ -6,7 +6,7 @@ from typing import List
 
 import pandas
 
-from .accounts import find_account
+from .accounts import find_account, get_sort_key
 from .s3 import load_s3_files
 from .settings import config
 
@@ -29,7 +29,7 @@ class PathFinder:
     def load_files(self):
         if self.csv_path:
             return load_files(self)
-        elif self.s3_bucket_path:
+        if self.s3_bucket_path:
             return load_s3_files(self.s3_bucket_path)
 
 
@@ -48,17 +48,6 @@ def load_files(finder: PathFinder):
         logger.info(f"found {path.name.lower()}")
 
         yield account, path, df
-
-
-def get_sort_key(account):
-    fc = account if isinstance(account, list) else account["file_columns"]
-
-    for col in fc:
-        if isinstance(col, list):
-            return get_sort_key(col)
-        if col.get("sort_key"):
-            return col
-    raise Exception(f"could not find a sort_key attr in {fc}")
 
 
 def get_file_names(finder: PathFinder, new_file_ext="csv"):
