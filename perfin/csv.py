@@ -2,7 +2,7 @@ import datetime
 import logging
 import re
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class RowField:
 class Row:
     account_name: str
     account_type: str
-    row: dict
+    row: List[Dict]
 
     def __post_init__(self):
         for i, field in enumerate(self.row):
@@ -54,6 +54,7 @@ class Row:
 
     @property
     def pamount(self):
+        val = 0
         if hasattr(self, "amount"):
             val = self.amount.processed_value
         elif hasattr(self, "debit"):
@@ -64,7 +65,7 @@ class Row:
 
     @property
     def doc(self):
-        description = self._get_field("description")
+        description = self._get_field("description") or ""
         return {
             "category": self._get_field("category"),
             "key": self._make_key(description),

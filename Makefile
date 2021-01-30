@@ -1,3 +1,4 @@
+PYTHON_VERSION := python3.7
 VENV := .venv
 VENV_ACTIVATE := $(VENV)/bin/activate
 VENV_SENTINEL := $(VENV)/.sentinel
@@ -35,7 +36,7 @@ $(VENV):
 $(VENV_SENTINEL): requirements.txt requirements-test.txt .pre-commit-config.yaml
 	$(MAKE) ensure_no_venv
 	rm -rf $(VENV)
-	python3.7 -m venv $(VENV)
+	$(PYTHON_VERSION) -m venv $(VENV)
 	$(VENV_PIP) install -r requirements.txt
 	$(VENV_PIP) install -r requirements-test.txt
 	$(VENV_PRECOMMIT) install
@@ -47,7 +48,7 @@ update_requirements: requirements-test.txt
 	$(MAKE) ensure_no_venv
 	rm requirements.txt
 	rm -rf $(VENV)
-	python3.7 -m venv $(VENV)
+	$(PYTHON_VERSION) -m venv $(VENV)
 	$(VENV_PIP) install -r requirements-loose.txt
 	$(VENV_PIP) freeze >> requirements.txt
 	make $(VENV)

@@ -3,10 +3,8 @@ import hashlib
 import json
 import logging
 import logging.config
-import os
 import threading
 import uuid
-from dataclasses import dataclass
 from pathlib import Path
 
 import coloredlogs
@@ -17,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 DATE_FMT = "%Y-%m-%d"
 ES_DATE_FMT = "yyyy-MM-dd"
-ENV_VARS = ["ES_NODE", "ES_USER", "ES_PASS"]
 ES_CONFIG = {"hosts": ["localhost"], "timeout": 20}
 COLOR_LOGS = {
     "level": "DEBUG",
@@ -63,12 +60,10 @@ LOGGING_CONFIG = config = {
 }
 
 
-@dataclass
 class Config:
-    def __post_init__(self):
+    def __init__(self):
         self.configure_logging()
         self.init_file()
-        self.set_env_vars()
 
     @property
     def date_fmt(self):
@@ -84,11 +79,8 @@ class Config:
 
     @property
     def root_path(self):
-        return Path(".").parent.resolve()
-
-    def set_env_vars(self):
-        for attr in ENV_VARS:
-            setattr(self, attr, os.environ.get(attr))
+        path = Path(".").parent.resolve()
+        return path.joinpath("perfin") if path.stem.lower() != "perfin" else path
 
     def generate_better_key(self):
         hash_object = hashlib.sha256(str(uuid.uuid4()).encode("utf8"))
@@ -110,7 +102,10 @@ class Config:
         return f"{name}____{from_date}--{to_date}____{key}"
 
     def init_file(self):
-        paths = self.root_path.joinpath("config").glob("*.json")
+        root = self.root_path.joinpath("config")
+        paths = root.glob("*.json")
+        if not paths:
+            raise Exception(f"There are no configs set at {root}")
         for path in paths:
             with path.open("r+") as file:
                 inner = json.load(file)
@@ -119,9 +114,7 @@ class Config:
         return self
 
     def dfmt(self, d):
-        if d is None:
-            return None
-        return datetime.datetime.strftime(d, self.date_fmt)
+        return None if d is None else datetime.datetime.strftime(d, self.date_fmt)
 
     def configure_logging(self):
         logging.config.dictConfig(LOGGING_CONFIG)
