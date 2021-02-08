@@ -26,12 +26,13 @@ def test_path_finder(mocker, finder):
     assert hasattr(finder, "load_files")
 
 
-def test_get_file_names(mocker, finder):
+def test_get_file_names(csv_finder):
     """
         how to run
 
         make test TEST_FILE=test_paths TEST_FN=test_get_file_names
     """
+    finder = csv_finder("chase_test_invert")
     for old_file, new_file_name in get_file_names(finder):
         parts = new_file_name.split("____")
         fd, td = parts[1].split("--")
