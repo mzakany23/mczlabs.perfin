@@ -12,6 +12,18 @@ TEST_FILE_DIR = "{}/files".format(os.path.dirname(os.path.abspath(__name__)))
 """
 
 
+def test_invert_amount(csv_finder):
+    """
+        how to run
+
+        make test TEST_FILE=test_transactions TEST_FN=test_invert_amount
+    """
+    finder = csv_finder("chase_test_invert")
+
+    for t in get_transactions(finder):
+        assert t.amount.processed_value < 0
+
+
 def test_get_transactions(finder):
     """
         how to run

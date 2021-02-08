@@ -1,16 +1,15 @@
 import datetime
-import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
 import pandas
+from loguru import logger
 
-from .accounts import find_account, get_sort_key
+from .accounts import find_account, get_file_columns
+from .csv import convert_date
 from .s3 import load_s3_files
 from .settings import config
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -21,10 +20,18 @@ class PathFinder:
 
     @property
     def paths(self):
-        if self.csv_path:
+        if self.csv_path.is_dir():
             for pattern in self.csv_patterns:
-                for path in self.csv_path.glob(pattern):
-                    yield path
+                yield from self.csv_path.glob(pattern)
+        elif self.csv_path.is_file():
+            suffix = self.csv_path.suffix
+            for pattern in self.csv_patterns:
+                if suffix in pattern:
+                    yield self.csv_path
+        else:
+            raise Exception(
+                f"could not discern {self.csv_path} from {self.csv_patterns}"
+            )
 
     def load_files(self):
         if self.csv_path:
@@ -52,7 +59,7 @@ def load_files(finder: PathFinder):
 
 def get_file_names(finder: PathFinder, new_file_ext="csv"):
     for account, path, df in finder.load_files():
-        sort_key = get_sort_key(account)
+        _, sort_key = get_file_columns(df, account)
         column_name = sort_key["column_name"]
         dates = df[column_name].to_list()
         if not dates:
@@ -60,8 +67,8 @@ def get_file_names(finder: PathFinder, new_file_ext="csv"):
             continue
         date_format = sort_key["date_format"]
         account_name = account["account_name"]
-        dates.sort(key=lambda date: datetime.datetime.strptime(date, date_format))
-        dates = [datetime.datetime.strptime(date, date_format) for date in dates]
+        dates = [convert_date(date, date_format) for date in dates]
+        dates.sort()
         start_date = datetime.datetime.strftime(dates[0], config.date_fmt)
         end_date = datetime.datetime.strftime(dates[-1], config.date_fmt)
         new_file_name = f"{config.create_file_name(account_name, start_date, end_date)}.{new_file_ext}"
