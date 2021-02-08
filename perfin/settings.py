@@ -1,69 +1,20 @@
 import datetime
 import hashlib
 import json
-import logging
-import logging.config
 import threading
 import uuid
 from pathlib import Path
 
-import coloredlogs
-
 local = threading.local()
-
-logger = logging.getLogger(__name__)
 
 DATE_FMT = "%Y-%m-%d"
 ES_DATE_FMT = "yyyy-MM-dd"
 ES_CONFIG = {"hosts": ["localhost"], "timeout": 20}
-COLOR_LOGS = {
-    "level": "DEBUG",
-    "fmt": "[%(asctime)s] [%(name)s|%(levelname)s@%(filename)s:%(lineno)d] %(message)s",
-    "level_styles": {
-        "critical": {"bold": True, "color": "red"},
-        "debug": {"color": "blue"},
-        "error": {"color": "red"},
-        "info": {"color": "green"},
-        "notice": {"color": "magenta"},
-        "spam": {"color": "green", "faint": True},
-        "success": {"bold": True, "color": "green"},
-        "verbose": {"color": "blue"},
-        "warning": {"color": "yellow"},
-    },
-    "field_styles": {
-        "asctime": {"color": "magenta"},
-        "hostname": {"color": "magenta"},
-        "message": {"color": "green", "bold": True},
-        "levelname": {"bold": True, "color": "green"},
-        "name": {"color": "blue"},
-        "programname": {"color": "cyan"},
-        "username": {"color": "yellow"},
-    },
-}
-
-LOGGING_CONFIG = config = {
-    "version": 1,
-    "formatters": {
-        "simple": {
-            "format": "[%(asctime)s] [%(name)s|%(levelname)s@%(filename)s:%(lineno)d] %(message)s"
-        }
-    },
-    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "simple"}},
-    "root": {"level": "DEBUG", "handlers": ["console"]},
-    "loggers": {
-        "selenium": {"level": "INFO"},
-        "pynamodb": {"level": "INFO"},
-        "s3transfer": {"level": "INFO"},
-        "botocore": {"level": "INFO"},
-        "boto3": {"level": "INFO"},
-    },
-}
 
 
 class Config:
     def __init__(self):
-        self.configure_logging()
-        self.init_file()
+        self.init_config()
 
     @property
     def date_fmt(self):
@@ -101,7 +52,7 @@ class Config:
         key = self.generate_better_key()[0:10]
         return f"{name}____{from_date}--{to_date}____{key}"
 
-    def init_file(self):
+    def init_config(self):
         root = self.root_path.joinpath("config")
         paths = root.glob("*.json")
         if not paths:
@@ -115,10 +66,6 @@ class Config:
 
     def dfmt(self, d):
         return None if d is None else datetime.datetime.strftime(d, self.date_fmt)
-
-    def configure_logging(self):
-        logging.config.dictConfig(LOGGING_CONFIG)
-        coloredlogs.install(**COLOR_LOGS)
 
 
 try:
