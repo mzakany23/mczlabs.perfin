@@ -1,7 +1,8 @@
 import datetime
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Union
+
+from .types import RowFieldValue, RowValue
 
 
 def _key(description):
@@ -17,8 +18,8 @@ class RowField:
     column_index: int = None
     column_name: str = None
     key: str = None
-    original_value: Union[float, str, int, datetime.datetime] = None
-    processed_value: Union[float, str, int, datetime.datetime] = None
+    original_value: RowFieldValue = None
+    processed_value: RowFieldValue = None
     date_format: str = None
     schema_type: str = None
     invert_value: bool = False
@@ -29,7 +30,7 @@ class RowField:
 class Row:
     account_name: str
     account_type: str
-    row: List[Dict]
+    row: RowValue
 
     def __post_init__(self):
         if not isinstance(self.row, list):
@@ -47,7 +48,7 @@ class Row:
             field = RowField(**field)
             setattr(self, field.key, field)
 
-    def _get_field(self, field: RowField, coerce_type: Union[int, float, str] = None):
+    def _get_field(self, field: RowField, coerce_type: RowFieldValue = None):
         item = getattr(self, field, None)
         if item:
             item = item.processed_value
