@@ -1,4 +1,4 @@
 elasticsearch-dsl
 pandas
-coloredlogs
+loguru
 s3fs

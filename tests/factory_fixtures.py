@@ -2,6 +2,8 @@ import datetime
 
 import pytest
 from perfin.csv import Row
+from perfin.paths import PathFinder
+from perfin.settings import config
 
 DEFAULT_FIELD_PARAMS = [
     {
@@ -45,5 +47,14 @@ def row_factory():
         row=DEFAULT_FIELD_PARAMS,
     ):
         return Row(account_name, account_type, row)
+
+    return inner
+
+
+@pytest.fixture
+def csv_finder():
+    def inner(file_name):
+        path = config.root_path.joinpath(f"tests/files/{file_name}.csv")
+        return PathFinder(csv_path=path)
 
     return inner

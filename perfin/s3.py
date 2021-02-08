@@ -1,22 +1,17 @@
 import csv
-import logging
 
 import pandas
-import s3fs
+from loguru import logger
+from s3fs import S3FileSystem
 
 from .accounts import find_account
 
 S3 = None
 
-logger = logging.getLogger(__name__)
-
 
 def get_s3_conn():
     global S3
-    if S3:
-        return S3
-    S3 = s3fs.S3FileSystem(anon=False)
-    return S3
+    return S3 if S3 else S3FileSystem(anon=False)
 
 
 def get_s3_full_file_paths(directory: str, filter_key: str = None):
@@ -29,11 +24,8 @@ def get_s3_full_file_paths(directory: str, filter_key: str = None):
 
 
 def get_s3_rows(file_path: str):
-    _open = get_s3_conn().open(file_path, mode="r")
-    with _open as f:
-        rows = csv.reader(f)
-        for row in rows:
-            yield row
+    with get_s3_conn().open(file_path, mode="r") as file:
+        yield from csv.reader(file)
 
 
 def load_s3_files(directory: str, filter_key: str = None):
