@@ -1,96 +1,10 @@
 import datetime
 import re
-from dataclasses import dataclass
+from typing import Callable, List, Set
 
-from .types import RowFieldValue, RowValue
+from pydantic.dataclasses import dataclass
 
-
-def _key(description):
-    desc = re.sub(r"\d+", "", description)
-    desc = re.sub(r"\s+", "", desc)[0:10].upper()
-    for key in ["*", "-", "&", "/", ".", ";"]:
-        desc = desc.replace(key, "")
-    return desc
-
-
-@dataclass
-class RowField:
-    column_index: int = None
-    column_name: str = None
-    key: str = None
-    original_value: RowFieldValue = None
-    processed_value: RowFieldValue = None
-    date_format: str = None
-    schema_type: str = None
-    invert_value: bool = False
-    sort_key: str = None
-
-
-@dataclass
-class Row:
-    account_name: str
-    account_type: str
-    row: RowValue
-
-    def __post_init__(self):
-        if not isinstance(self.row, list):
-            raise Exception(
-                f"error with {self.account_name}, row {self.row} is not a list!"
-            )
-
-        if not self.account_name:
-            raise Exception(f"account name '{self.account_name}' can't be None")
-
-        if not self.account_type:
-            raise Exception(f"account type '{self.account_name}' can't be None")
-
-        for i, field in enumerate(self.row):
-            field = RowField(**field)
-            setattr(self, field.key, field)
-
-    def _get_field(self, field: RowField, coerce_type: RowFieldValue = None):
-        item = getattr(self, field, None)
-        if item:
-            item = item.processed_value
-
-        if item and coerce_type:
-            return coerce_type(item)
-        return item
-
-    def _make_key(self, description):
-        return _key(description)
-
-    @property
-    def pamount(self):
-        val = 0
-        if hasattr(self, "amount"):
-            val = self.amount.processed_value
-        elif hasattr(self, "debit"):
-            val = self.debit.processed_value * -1
-        elif hasattr(self, "credit"):
-            val = self.credit.processed_value * -1
-        return float(val)
-
-    @property
-    def doc(self):
-        description = self._get_field("description") or ""
-
-        return {
-            "category": self._get_field("category"),
-            "key": self._make_key(description),
-            "account_name": self.account_name,
-            "account_type": self.account_type,
-            "amount": self.pamount,
-            "description": description,
-            "check_num": self._get_field("check_num", int),
-            "date": self._get_field("transaction_posted_date"),
-            "posted_date": self._get_field("transaction_posted_date"),
-            "trans_date": self._get_field("transaction_date"),
-            "trans_type": self._get_field("transaction_type"),
-            "credit": self._get_field("credit"),
-            "memo": self._get_field("memo"),
-            "debit": self._get_field("debit"),
-        }
+from .types import ALIAS_FIELD_NAME, DateFormat, RowFieldValue, SchemaType
 
 
 def convert_date(value, stype):
@@ -100,12 +14,11 @@ def convert_date(value, stype):
                 return datetime.datetime.strptime(value, fmt)
             except ValueError:
                 continue
-            else:
-                raise
+            raise Exception(f"could not convert date {stype}")
     elif isinstance(stype, str):
         return datetime.datetime.strptime(value, stype)
-    else:
-        return datetime.datetime.strptime(value, stype["original_value"])
+
+    return datetime.datetime.strptime(value, stype["original_value"])
 
 
 def convert_int(value, stype):
@@ -123,7 +36,95 @@ def convert_float(value, stype):
 
 def convert_field(value: str, stype: dict):
     field_lookup = {"date": convert_date, "float": convert_float, "int": convert_int}
-
     fn = field_lookup.get(stype["schema_type"])
-
     return value if not fn else fn(value, stype)
+
+
+def make_key(description):
+    desc = re.sub(r"\d+", "", description)
+    desc = re.sub(r"\s+", "", desc)[0:10].upper()
+    for key in ["*", "-", "&", "/", ".", ";"]:
+        desc = desc.replace(key, "")
+    return desc
+
+
+@dataclass
+class RowField:
+    column_name: str = None
+    key: str = None
+    original_value: RowFieldValue = None
+    processed_value: RowFieldValue = None
+    date_format: DateFormat = None
+    schema_type: SchemaType = None
+    invert_value: bool = False
+    alias: str = None
+    sort_key: bool = None
+
+
+@dataclass
+class Row:
+    account_name: str
+    account_type: str
+    field_lookup: dict
+    schema_keys: Set[str]
+    processed_fields: List[RowField]
+
+    __all__ = {
+        "category",
+        "transaction_type",
+        "memo",
+        "check_num",
+        "transaction_date",
+        "card_num",
+        "debit",
+        "credit",
+        "transaction_posted_date",
+        "description",
+        "amount",
+    }
+    __non_dynamic__ = ["account_name", "account_type"]
+
+    @property
+    def alias_lookup(self):
+        return self.field_lookup.get(ALIAS_FIELD_NAME, {})
+
+    def __getattr__(self, attr):
+        return (
+            getattr(self, attr)
+            if attr in self.__non_dynamic__
+            else self.get_field(attr)
+        )
+
+    def get_field(
+        self,
+        field_key: str,
+        default: RowFieldValue = None,
+        coerce_type: Callable = None,
+    ):
+        item_key = self.field_lookup.get(field_key, default)
+        item = None
+
+        if item_key is None:
+            alias_key = self.alias_lookup.get(field_key)
+            if alias_key is not None:
+                item_key = alias_key
+
+        if item_key is not None:
+            item = self.processed_fields[item_key].processed_value
+            return coerce_type(item) if coerce_type else item
+
+        return item
+
+    @property
+    def doc(self):
+        key = self.get_field("description") or ""
+
+        doc = {
+            "key": make_key(key),
+            "account_name": self.account_name,
+            "account_type": self.account_type,
+        }
+        self.schema_keys |= self.__all__
+        fields = {k: self.get_field(k) for k in self.schema_keys}
+        fields.update(doc)
+        return fields

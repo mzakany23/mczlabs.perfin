@@ -1,6 +1,6 @@
 import os
 
-from perfin.csv import _key
+from perfin.csv import make_key
 
 TEST_FILE_DIR = "{}/files".format(os.path.dirname(os.path.abspath(__name__)))
 
@@ -24,7 +24,6 @@ def test_row(row_factory):
 
     assert row.account_name == account_name
     assert row.doc
-    assert row.description
 
 
 def test_csv_key():
@@ -34,9 +33,9 @@ def test_csv_key():
         make test TEST_FILE=test_csv TEST_FN=test_csv_key
     """
 
-    assert _key("45540 VERTICAL K DIR DEP 66 011521") == "VERTICALKD"
-    assert _key("HEROKU JUL-39703527") == "HEROKUJUL"
-    assert _key("Prime Video*3H5G70UV3") == "PRIMEVIDEO"
-    assert _key("TST* ON THE RISE ARTISAN") == "TSTONTHER"
-    assert _key("APPLE.COM/BILL",) == "APPLECOM"
-    assert _key("PHO &amp; RICE") == "PHOAMPRI"
+    assert make_key("45540 VERTICAL K DIR DEP 66 011521") == "VERTICALKD"
+    assert make_key("HEROKU JUL-39703527") == "HEROKUJUL"
+    assert make_key("Prime Video*3H5G70UV3") == "PRIMEVIDEO"
+    assert make_key("TST* ON THE RISE ARTISAN") == "TSTONTHER"
+    assert make_key("APPLE.COM/BILL",) == "APPLECOM"
+    assert make_key("PHO &amp; RICE") == "PHOAMPRI"

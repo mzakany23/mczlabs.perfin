@@ -14,21 +14,37 @@ def get_file_columns(df, account):
     for file_columns in file_column_groups:
         try:
             df_cols = df.columns
+
+            assert len(df_cols) == len(file_columns)
+
             for i, col in enumerate(file_columns):
-                assert df_cols[i].lower() == col["column_name"].lower()
+                if isinstance(col["column_name"], list):
+                    inner_col = col["column_name"]
+                    inner_col_len = len(inner_col) - 1
+                    for _, icol in enumerate(inner_col):
+                        if df_cols[i].lower() == icol.lower():
+                            col["column_name"] = icol
+                            break
+                        if i == inner_col_len:
+                            raise AssertionError(
+                                f"{df_cols[i].lower()} == {icol.lower()}"
+                            )
+                else:
+                    assert df_cols[i].lower() == col["column_name"].lower()
         except AssertionError as e:
             logger.warning(e)
             continue
         return file_columns, get_sort_key(file_columns)
 
     inspect_cols = ""
+
     for col in file_column_groups:
         inner_col = []
         for inner in col:
             inner_col.append(inner["column_name"])
         inspect_cols += f"\ncolumn: {inner_col}\n"
 
-    raise Exception(f"Could not match {inspect_cols} with {df_cols}")
+    raise Exception(f"Could not match {file_column_groups} with {df_cols}")
 
 
 def get_sort_key(file_columns):
