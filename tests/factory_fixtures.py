@@ -1,5 +1,6 @@
 import datetime
 
+import pandas
 import pytest
 from perfin.csv import Row
 from perfin.paths import PathFinder
@@ -46,7 +47,7 @@ def row_factory():
         account_type="someaccounttype",
         row=DEFAULT_FIELD_PARAMS,
     ):
-        return Row(account_name, account_type, row)
+        return Row(account_name, account_type, {}, [], row)
 
     return inner
 
@@ -56,5 +57,15 @@ def csv_finder():
     def inner(file_name):
         path = config.root_path.joinpath(f"tests/files/{file_name}.csv")
         return PathFinder(csv_path=path)
+
+    return inner
+
+
+@pytest.fixture
+def df_finder(csv_finder):
+    def inner(file_name="capone_test_basic"):
+        finder = csv_finder(file_name)
+        path = [path for path in finder.paths][0]
+        return pandas.read_csv(f"{path}", keep_default_na=False)
 
     return inner

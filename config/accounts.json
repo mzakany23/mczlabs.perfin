@@ -14,6 +14,7 @@
                     {
                         "column_name" : "Post Date",
                         "sort_key" : true,
+                        "alias" : "date",
                         "key" : "transaction_posted_date",
                         "date_format" : "%m/%d/%Y",
                         "schema_type" : "date"
@@ -48,6 +49,7 @@
                    {
                         "column_name" : "Date",
                         "sort_key" : true,
+                        "alias" : "date",
                         "key" : "transaction_posted_date",
                         "date_format" : ["%Y-%m-%d", "%m/%d/%Y"],
                         "schema_type" : "date"
@@ -74,6 +76,7 @@
                     {
                         "column_name" : "Date",
                         "sort_key" : true,
+                        "alias" : "date",
                         "date_format" : "%m/%d/%Y",
                         "key" : "transaction_posted_date",
                         "schema_type" : "date"
@@ -98,6 +101,7 @@
                    {
                         "column_name" : "Date",
                         "sort_key" : true,
+                        "alias" : "date",
                         "key" : "transaction_posted_date",
                         "date_format" : "%Y-%m-%d",
                         "schema_type" : "date"
@@ -129,13 +133,14 @@
                     },
                     {
                         "column_name" : "Posted Date",
+                        "alias" : "date",
                         "sort_key" : true,
                         "date_format" : "%Y-%m-%d",
                         "key" : "transaction_posted_date",
                         "schema_type" : "date"
                     },
                     {
-                        "column_name" : "Card Number",
+                        "column_name" : ["Card Number", "Card No."],
                         "key" : "card_num",
                         "schema_type" : "int"
                     },
@@ -151,6 +156,8 @@
                     },
                     {
                         "column_name" : "Debit",
+                        "alias" : "amount",
+                        "invert_value" : true,
                         "key" : "debit",
                         "schema_type" : "float"
                     },
@@ -160,35 +167,11 @@
                         "schema_type" : "float"
                     }
                 ],
-                                [
-                    {
-                        "column_name" : "Transaction Date",
-                        "date_format" : "%Y-%m-%d",
-                        "key" : "transaction_date",
-                        "schema_type" : "date"
-                    },
-                    {
-                        "column_name" : "Posted Date",
-                        "sort_key" : true,
-                        "date_format" : "%Y-%m-%d",
-                        "key" : "transaction_posted_date",
-                        "schema_type" : "date"
-                    },
-                    {
-                        "column_name" : "Card No.",
-                        "key" : "card_num",
-                        "schema_type" : "int"
-                    },
-                    {
-                        "column_name" : "Description",
-                        "key" : "description",
-                        "schema_type" : "string"
-                    }
-                ],
                 [
                    {
                         "column_name" : "Date",
                         "sort_key" : true,
+                        "alias" : "date",
                         "key" : "transaction_posted_date",
                         "date_format" : "%Y-%m-%d",
                         "schema_type" : "date"
