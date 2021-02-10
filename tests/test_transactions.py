@@ -21,7 +21,10 @@ def test_invert_amount(csv_finder):
     finder = csv_finder("chase_test_invert")
 
     for t in get_transactions(finder):
-        assert t.amount.processed_value < 0
+        doc = t.doc
+        assert doc
+        assert isinstance(doc["date"], datetime.datetime)
+        assert t.amount < 0
 
 
 def test_get_transactions(finder):
@@ -30,6 +33,7 @@ def test_get_transactions(finder):
 
         make test TEST_FILE=test_transactions TEST_FN=test_get_transactions
     """
+
     for t in get_transactions(finder):
         doc = t.doc
 
@@ -39,5 +43,5 @@ def test_get_transactions(finder):
             assert isinstance(doc["date"], datetime.datetime)
             assert isinstance(doc["category"], str) or doc["category"] is None
             assert isinstance(doc["account_name"], str)
-        except Exception as e:
-            raise Exception(f"{doc}, {str(e)}")
+        except (AssertionError, KeyError) as e:
+            raise Exception(f"{t.account_name}, {doc}") from e
