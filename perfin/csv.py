@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import Callable, List
+from typing import Callable, List, Set
 
 from pydantic.dataclasses import dataclass
 
@@ -66,17 +66,34 @@ class Row:
     account_name: str
     account_type: str
     field_lookup: dict
-    schema_keys: List[str]
+    schema_keys: Set[str]
     processed_fields: List[RowField]
 
-    __all__ = ["account_name", "account_type"]
+    __all__ = {
+        "category",
+        "transaction_type",
+        "memo",
+        "check_num",
+        "transaction_date",
+        "card_num",
+        "debit",
+        "credit",
+        "transaction_posted_date",
+        "description",
+        "amount",
+    }
+    __non_dynamic__ = ["account_name", "account_type"]
 
     @property
     def alias_lookup(self):
         return self.field_lookup.get(ALIAS_FIELD_NAME, {})
 
     def __getattr__(self, attr):
-        return getattr(self, attr) if attr in self.__all__ else self.get_field(attr)
+        return (
+            getattr(self, attr)
+            if attr in self.__non_dynamic__
+            else self.get_field(attr)
+        )
 
     def get_field(
         self,
@@ -107,7 +124,7 @@ class Row:
             "account_name": self.account_name,
             "account_type": self.account_type,
         }
-
+        self.schema_keys |= self.__all__
         fields = {k: self.get_field(k) for k in self.schema_keys}
         fields.update(doc)
         return fields
