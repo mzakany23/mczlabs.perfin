@@ -46,7 +46,7 @@ def row_factory():
         account_type="someaccounttype",
         row=DEFAULT_FIELD_PARAMS,
     ):
-        return Row(account_name, account_type, row)
+        return Row(account_name, account_type, {}, [], row)
 
     return inner
 
