@@ -76,6 +76,7 @@
                     {
                         "column_name" : "Date",
                         "sort_key" : true,
+                        "alias" : "date",
                         "date_format" : "%m/%d/%Y",
                         "key" : "transaction_posted_date",
                         "schema_type" : "date"

@@ -17,7 +17,7 @@ def get_transactions(finder: PathFinder):
 
         for _, row in df.iterrows():
             processed_fields = []
-            schema_keys = []
+            schema_keys = set()  # set
             field_lookup = {ALIAS_FIELD_NAME: {}}
 
             for i, stype in enumerate(file_column):
@@ -25,11 +25,11 @@ def get_transactions(finder: PathFinder):
                 stype["original_value"] = row[i]
                 stype["processed_value"] = convert_field(row[i], stype)
                 alias_key = stype.get("alias")
-                schema_keys.append(key)
+                schema_keys.add(key)
 
                 if alias_key:
                     field_lookup[ALIAS_FIELD_NAME][alias_key] = i
-                    schema_keys.append(alias_key)
+                    schema_keys.add(alias_key)
                 try:
                     processed_fields.append(RowField(**stype))
                 except ValidationError as e:
