@@ -101,6 +101,7 @@
                    {
                         "column_name" : "Date",
                         "sort_key" : true,
+                        "alias" : "date",
                         "key" : "transaction_posted_date",
                         "date_format" : "%Y-%m-%d",
                         "schema_type" : "date"
@@ -170,6 +171,7 @@
                    {
                         "column_name" : "Date",
                         "sort_key" : true,
+                        "alias" : "date",
                         "key" : "transaction_posted_date",
                         "date_format" : "%Y-%m-%d",
                         "schema_type" : "date"

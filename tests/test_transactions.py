@@ -12,11 +12,45 @@ TEST_FILE_DIR = "{}/files".format(os.path.dirname(os.path.abspath(__name__)))
 """
 
 
-def test_invert_amount(csv_finder):
+def test_basic_schema_capone(csv_finder):
     """
         how to run
 
-        make test TEST_FILE=test_transactions TEST_FN=test_invert_amount
+        make test TEST_FILE=test_transactions TEST_FN=test_basic_schema_capone
+    """
+    finder = csv_finder("capone_test_basic")
+
+    for t in get_transactions(finder):
+        doc = t.doc
+        t.account_name == "capital_one"
+        assert doc["account_name"] == "capital_one"
+        assert doc
+        assert isinstance(doc["date"], datetime.datetime)
+        assert t.amount < 0
+
+
+def test_basic_schema_53(csv_finder):
+    """
+        how to run
+
+        make test TEST_FILE=test_transactions TEST_FN=test_basic_schema
+    """
+    finder = csv_finder("fifththird_test_basic")
+
+    for t in get_transactions(finder):
+        doc = t.doc
+        t.account_name == "fifth_third"
+        assert doc["account_name"] == "fifth_third"
+        assert doc
+        assert isinstance(doc["date"], datetime.datetime)
+        assert t.amount < 0
+
+
+def test_basic_schema_chase(csv_finder):
+    """
+        how to run
+
+        make test TEST_FILE=test_transactions TEST_FN=test_basic_schema_chase
     """
     finder = csv_finder("chase_test_invert")
 
