@@ -1,11 +1,12 @@
 from datetime import datetime
 
 from elasticsearch_dsl import Date, Document, Float, Keyword, Long, Text, connections
-from perfin.settings import config
 
-date_fmt = config.es_date_fmt
+from .settings import generate_specific_key
 
-connections.create_connection(**config.es_config)
+es_config = {"hosts": ["localhost"], "timeout": 20}
+
+connections.create_connection(**es_config)
 
 
 def get_date(**kwargs):
@@ -34,7 +35,7 @@ class Transaction(Document):
 
     def save(self, **kwargs):
         self.created_at = datetime.utcnow()
-        self.meta["id"] = config.generate_specific_key(
-            self.description, config.dfmt(self.date), str(self.amount)
+        self.meta["id"] = generate_specific_key(
+            self.description, self.dfmt(self.date), str(self.amount)
         )
         return super().save(**kwargs)

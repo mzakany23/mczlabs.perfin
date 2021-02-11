@@ -1,4 +1,4 @@
-from perfin.s3 import load_s3_files
+from perfin.paths import load_s3_files
 
 """
     how to run
@@ -9,15 +9,15 @@ from perfin.s3 import load_s3_files
 directory = "mzakany-perfin"
 
 
-def test_get_s3_conn(mock_s3):
+def test_get_s3_conn(finder, mock_s3):
     """
         how to run
 
         make test TEST_FILE=test_s3 TEST_FN=test_get_s3_conn
     """
     fn = "mzakany-perfin/capital_one____2020-08-12--2020-12-04____f43fdfc292.csv"
-
-    for account, file_path, df in load_s3_files(directory):
+    finder.s3_bucket_path = "mzakany-perfin"
+    for account, file_path, df in load_s3_files(finder):
         assert account["account_name"] == "capital_one"
         assert file_path == fn
 

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from perfin.paths import get_file_names
-from perfin.settings import config
+from perfin.settings import DATE_FMT
 
 TEST_FILE_DIR = "{}/files".format(os.path.dirname(os.path.abspath(__name__)))
 
@@ -36,7 +36,7 @@ def test_get_file_names(csv_finder):
     for old_file, new_file_name in get_file_names(finder):
         parts = new_file_name.split("____")
         fd, td = parts[1].split("--")
-        fd = datetime.datetime.strptime(fd, config.date_fmt)
+        fd = datetime.datetime.strptime(fd, DATE_FMT)
 
         assert len(parts) == 3
         assert isinstance(fd, datetime.datetime)

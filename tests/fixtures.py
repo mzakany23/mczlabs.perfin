@@ -2,14 +2,8 @@ from contextlib import contextmanager
 
 import pytest
 from perfin.paths import PathFinder
-from perfin.settings import config
 
-
-@contextmanager
-def mock_open(*args, **kwargs):
-    path = config.root_path.joinpath("tests/files")
-    finder = PathFinder(csv_path=path)
-    yield next(finder.paths)
+from .util import ROOT_PATH, SCHEMA
 
 
 @pytest.fixture
@@ -27,5 +21,14 @@ def mock_s3(mocker):
 
 @pytest.fixture
 def finder():
-    path = config.root_path.joinpath("tests/files")
-    return PathFinder(csv_path=path)
+    return PathFinder(csv_path=ROOT_PATH, schema=SCHEMA)
+
+
+@pytest.fixture
+def schema():
+    return SCHEMA
+
+
+@contextmanager
+def mock_open(finder):
+    yield next(finder.paths)
