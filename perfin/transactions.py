@@ -7,7 +7,7 @@ from .paths import PathFinder
 from .types import ALIAS_FIELD_NAME
 
 
-def get_transactions(finder: PathFinder):
+def get_transactions(finder: PathFinder) -> Row:
     for account, path, df in finder.load_files():
         cols = [col for col in df.columns]
         account_name = account["account_name"]
