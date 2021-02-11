@@ -2,11 +2,15 @@ from datetime import datetime
 
 from elasticsearch_dsl import Date, Document, Float, Keyword, Long, Text, connections
 
-from .settings import generate_specific_key
+from .settings import DATE_FMT, generate_specific_key
 
 es_config = {"hosts": ["localhost"], "timeout": 20}
 
 connections.create_connection(**es_config)
+
+
+def dfmt(d):
+    return None if d is None else datetime.datetime.strftime(d, DATE_FMT)
 
 
 def get_date(**kwargs):
@@ -36,6 +40,6 @@ class Transaction(Document):
     def save(self, **kwargs):
         self.created_at = datetime.utcnow()
         self.meta["id"] = generate_specific_key(
-            self.description, self.dfmt(self.date), str(self.amount)
+            self.description, dfmt(self.date), str(self.amount)
         )
         return super().save(**kwargs)
