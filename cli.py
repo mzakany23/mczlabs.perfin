@@ -7,6 +7,7 @@ from perfin.s3 import get_s3_conn
 
 BUCKET_PATH = os.environ.get("BUCKET_PATH", "mzakany-perfin")
 MOVE_FILES_TO_DIR = os.environ.get("MOVE_FILES_TO_DIR", Path("./files").resolve())
+PROJECT_LOCATION = "~/Desktop"
 
 
 def stop():
@@ -15,7 +16,9 @@ def stop():
 
         make cli CMD=start
     """
-    os.system("cd ~/Desktop/perfin;TAG=7.10.2 docker-compose down --remove-orphans")
+    os.system(
+        f"cd {PROJECT_LOCATION}/perfin;TAG=7.10.2 docker-compose down --remove-orphans"
+    )
 
 
 def start():
@@ -24,7 +27,9 @@ def start():
 
         make cli CMD=start
     """
-    os.system("cd ~/Desktop/perfin;TAG=7.10.2 docker-compose up --remove-orphans")
+    os.system(
+        f"cd {PROJECT_LOCATION}/perfin;TAG=7.10.2 docker-compose up --remove-orphans"
+    )
 
 
 def create_index():
@@ -91,7 +96,7 @@ def move_files_to_root():
         Move all files from directory that match accounts.json
         into files folder
     """
-    path = Path("~/Desktop").expanduser()
+    path = Path(PROJECT_LOCATION).expanduser()
     finder = PathFinder(csv_path=path)
     move_files(finder, MOVE_FILES_TO_DIR)
 
