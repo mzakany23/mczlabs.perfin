@@ -1,6 +1,5 @@
 import datetime
 import hashlib
-import json
 import threading
 import uuid
 from pathlib import Path
@@ -13,9 +12,6 @@ ES_CONFIG = {"hosts": ["localhost"], "timeout": 20}
 
 
 class Config:
-    def __init__(self):
-        self.init_config()
-
     @property
     def date_fmt(self):
         return DATE_FMT
@@ -51,18 +47,6 @@ class Config:
             to_date = to_date.replace("/", ".")
         key = self.generate_better_key()[0:10]
         return f"{name}____{from_date}--{to_date}____{key}"
-
-    def init_config(self):
-        root = self.root_path.joinpath("config")
-        paths = root.glob("*.json")
-        if not paths:
-            raise Exception(f"There are no configs set at {root}")
-        for path in paths:
-            with path.open("r+") as file:
-                inner = json.load(file)
-                for k, v in inner.items():
-                    setattr(self, k, v)
-        return self
 
     def dfmt(self, d):
         return None if d is None else datetime.datetime.strftime(d, self.date_fmt)

@@ -5,6 +5,7 @@ from loguru import logger
 from s3fs import S3FileSystem
 
 from .accounts import find_account
+from .paths import PathFinder
 
 S3 = None
 
@@ -28,9 +29,10 @@ def get_s3_rows(file_path: str):
         yield from csv.reader(file)
 
 
-def load_s3_files(directory: str, filter_key: str = None):
+def load_s3_files(finder: PathFinder, filter_key: str = None):
+    directory = finder.s3_bucket_path
     for file_path in get_s3_full_file_paths(directory, filter_key):
-        account = find_account(file_path)
+        account = find_account(file_path, finder.schema)
 
         if not account:
             logger.warning(f"could not parse {file_path}")

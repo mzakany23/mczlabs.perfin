@@ -1,7 +1,7 @@
 import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 import pandas
 from loguru import logger
@@ -16,6 +16,7 @@ from .settings import config
 class PathFinder:
     csv_path: Path = None
     csv_patterns: List = field(default_factory=lambda: ["*.csv", "*.CSV"])
+    schema: Dict = field(default_factory=dict)
     s3_bucket_path: str = None
 
     @property
@@ -37,7 +38,7 @@ class PathFinder:
         if self.csv_path:
             return load_files(self)
         if self.s3_bucket_path:
-            return load_s3_files(self.s3_bucket_path)
+            return load_s3_files(self)
 
 
 def load_files(finder: PathFinder):
@@ -46,7 +47,7 @@ def load_files(finder: PathFinder):
 
         df = pandas.read_csv(f"{path}", keep_default_na=False)
 
-        account = find_account(path.name.lower())
+        account = find_account(path.name.lower(), finder.schema)
 
         if not account:
             logger.warning(f"could not match file alias {path.name.lower()}")
