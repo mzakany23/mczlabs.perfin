@@ -4,7 +4,8 @@ import pandas
 import pytest
 from perfin.csv import Row
 from perfin.paths import PathFinder
-from perfin.settings import config
+
+from .util import ROOT_PATH
 
 DEFAULT_FIELD_PARAMS = [
     {
@@ -55,8 +56,7 @@ def row_factory():
 @pytest.fixture
 def csv_finder():
     def inner(file_name):
-        path = config.root_path.joinpath(f"tests/files/{file_name}.csv")
-        return PathFinder(csv_path=path)
+        return PathFinder(csv_path=ROOT_PATH.joinpath(f"{file_name}.csv").resolve())
 
     return inner
 

@@ -8,8 +8,8 @@ from loguru import logger
 
 from .accounts import find_account, get_file_columns
 from .csv import convert_date
-from .s3 import load_s3_files
-from .settings import config
+from .s3 import get_s3_conn, get_s3_full_file_paths
+from .settings import DATE_FMT, generate_better_key
 
 
 @dataclass
@@ -35,10 +35,31 @@ class PathFinder:
             )
 
     def load_files(self):
-        if self.csv_path:
-            return load_files(self)
-        if self.s3_bucket_path:
-            return load_s3_files(self)
+        load_fn = load_files if self.csv_path else load_s3_files
+        return load_fn(self)
+
+
+def create_file_name(name, from_date, to_date):
+    if "/" in from_date:
+        from_date = from_date.replace("/", ".")
+    if "/" in to_date:
+        to_date = to_date.replace("/", ".")
+    key = generate_better_key()[0:10]
+    return f"{name}____{from_date}--{to_date}____{key}"
+
+
+def load_s3_files(finder: PathFinder):
+    for file_path in get_s3_full_file_paths(finder.s3_bucket_path):
+        account = find_account(file_path, finder.schema)
+
+        if not account:
+            logger.warning(f"could not parse {file_path}")
+            continue
+
+        with get_s3_conn().open(file_path, mode="r") as file:
+            df = pandas.read_csv(file, keep_default_na=False)
+
+        yield account, file_path, df
 
 
 def load_files(finder: PathFinder):
@@ -70,14 +91,16 @@ def get_file_names(finder: PathFinder, new_file_ext="csv"):
         account_name = account["account_name"]
         dates = [convert_date(date, date_format) for date in dates]
         dates.sort()
-        start_date = datetime.datetime.strftime(dates[0], config.date_fmt)
-        end_date = datetime.datetime.strftime(dates[-1], config.date_fmt)
-        new_file_name = f"{config.create_file_name(account_name, start_date, end_date)}.{new_file_ext}"
+        start_date = datetime.datetime.strftime(dates[0], DATE_FMT)
+        end_date = datetime.datetime.strftime(dates[-1], DATE_FMT)
+        new_file_name = (
+            f"{create_file_name(account_name, start_date, end_date)}.{new_file_ext}"
+        )
         yield path, new_file_name
 
 
-def move_files(finder: PathFinder):
+def move_files(finder: PathFinder, move_to_dir: Path):
     for file, new_file_name in get_file_names(finder):
-        nfp = config.root_path.joinpath(f"files/{new_file_name}")
+        nfp = move_to_dir.joinpath(f"/{new_file_name}")
         file.rename(nfp)
         logger.info(f"successfully moved {nfp}")

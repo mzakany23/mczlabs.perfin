@@ -1,9 +1,10 @@
+from typing import Dict, List, Union
+
 from loguru import logger
+from pandas import DataFrame
 
-from .settings import config
 
-
-def get_file_columns(df, account):
+def get_file_columns(df: DataFrame, account: Dict) -> Union[List, str]:
     file_column_groups = account["file_columns"]
 
     if isinstance(file_column_groups[0], dict):
@@ -47,7 +48,7 @@ def get_file_columns(df, account):
     raise Exception(f"Could not match {file_column_groups} with {df_cols}")
 
 
-def get_sort_key(file_columns):
+def get_sort_key(file_columns: List):
     for col in file_columns:
         if isinstance(col, list):
             return get_sort_key(col)
@@ -56,7 +57,7 @@ def get_sort_key(file_columns):
     raise Exception(f"could not find a sort_key attr in {file_columns}")
 
 
-def find_account(search_name, schema=config.ACCOUNT_LOOKUP):
+def find_account(search_name: str, schema: Dict):
     for account_name, account_config in schema.items():
         for account_alias in account_config["file_name_search"]:
             alias_match = account_alias.lower() in search_name
