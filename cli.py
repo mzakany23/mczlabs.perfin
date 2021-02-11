@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from pathlib import Path
@@ -8,6 +9,10 @@ from perfin.s3 import get_s3_conn
 BUCKET_PATH = os.environ.get("BUCKET_PATH", "mzakany-perfin")
 MOVE_FILES_TO_DIR = os.environ.get("MOVE_FILES_TO_DIR", Path("./files").resolve())
 PROJECT_LOCATION = "~/Desktop"
+ROOT_PATH = Path("./config/accounts.json").resolve()
+
+with ROOT_PATH.open("r") as file:
+    SCHEMA = json.load(file)
 
 
 def stop():
@@ -67,7 +72,7 @@ def sync_s3_data_locally():
 
         make cli CMD=sync_s3_data_locally
     """
-    finder = PathFinder(s3_bucket_path=BUCKET_PATH)
+    finder = PathFinder(s3_bucket_path=BUCKET_PATH, schema=SCHEMA)
     for t in get_transactions(finder):
         trans = Transaction(**t.doc)
         trans.save()
@@ -79,7 +84,7 @@ def insert_transactions():
 
         make cli CMD=insert_transactions
     """
-    finder = PathFinder(csv_path=MOVE_FILES_TO_DIR)
+    finder = PathFinder(csv_path=MOVE_FILES_TO_DIR, schema=SCHEMA)
     for t in get_transactions(finder):
         trans = Transaction(**t.doc)
         trans.save()
@@ -97,7 +102,7 @@ def move_files_to_root():
         into files folder
     """
     path = Path(PROJECT_LOCATION).expanduser()
-    finder = PathFinder(csv_path=path)
+    finder = PathFinder(csv_path=path, schema=SCHEMA)
     move_files(finder, MOVE_FILES_TO_DIR)
 
 
@@ -107,7 +112,7 @@ def move_files_to_s3():
 
         make cli CMD=move_files_to_s3
     """
-    finder = PathFinder(csv_path=MOVE_FILES_TO_DIR)
+    finder = PathFinder(csv_path=MOVE_FILES_TO_DIR, schema=SCHEMA)
 
     for path in finder.paths:
         filename = f"{BUCKET_PATH}/{path.name}"
@@ -121,7 +126,7 @@ def delete_local_files():
         make cli CMD=delete_local_files
     """
 
-    finder = PathFinder(csv_path=MOVE_FILES_TO_DIR)
+    finder = PathFinder(csv_path=MOVE_FILES_TO_DIR, schema=SCHEMA)
     for path in finder.paths:
         path.unlink()
 
