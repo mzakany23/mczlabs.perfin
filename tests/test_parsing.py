@@ -1,9 +1,7 @@
-import os
 from datetime import datetime
+from pathlib import Path
 
-from perfin.util import make_key
-
-TEST_FILE_DIR = "{}/files".format(os.path.dirname(os.path.abspath(__name__)))
+from perfin import DATE_FMT, get_csv_file_names, make_key
 
 """
     how to run
@@ -89,3 +87,22 @@ def test_get_transactions(csv_docs):
             assert isinstance(doc["category"], str) or doc["category"] is None
         except (AssertionError, KeyError) as e:
             raise Exception(f"{doc_key}, {doc}") from e
+
+
+def test_get_csv_file_names(csv_finder, schema):
+    """
+        how to run
+
+        make test TEST_FILE=test_parsing TEST_FN=test_get_csv_file_names
+    """
+    finder = csv_finder("chase_test_invert")
+
+    for old_file, new_file_name in get_csv_file_names(finder, "", schema):
+        parts = new_file_name.split("____")
+        fd, td = parts[1].split("--")
+        fd = datetime.datetime.strptime(fd, DATE_FMT)
+
+        assert len(parts) == 3
+        assert isinstance(fd, datetime.datetime)
+        assert isinstance(old_file, Path)
+        assert isinstance(new_file_name, str)
