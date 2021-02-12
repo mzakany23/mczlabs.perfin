@@ -68,7 +68,9 @@ def sync_s3_data_locally():
 
         make cli CMD=sync_s3_data_locally
     """
-    for row in csv_docs(base_path=BASE_PATH, schema=SCHEMA, finder_cls=S3CSVFileFinder):
+    for row in csv_docs(
+        base_path=BUCKET_PATH, schema=SCHEMA, finder_cls=S3CSVFileFinder
+    ):
         PerFinTransaction.create(**row)
 
 
