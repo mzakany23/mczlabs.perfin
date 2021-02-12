@@ -1,7 +1,7 @@
 {
     "chase" : {
         "file_name_search" : ["chase"],
-        "account_type" : "credit_card",
+        "record_type" : "credit_card",
         "file_columns" : [
             [
                 {
@@ -13,7 +13,6 @@
                 {
                     "column_name" : "Post Date",
                     "sort_key" : true,
-                    "alias" : "date",
                     "key" : "transaction_posted_date",
                     "date_format" : "%m/%d/%Y",
                     "schema_type" : "date"
@@ -48,7 +47,6 @@
                {
                     "column_name" : "Date",
                     "sort_key" : true,
-                    "alias" : "date",
                     "key" : "transaction_posted_date",
                     "date_format" : ["%Y-%m-%d", "%m/%d/%Y"],
                     "schema_type" : "date"
@@ -69,13 +67,12 @@
     },
     "fifth_third" : {
         "file_name_search" : ["fifth_third", "fifththird", "exports", "export", "53"],
-        "account_type" : "checking",
+        "record_type" : "checking",
         "file_columns" : [
             [
                 {
                     "column_name" : "Date",
                     "sort_key" : true,
-                    "alias" : "date",
                     "date_format" : "%m/%d/%Y",
                     "key" : "transaction_posted_date",
                     "schema_type" : "date"
@@ -100,7 +97,6 @@
                {
                     "column_name" : "Date",
                     "sort_key" : true,
-                    "alias" : "date",
                     "key" : "transaction_posted_date",
                     "date_format" : "%Y-%m-%d",
                     "schema_type" : "date"
@@ -121,7 +117,7 @@
     },
     "capital_one" : {
         "file_name_search" : ["transaction_download", "capital_one", "capitalone", "capone"],
-        "account_type" : "credit_card",
+        "record_type" : "credit_card",
         "file_columns" : [
             [
                 {
@@ -132,7 +128,6 @@
                 },
                 {
                     "column_name" : "Posted Date",
-                    "alias" : "date",
                     "sort_key" : true,
                     "date_format" : "%Y-%m-%d",
                     "key" : "transaction_posted_date",
@@ -155,7 +150,6 @@
                 },
                 {
                     "column_name" : "Debit",
-                    "alias" : "amount",
                     "invert_value" : true,
                     "key" : "debit",
                     "schema_type" : "float"
@@ -170,7 +164,6 @@
                {
                     "column_name" : "Date",
                     "sort_key" : true,
-                    "alias" : "date",
                     "key" : "transaction_posted_date",
                     "date_format" : "%Y-%m-%d",
                     "schema_type" : "date"

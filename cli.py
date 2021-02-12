@@ -3,15 +3,15 @@ import os
 import sys
 from pathlib import Path
 
-from perfin import PathFinder, Transaction, get_transactions, move_files
-from perfin.s3 import get_s3_conn
+from perfin import LocalCSVFileFinder, PerFinTransaction, S3CSVFileFinder, csv_docs
 
+MOVE_DIR = os.environ.get("MOVE_DIR", Path("./files").resolve())
 BUCKET_PATH = os.environ.get("BUCKET_PATH", "mzakany-perfin")
-MOVE_FILES_TO_DIR = os.environ.get("MOVE_FILES_TO_DIR", Path("./files").resolve())
-PROJECT_LOCATION = "~/Desktop"
-ROOT_PATH = Path("./config/accounts.json").resolve()
+BASE_PATH = "~/Desktop"
 
-with ROOT_PATH.open("r") as file:
+path = Path("./.config/accounts.json").resolve()
+
+with path.open("r") as file:
     SCHEMA = json.load(file)
 
 
@@ -21,9 +21,7 @@ def stop():
 
         make cli CMD=start
     """
-    os.system(
-        f"cd {PROJECT_LOCATION}/perfin;TAG=7.10.2 docker-compose down --remove-orphans"
-    )
+    os.system(f"cd {BASE_PATH}/perfin;TAG=7.10.2 docker-compose down --remove-orphans")
 
 
 def start():
@@ -32,9 +30,7 @@ def start():
 
         make cli CMD=start
     """
-    os.system(
-        f"cd {PROJECT_LOCATION}/perfin;TAG=7.10.2 docker-compose up --remove-orphans"
-    )
+    os.system(f"cd {BASE_PATH}/perfin;TAG=7.10.2 docker-compose up --remove-orphans")
 
 
 def create_index():
@@ -43,7 +39,7 @@ def create_index():
 
         make cli CMD=create_index
     """
-    Transaction.init()
+    PerFinTransaction.init()
 
 
 def destroy_index():
@@ -52,8 +48,8 @@ def destroy_index():
 
         make cli CMD=destroy_index
     """
-    if Transaction._index.exists():
-        Transaction._index.delete()
+    if PerFinTransaction._index.exists():
+        PerFinTransaction._index.delete()
 
 
 def reboot_index():
@@ -72,10 +68,8 @@ def sync_s3_data_locally():
 
         make cli CMD=sync_s3_data_locally
     """
-    finder = PathFinder(s3_bucket_path=BUCKET_PATH, schema=SCHEMA)
-    for t in get_transactions(finder):
-        trans = Transaction(**t.doc)
-        trans.save()
+    for row in csv_docs(base_path=BASE_PATH, schema=SCHEMA, finder_cls=S3CSVFileFinder):
+        PerFinTransaction.create(**row)
 
 
 def insert_transactions():
@@ -84,10 +78,10 @@ def insert_transactions():
 
         make cli CMD=insert_transactions
     """
-    finder = PathFinder(csv_path=MOVE_FILES_TO_DIR, schema=SCHEMA)
-    for t in get_transactions(finder):
-        trans = Transaction(**t.doc)
-        trans.save()
+    for row in csv_docs(
+        base_path=BASE_PATH, schema=SCHEMA, finder_cls=LocalCSVFileFinder
+    ):
+        PerFinTransaction.create(**row)
 
 
 def move_files_to_root():
@@ -101,9 +95,10 @@ def move_files_to_root():
         Move all files from directory that match accounts.json
         into files folder
     """
-    path = Path(PROJECT_LOCATION).expanduser()
-    finder = PathFinder(csv_path=path, schema=SCHEMA)
-    move_files(finder, MOVE_FILES_TO_DIR)
+    finder = LocalCSVFileFinder(base_path="~/Desktop/perfin/tests/files")
+
+    for file in finder.load_files():
+        finder.move(file, MOVE_DIR)
 
 
 def move_files_to_s3():
@@ -112,11 +107,13 @@ def move_files_to_s3():
 
         make cli CMD=move_files_to_s3
     """
-    finder = PathFinder(csv_path=MOVE_FILES_TO_DIR, schema=SCHEMA)
 
-    for path in finder.paths:
-        filename = f"{BUCKET_PATH}/{path.name}"
-        get_s3_conn().put(str(path), filename)
+    s3_finder = S3CSVFileFinder(bucket=BUCKET_PATH)
+
+    local_finder = LocalCSVFileFinder(base_path="~/Desktop/perfin/tests/files")
+
+    for local_file in local_finder.load_files():
+        s3_finder.move(local_file)
 
 
 def delete_local_files():
@@ -125,9 +122,9 @@ def delete_local_files():
 
         make cli CMD=delete_local_files
     """
+    finder = LocalCSVFileFinder(base_path="~/Desktop/perfin/tests/files")
 
-    finder = PathFinder(csv_path=MOVE_FILES_TO_DIR, schema=SCHEMA)
-    for path in finder.paths:
+    for path in finder.load_files():
         path.unlink()
 
 
