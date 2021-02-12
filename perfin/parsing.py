@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Dict
 
 import pandas
@@ -7,7 +6,7 @@ from pydantic.dataclasses import dataclass
 from pydantic.error_wrappers import ValidationError
 
 from .paths import LocalCSVFileFinder, find_config, get_file_columns
-from .types import DateFormat, RowFieldValue, SchemaType
+from .types import DateFormat, FilePath, RowFieldValue, SchemaType
 from .util import convert_date, convert_float, convert_int
 
 
@@ -38,7 +37,7 @@ class RowField:
 
 @dataclass
 class CSVFileParser:
-    file: Path
+    file: FilePath
     parse_schema: Dict
 
     def get_rows(self) -> Dict:

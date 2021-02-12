@@ -5,9 +5,12 @@ from typing import Callable, Dict, List, Tuple
 
 from loguru import logger
 from pandas import DataFrame
+from s3fs import S3FileSystem
 
 from .settings import DATE_FMT
 from .util import convert_date, create_file_name
+
+S3 = None
 
 
 @dataclass
@@ -34,10 +37,20 @@ class S3CSVFileFinder:
     base_path: str
     patterns: List = field(default_factory=lambda: ["*.csv", "*.CSV"])
 
-    def move(self, file: Path):
-        pass
+    def get_s3_conn(self):
+        global S3
+        return S3 if S3 else S3FileSystem(anon=False)
 
     def load_files(self):
+        get_s3_conn = self.get_s3_conn
+
+        for file_path in get_s3_conn().ls(self.base_path):
+            path = Path(file_path)
+            with get_s3_conn().open(file_path, mode="r") as file:
+                file.stem = path.stem
+                yield file
+
+    def move(self, file: Path):
         pass
 
 
