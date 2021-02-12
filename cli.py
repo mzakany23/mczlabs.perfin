@@ -1,10 +1,25 @@
+import json
 import os
 import sys
 from pathlib import Path
 
-from perfin import PathFinder, Transaction, get_transactions, move_files
-from perfin.s3 import get_s3_conn
-from perfin.settings import config
+from loguru import logger
+from perfin import (
+    LocalCSVFileFinder,
+    PerFinTransaction,
+    S3CSVFileFinder,
+    csv_docs,
+    get_csv_file_names,
+)
+
+FILE_DIR = os.environ.get("FILE_DIR", Path("./files").resolve())
+BUCKET_PATH = os.environ.get("BUCKET_PATH", "mzakany-perfin")
+BASE_PATH = "~/Desktop"
+
+path = Path("./.config/accounts.json").resolve()
+
+with path.open("r") as file:
+    SCHEMA = json.load(file)
 
 
 def stop():
@@ -13,7 +28,7 @@ def stop():
 
         make cli CMD=start
     """
-    os.system("cd ~/Desktop/perfin;TAG=7.10.2 docker-compose down --remove-orphans")
+    os.system(f"cd {BASE_PATH}/perfin;TAG=7.10.2 docker-compose down --remove-orphans")
 
 
 def start():
@@ -22,7 +37,7 @@ def start():
 
         make cli CMD=start
     """
-    os.system("cd ~/Desktop/perfin;TAG=7.10.2 docker-compose up --remove-orphans")
+    os.system(f"cd {BASE_PATH}/perfin;TAG=7.10.2 docker-compose up --remove-orphans")
 
 
 def create_index():
@@ -31,7 +46,7 @@ def create_index():
 
         make cli CMD=create_index
     """
-    Transaction.init()
+    PerFinTransaction.init()
 
 
 def destroy_index():
@@ -40,8 +55,8 @@ def destroy_index():
 
         make cli CMD=destroy_index
     """
-    if Transaction._index.exists():
-        Transaction._index.delete()
+    if PerFinTransaction._index.exists():
+        PerFinTransaction._index.delete()
 
 
 def reboot_index():
@@ -60,10 +75,10 @@ def sync_s3_data_locally():
 
         make cli CMD=sync_s3_data_locally
     """
-    finder = PathFinder(s3_bucket_path=config.AWS["bucket_path"])
-    for t in get_transactions(finder):
-        trans = Transaction(**t.doc)
-        trans.save()
+    for row in csv_docs(
+        base_path=BUCKET_PATH, schema=SCHEMA, finder_cls=S3CSVFileFinder
+    ):
+        PerFinTransaction.create(**row)
 
 
 def insert_transactions():
@@ -72,11 +87,10 @@ def insert_transactions():
 
         make cli CMD=insert_transactions
     """
-    path = config.root_path.joinpath("files")
-    finder = PathFinder(csv_path=path)
-    for t in get_transactions(finder):
-        trans = Transaction(**t.doc)
-        trans.save()
+    for row in csv_docs(
+        base_path=FILE_DIR, schema=SCHEMA, finder_cls=LocalCSVFileFinder
+    ):
+        PerFinTransaction.create(**row)
 
 
 def move_files_to_root():
@@ -90,9 +104,10 @@ def move_files_to_root():
         Move all files from directory that match accounts.json
         into files folder
     """
-    path = Path("~/Desktop").expanduser()
-    finder = PathFinder(csv_path=path)
-    move_files(finder)
+    finder = LocalCSVFileFinder(base_path=BASE_PATH)
+
+    for old_file, new_file_name in get_csv_file_names(finder, FILE_DIR, SCHEMA):
+        old_file.rename(new_file_name)
 
 
 def move_files_to_s3():
@@ -101,12 +116,15 @@ def move_files_to_s3():
 
         make cli CMD=move_files_to_s3
     """
-    path = config.root_path.joinpath("files")
-    finder = PathFinder(csv_path=path)
-    bucket = config.AWS["bucket_path"]
-    for path in finder.paths:
-        filename = f"{bucket}/{path.name}"
-        get_s3_conn().put(str(path), filename)
+
+    s3_finder = S3CSVFileFinder(base_path=BUCKET_PATH)
+
+    local_finder = LocalCSVFileFinder(base_path=FILE_DIR)
+
+    for local_file in local_finder.load_files():
+        logger.info(f"moving {local_file} to s3")
+        s3_finder.move(local_file)
+        logger.info("done.")
 
 
 def delete_local_files():
@@ -115,10 +133,12 @@ def delete_local_files():
 
         make cli CMD=delete_local_files
     """
-    path = config.root_path.joinpath("files")
-    finder = PathFinder(csv_path=path)
-    for path in finder.paths:
+    finder = LocalCSVFileFinder(base_path=FILE_DIR)
+
+    for path in finder.load_files():
+        logger.info(f"deleting {path}")
         path.unlink()
+        logger.info("done")
 
 
 def reindex_index():
@@ -156,6 +176,6 @@ def run():
 if __name__ == "__main__":
     args = sys.argv
     try:
-        getattr(__import__("__main__"), args[1])()
+        globals()[args[1]]()
     except IndexError:
         run()

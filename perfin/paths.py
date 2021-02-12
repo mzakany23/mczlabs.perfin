@@ -1,82 +1,118 @@
-import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Tuple
 
-import pandas
 from loguru import logger
+from pandas import DataFrame
+from s3fs import S3FileSystem
 
-from .accounts import find_account, get_file_columns
-from .csv import convert_date
-from .s3 import load_s3_files
-from .settings import config
+S3 = None
 
 
 @dataclass
-class PathFinder:
-    csv_path: Path = None
-    csv_patterns: List = field(default_factory=lambda: ["*.csv", "*.CSV"])
-    s3_bucket_path: str = None
+class LocalCSVFileFinder:
+    base_path: str = "~/Desktop"
+    patterns: List = field(default_factory=lambda: ["*.csv", "*.CSV"])
 
-    @property
-    def paths(self):
-        if self.csv_path.is_dir():
-            for pattern in self.csv_patterns:
-                yield from self.csv_path.glob(pattern)
-        elif self.csv_path.is_file():
-            suffix = self.csv_path.suffix
-            for pattern in self.csv_patterns:
-                if suffix in pattern:
-                    yield self.csv_path
+    def get_paths(self) -> Path:
+        path = Path(self.base_path).expanduser()
+
+        if path.is_file():
+            yield path
         else:
-            raise Exception(
-                f"could not discern {self.csv_path} from {self.csv_patterns}"
-            )
+            for pattern in self.patterns:
+                yield from path.glob(pattern)
 
     def load_files(self):
-        if self.csv_path:
-            return load_files(self)
-        if self.s3_bucket_path:
-            return load_s3_files(self.s3_bucket_path)
+        for path in self.get_paths():
+            yield path
+
+    def move(self, file, new_path):
+        new_path = new_path.joinpath(file.name)
+        file.rename(new_path)
 
 
-def load_files(finder: PathFinder):
-    for path in finder.paths:
-        account = None
+@dataclass
+class S3CSVFileFinder:
+    base_path: str
+    patterns: List = field(default_factory=lambda: ["*.csv", "*.CSV"])
 
-        df = pandas.read_csv(f"{path}", keep_default_na=False)
+    def get_s3_conn(self):
+        global S3
+        return S3 if S3 else S3FileSystem(anon=False)
 
-        account = find_account(path.name.lower())
+    def load_files(self):
+        get_s3_conn = self.get_s3_conn
 
-        if not account:
-            logger.warning(f"could not match file alias {path.name.lower()}")
+        for file_path in get_s3_conn().ls(self.base_path):
+            path = Path(file_path)
+            with get_s3_conn().open(file_path, mode="r") as file:
+                file.stem = path.stem
+                yield file
+
+    def move(self, file: Path):
+        filename = f"{self.base_path}/{file.name}"
+        self.get_s3_conn().put(str(file), filename)
+
+
+def get_file_columns(df: DataFrame, config_meta: Dict) -> Tuple[List, str]:
+    file_column_groups = config_meta["file_columns"]
+
+    if isinstance(file_column_groups[0], dict):
+        file_column_groups = [file_column_groups]
+
+    df_cols = None
+
+    for file_columns in file_column_groups:
+        try:
+            df_cols = df.columns
+
+            assert len(df_cols) == len(file_columns)
+
+            for i, col in enumerate(file_columns):
+                if isinstance(col["column_name"], list):
+                    inner_col = col["column_name"]
+                    inner_col_len = len(inner_col) - 1
+                    for _, icol in enumerate(inner_col):
+                        if df_cols[i].lower() == icol.lower():
+                            col["column_name"] = icol
+                            break
+                        if i == inner_col_len:
+                            raise AssertionError(
+                                f"{df_cols[i].lower()} == {icol.lower()}"
+                            )
+                else:
+                    assert df_cols[i].lower() == col["column_name"].lower()
+        except AssertionError as e:
+            logger.warning(e)
             continue
+        return file_columns, get_sort_key(file_columns)
 
-        logger.info(f"found {path.name.lower()}")
+    inspect_cols = ""
 
-        yield account, path, df
+    for col in file_column_groups:
+        inner_col = []
+        for inner in col:
+            inner_col.append(inner["column_name"])
+        inspect_cols += f"\ncolumn: {inner_col}\n"
 
-
-def get_file_names(finder: PathFinder, new_file_ext="csv"):
-    for account, path, df in finder.load_files():
-        _, sort_key = get_file_columns(df, account)
-        column_name = sort_key["column_name"]
-        dates = df[column_name].to_list()
-        if not dates:
-            logger.warning(f"found {path.name} but is blank, so skipping...")
-            continue
-        date_format = sort_key["date_format"]
-        account_name = account["account_name"]
-        dates = [convert_date(date, date_format) for date in dates]
-        dates.sort()
-        start_date = datetime.datetime.strftime(dates[0], config.date_fmt)
-        end_date = datetime.datetime.strftime(dates[-1], config.date_fmt)
-        new_file_name = f"{config.create_file_name(account_name, start_date, end_date)}.{new_file_ext}"
-        yield path, new_file_name
+    raise Exception(f"Could not match {file_column_groups} with {df_cols}")
 
 
-def move_files(finder: PathFinder):
-    for file, new_file_name in get_file_names(finder):
-        nfp = config.root_path.joinpath(f"files/{new_file_name}")
-        file.rename(nfp)
-        logger.info(f"successfully moved {nfp}")
+def find_config(search_name: str, schema: Dict):
+    for config_key, config in schema.items():
+        for account_alias in config["file_name_search"]:
+            alias_match = account_alias.lower() in search_name.lower()
+            if alias_match:
+                config["config_key"] = config_key
+                return config
+    raise Exception(f"Could not match {search_name}")
+
+
+def get_sort_key(file_columns: List):
+    for col in file_columns:
+        if isinstance(col, list):
+            return get_sort_key(col)
+        if col.get("sort_key"):
+            return col
+    raise Exception(f"could not find a sort_key attr in {file_columns}")
