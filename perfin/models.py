@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from elasticsearch_dsl import Date, Document, Float, Keyword, Long, Text, connections
+from loguru import logger
 
 from .settings import DATE_FMT
 from .util import generate_specific_key, make_key
@@ -39,7 +40,7 @@ class PerFinTransaction(Document):
         name = "transactions"
 
     @staticmethod
-    def create(file_key, **kwargs):
+    def create(**kwargs):
         doc = kwargs["doc"]
         doc_key = kwargs["doc_key"]
         doc_type = kwargs["doc_type"]
@@ -49,10 +50,10 @@ class PerFinTransaction(Document):
         transaction = PerFinTransaction(
             account_name=doc_key,
             account_type=doc_type,
+            description=description,
             trans_date=doc.get("transaction_date"),
             posted_date=doc.get("transaction_posted_date"),
             card_num=doc.get("card_num"),
-            description=description,
             category=doc.get("category"),
             debit=doc.get("debit"),
             credit=doc.get("credit"),
@@ -61,7 +62,8 @@ class PerFinTransaction(Document):
             memo=doc.get("memo"),
             check_num=doc.get("check_num"),
         )
-
+        if not transaction.date:
+            transaction.date = transaction.posted_date
         transaction.save()
 
     def save(self, **kwargs):
@@ -69,4 +71,5 @@ class PerFinTransaction(Document):
         self.meta["id"] = generate_specific_key(
             self.description, dfmt(self.date), str(self.amount)
         )
+        logger.info(f"inserting {self.__dict__}")
         return super().save(**kwargs)

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from perfin import LocalCSVFileFinder, PerFinTransaction, S3CSVFileFinder, csv_docs
 
-MOVE_DIR = os.environ.get("MOVE_DIR", Path("./files").resolve())
+FILE_DIR = os.environ.get("FILE_DIR", Path("./files").resolve())
 BUCKET_PATH = os.environ.get("BUCKET_PATH", "mzakany-perfin")
 BASE_PATH = "~/Desktop"
 
@@ -81,7 +81,7 @@ def insert_transactions():
         make cli CMD=insert_transactions
     """
     for row in csv_docs(
-        base_path=BASE_PATH, schema=SCHEMA, finder_cls=LocalCSVFileFinder
+        base_path=FILE_DIR, schema=SCHEMA, finder_cls=LocalCSVFileFinder
     ):
         PerFinTransaction.create(**row)
 
@@ -97,10 +97,10 @@ def move_files_to_root():
         Move all files from directory that match accounts.json
         into files folder
     """
-    finder = LocalCSVFileFinder(base_path="~/Desktop/perfin/tests/files")
+    finder = LocalCSVFileFinder(base_path=BASE_PATH)
 
     for file in finder.load_files():
-        finder.move(file, MOVE_DIR)
+        finder.move(file, FILE_DIR)
 
 
 def move_files_to_s3():
@@ -110,9 +110,9 @@ def move_files_to_s3():
         make cli CMD=move_files_to_s3
     """
 
-    s3_finder = S3CSVFileFinder(bucket=BUCKET_PATH)
+    s3_finder = S3CSVFileFinder(base_path=BUCKET_PATH)
 
-    local_finder = LocalCSVFileFinder(base_path="~/Desktop/perfin/tests/files")
+    local_finder = LocalCSVFileFinder(base_path=FILE_DIR)
 
     for local_file in local_finder.load_files():
         s3_finder.move(local_file)
@@ -124,7 +124,7 @@ def delete_local_files():
 
         make cli CMD=delete_local_files
     """
-    finder = LocalCSVFileFinder(base_path="~/Desktop/perfin/tests/files")
+    finder = LocalCSVFileFinder(base_path=FILE_DIR)
 
     for path in finder.load_files():
         path.unlink()
