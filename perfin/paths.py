@@ -31,6 +31,10 @@ class LocalCSVFileFinder:
         for path in self.get_paths():
             yield path
 
+    def move(self, file, new_path):
+        new_path = new_path.joinpath(file.name)
+        file.rename(new_path)
+
 
 @dataclass
 class S3CSVFileFinder:
@@ -51,7 +55,7 @@ class S3CSVFileFinder:
                 yield file
 
     def move(self, file: Path):
-        pass
+        self.get_s3_conn().put(self.base_path, f"{file}")
 
 
 def get_files(finder: Callable, new_file_ext="csv"):
