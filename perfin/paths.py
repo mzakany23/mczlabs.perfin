@@ -1,14 +1,10 @@
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Callable, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 from loguru import logger
 from pandas import DataFrame
 from s3fs import S3FileSystem
-
-from .settings import DATE_FMT
-from .util import convert_date, create_file_name
 
 S3 = None
 
@@ -55,34 +51,8 @@ class S3CSVFileFinder:
                 yield file
 
     def move(self, file: Path):
-        self.get_s3_conn().put(self.base_path, f"{file}")
-
-
-def get_files(finder: Callable, new_file_ext="csv"):
-    for account, path, df in finder.load_files():
-        _, sort_key = get_file_columns(df, account)
-        column_name = sort_key["column_name"]
-        dates = df[column_name].to_list()
-        if not dates:
-            logger.warning(f"found {path.name} but is blank, so skipping...")
-            continue
-        date_format = sort_key["date_format"]
-        config_key = account["config_key"]
-        dates = [convert_date(date, date_format) for date in dates]
-        dates.sort()
-        start_date = datetime.strftime(dates[0], DATE_FMT)
-        end_date = datetime.strftime(dates[-1], DATE_FMT)
-        new_file_name = (
-            f"{create_file_name(config_key, start_date, end_date)}.{new_file_ext}"
-        )
-        yield path, new_file_name
-
-
-def move_files(finder: Callable, move_to_dir: Path):
-    for file, new_file_name in get_files(finder):
-        nfp = move_to_dir.joinpath(f"/{new_file_name}")
-        file.rename(nfp)
-        logger.info(f"successfully moved {nfp}")
+        filename = f"{self.base_path}/{file.name}"
+        self.get_s3_conn().put(str(file), filename)
 
 
 def get_file_columns(df: DataFrame, config_meta: Dict) -> Tuple[List, str]:

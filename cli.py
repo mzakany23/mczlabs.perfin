@@ -3,7 +3,14 @@ import os
 import sys
 from pathlib import Path
 
-from perfin import LocalCSVFileFinder, PerFinTransaction, S3CSVFileFinder, csv_docs
+from loguru import logger
+from perfin import (
+    LocalCSVFileFinder,
+    PerFinTransaction,
+    S3CSVFileFinder,
+    csv_docs,
+    get_csv_file_names,
+)
 
 FILE_DIR = os.environ.get("FILE_DIR", Path("./files").resolve())
 BUCKET_PATH = os.environ.get("BUCKET_PATH", "mzakany-perfin")
@@ -99,8 +106,8 @@ def move_files_to_root():
     """
     finder = LocalCSVFileFinder(base_path=BASE_PATH)
 
-    for file in finder.load_files():
-        finder.move(file, FILE_DIR)
+    for old_file, new_file_name in get_csv_file_names(finder, FILE_DIR, SCHEMA):
+        old_file.rename(new_file_name)
 
 
 def move_files_to_s3():
@@ -115,7 +122,9 @@ def move_files_to_s3():
     local_finder = LocalCSVFileFinder(base_path=FILE_DIR)
 
     for local_file in local_finder.load_files():
+        logger.info(f"moving {local_file} to s3")
         s3_finder.move(local_file)
+        logger.info("done.")
 
 
 def delete_local_files():
@@ -127,7 +136,9 @@ def delete_local_files():
     finder = LocalCSVFileFinder(base_path=FILE_DIR)
 
     for path in finder.load_files():
+        logger.info(f"deleting {path}")
         path.unlink()
+        logger.info("done")
 
 
 def reindex_index():

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict
 
 import pandas
@@ -6,8 +7,30 @@ from pydantic.dataclasses import dataclass
 from pydantic.error_wrappers import ValidationError
 
 from .paths import LocalCSVFileFinder, find_config, get_file_columns
+from .settings import DATE_FMT
 from .types import DateFormat, FilePath, RowFieldValue, SchemaType
-from .util import convert_date, convert_float, convert_int
+from .util import convert_date, convert_float, convert_int, create_file_name
+
+
+def get_csv_file_names(finder: LocalCSVFileFinder, to_path: str, schema: dict):
+    for file in finder.load_files():
+        df = pandas.read_csv(file, keep_default_na=False)
+        file_meta = find_config(file.stem, schema)
+        _, sort_key = get_file_columns(df, file_meta)
+        column_name = sort_key["column_name"]
+        dates = df[column_name].to_list()
+        if not dates:
+            logger.warning(f"found {file.stem} but is blank, so skipping...")
+            continue
+        date_format = sort_key["date_format"]
+        config_key = file_meta["config_key"]
+        dates = [convert_date(date, date_format) for date in dates]
+        dates.sort()
+        start_date = datetime.strftime(dates[0], DATE_FMT)
+        end_date = datetime.strftime(dates[-1], DATE_FMT)
+        new_file_name = f"{create_file_name(config_key, start_date, end_date)}.csv"
+
+        yield file, to_path.joinpath(new_file_name)
 
 
 @dataclass
