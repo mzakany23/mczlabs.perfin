@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Tuple
 
 import pandas
 from loguru import logger
@@ -12,7 +12,9 @@ from .types import DateFormat, FilePath, RowFieldValue, SchemaType
 from .util import convert_date, convert_float, convert_int, create_file_name
 
 
-def get_csv_file_names(finder: LocalCSVFileFinder, to_path: str, schema: dict):
+def get_csv_file_names(
+    finder: LocalCSVFileFinder, to_path: str, schema: dict
+) -> Tuple[FilePath, str]:
     for file in finder.load_files():
         df = pandas.read_csv(file, keep_default_na=False)
         file_meta = find_config(file.stem, schema)
@@ -91,7 +93,7 @@ class CSVFileParser:
             }
 
 
-def csv_docs(base_path, schema, finder_cls=LocalCSVFileFinder):
+def csv_docs(base_path, schema, finder_cls=LocalCSVFileFinder) -> Dict:
     finder = finder_cls(base_path=base_path)
 
     for file in finder.load_files():

@@ -1,10 +1,12 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from loguru import logger
 from pandas import DataFrame
 from s3fs import S3FileSystem
+
+from .types import File, FileColumns
 
 S3 = None
 
@@ -23,7 +25,7 @@ class LocalCSVFileFinder:
             for pattern in self.patterns:
                 yield from path.glob(pattern)
 
-    def load_files(self):
+    def load_files(self) -> Path:
         for path in self.get_paths():
             yield path
 
@@ -41,7 +43,7 @@ class S3CSVFileFinder:
         global S3
         return S3 if S3 else S3FileSystem(anon=False)
 
-    def load_files(self):
+    def load_files(self) -> File:
         get_s3_conn = self.get_s3_conn
 
         for file_path in get_s3_conn().ls(self.base_path):
@@ -55,7 +57,7 @@ class S3CSVFileFinder:
         self.get_s3_conn().put(str(file), filename)
 
 
-def get_file_columns(df: DataFrame, config_meta: Dict) -> Tuple[List, str]:
+def get_file_columns(df: DataFrame, config_meta: Dict) -> FileColumns:
     file_column_groups = config_meta["file_columns"]
 
     if isinstance(file_column_groups[0], dict):
@@ -99,7 +101,7 @@ def get_file_columns(df: DataFrame, config_meta: Dict) -> Tuple[List, str]:
     raise Exception(f"Could not match {file_column_groups} with {df_cols}")
 
 
-def find_config(search_name: str, schema: Dict):
+def find_config(search_name: str, schema: Dict) -> Dict:
     for config_key, config in schema.items():
         for account_alias in config["file_name_search"]:
             alias_match = account_alias.lower() in search_name.lower()
@@ -109,7 +111,7 @@ def find_config(search_name: str, schema: Dict):
     raise Exception(f"Could not match {search_name}")
 
 
-def get_sort_key(file_columns: List):
+def get_sort_key(file_columns: List) -> str:
     for col in file_columns:
         if isinstance(col, list):
             return get_sort_key(col)
