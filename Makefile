@@ -142,6 +142,13 @@ terraform_apply: terraform_init
 	terraform destroy
 
 
+.PHONY: coveralls
+coveralls:
+	. $(VENV_ACTIVATE) ;\
+	coverage run --source=perfin -m pytest tests/ ;\
+	coveralls
+
+
 .PHONY: deploy
 deploy: terraform_apply
 
