@@ -40,12 +40,12 @@ def create_file_name(name, from_date, to_date):
     return f"{name}____{from_date}--{to_date}____{key}"
 
 
-def convert_int(value, stype):
+def convert_int(value, stype={}):
     value = value or 0
     return int(value)
 
 
-def convert_float(value, stype):
+def convert_float(value, stype={}):
     value = value or 0.0
     calc = float(value)
     if stype.get("invert_value"):
