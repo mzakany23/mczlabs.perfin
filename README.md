@@ -70,4 +70,5 @@ make terraform_destroy
 
 ```bash
 make test
+make tox
 ```

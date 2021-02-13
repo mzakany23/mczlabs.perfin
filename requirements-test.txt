@@ -8,3 +8,4 @@ flake8
 flake8-bugbear
 pre-commit==2.0.1
 coveralls
+tox

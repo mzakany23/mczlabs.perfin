@@ -149,6 +149,12 @@ coveralls:
 	coveralls
 
 
+.PHONY: tox
+tox:
+	. $(VENV_ACTIVATE) ;\
+	tox
+
+
 .PHONY: deploy
 deploy: terraform_apply
 
