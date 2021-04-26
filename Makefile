@@ -1,4 +1,4 @@
-PYTHON_VERSION := python3.7
+PYTHON_VERSION := python3.9
 VENV := .venv
 VENV_ACTIVATE := $(VENV)/bin/activate
 VENV_SENTINEL := $(VENV)/.sentinel

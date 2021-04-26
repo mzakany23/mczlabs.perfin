@@ -19,7 +19,7 @@ BASE_PATH = "~/Desktop"
 path = Path("./.config/accounts.json").resolve()
 
 with path.open("r") as file:
-    SCHEMA = json.load(file)
+    SCHEMA = json.load(file)["ACCOUNT_LOOKUP"]
 
 
 def stop():
