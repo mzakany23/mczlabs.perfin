@@ -64,14 +64,14 @@ pre-commit: $(VENV)
 test:
 ifeq ($(TEST_FILE),)
 	SKIP_SENTRY=1 \
-	$(VENV_PYTEST) --cov=perfin --cov-report term-missing --junitxml=test-reports/pytest/junit.xml tests/
+	$(VENV_PYTEST) --cov=perfin  tests/ -s
 else
 ifeq ($(TEST_FN),)
 	SKIP_SENTRY=1 \
-	$(VENV_PYTEST) ./tests/$(TEST_FILE).py
+	$(VENV_PYTEST) ./tests/$(TEST_FILE).py -s
 else
 	SKIP_SENTRY=1 \
-	$(VENV_PYTEST) ./tests/$(TEST_FILE).py -k $(TEST_FN)
+	$(VENV_PYTEST) ./tests/$(TEST_FILE).py -k $(TEST_FN) -s
 endif
 endif
 

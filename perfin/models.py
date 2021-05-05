@@ -22,6 +22,7 @@ def get_date(**kwargs):
 class PerFinTransaction(Document):
     created_at = get_date()
     category = Keyword()
+    aggregates = Keyword()
     account_name = Keyword()
     account_type = Keyword()
     amount = Float()
@@ -45,12 +46,13 @@ class PerFinTransaction(Document):
         doc_key = kwargs["doc_key"]
         doc_type = kwargs["doc_type"]
 
-        description = make_key(doc.get("description") or "")
+        aggregates = make_key(doc.get("description") or "")
 
         transaction = PerFinTransaction(
             account_name=doc_key,
             account_type=doc_type,
-            description=description,
+            aggregates=aggregates,
+            description=doc.get("description"),
             trans_date=doc.get("transaction_date"),
             posted_date=doc.get("transaction_posted_date"),
             card_num=doc.get("card_num"),

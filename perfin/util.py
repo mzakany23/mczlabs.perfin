@@ -18,6 +18,9 @@ def generate_specific_key(*args):
 
 
 def convert_date(value, stype):
+    if isinstance(stype, dict):
+        stype = stype["date_format"]
+
     if isinstance(stype, list):
         for fmt in stype:
             try:
@@ -28,7 +31,7 @@ def convert_date(value, stype):
     elif isinstance(stype, str):
         return datetime.strptime(value, stype)
 
-    return datetime.strptime(value, stype["original_value"])
+    raise Exception(f"could not parse date for {value, stype}")
 
 
 def create_file_name(name, from_date, to_date):

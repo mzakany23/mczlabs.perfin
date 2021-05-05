@@ -100,7 +100,6 @@ def csv_docs(base_path, schema, finder_cls=LocalCSVFileFinder) -> Dict:
             for row in parser.get_rows():
                 yield row
         except Exception as ex:
-            file_contents = file.readlines()
             logger.warning(
-                f"Parsing error: {ex} for file contents: {file_contents}, with schema: {schema}"
+                f"Parsing error: {ex}"
             )
