@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from typing import Dict, Tuple
 
@@ -84,6 +85,14 @@ class CSVFileParser:
                     doc[key] = row_field.calculate()
                 except ValidationError as e:
                     raise Exception(f"ValidationError: {stype}") from e
+
+            # for debugging purposes
+            doc["original"] = json.dumps({
+                "file_column" : file_column,
+                "sort_key" : sort_key,
+                "row" : row.to_dict()
+            })
+
             yield {
                 "doc": doc,
                 "doc_key": file_meta["config_key"],

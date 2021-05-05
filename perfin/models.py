@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from elasticsearch_dsl import Date, Document, Float, Keyword, Long, Text, connections
+from elasticsearch_dsl import (Date, Document, Float, Keyword, Long, Text,
+                               connections)
 from loguru import logger
 
 from .settings import DATE_FMT
@@ -27,6 +28,7 @@ class PerFinTransaction(Document):
     account_type = Keyword()
     amount = Float()
     description = Text(fielddata=True)
+    original = Keyword()
     check_num = Long()
     date = get_date()
     posted_date = get_date()
@@ -57,6 +59,7 @@ class PerFinTransaction(Document):
             posted_date=doc.get("transaction_posted_date"),
             card_num=doc.get("card_num"),
             category=doc.get("category"),
+            original=doc.get("original"),
             debit=doc.get("debit"),
             credit=doc.get("credit"),
             trans_type=doc.get("transaction_type"),
