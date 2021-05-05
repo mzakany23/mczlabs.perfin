@@ -76,7 +76,6 @@ class CSVFileParser:
 
         for _, row in df.iterrows():
             doc = {}
-
             for i, stype in enumerate(file_column):
                 key = stype["key"]
 
@@ -85,7 +84,6 @@ class CSVFileParser:
                     doc[key] = row_field.calculate()
                 except ValidationError as e:
                     raise Exception(f"ValidationError: {stype}") from e
-
             yield {
                 "doc": doc,
                 "doc_key": file_meta["config_key"],
@@ -98,5 +96,11 @@ def csv_docs(base_path, schema, finder_cls=LocalCSVFileFinder) -> Dict:
 
     for file in finder.load_files():
         parser = CSVFileParser(file, schema)
-        for row in parser.get_rows():
-            yield row
+        try:
+            for row in parser.get_rows():
+                yield row
+        except Exception as ex:
+            file_contents = file.readlines()
+            logger.warning(
+                f"Parsing error: {ex} for file contents: {file_contents}, with schema: {schema}"
+            )
