@@ -64,7 +64,7 @@ pre-commit: $(VENV)
 test:
 ifeq ($(TEST_FILE),)
 	SKIP_SENTRY=1 \
-	$(VENV_PYTEST) --cov=perfin  tests/ -s
+	$(VENV_PYTEST) --cov=perfin  --cov-report term-missing tests/ -s
 else
 ifeq ($(TEST_FN),)
 	SKIP_SENTRY=1 \

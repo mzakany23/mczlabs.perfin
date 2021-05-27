@@ -87,11 +87,9 @@ class CSVFileParser:
                     raise Exception(f"ValidationError: {stype}") from e
 
             # for debugging purposes
-            doc["original"] = json.dumps({
-                "file_column" : file_column,
-                "sort_key" : sort_key,
-                "row" : row.to_dict()
-            })
+            doc["original"] = json.dumps(
+                {"file_column": file_column, "sort_key": sort_key, "row": row.to_dict()}
+            )
 
             yield {
                 "doc": doc,
@@ -109,6 +107,4 @@ def csv_docs(base_path, schema, finder_cls=LocalCSVFileFinder) -> Dict:
             for row in parser.get_rows():
                 yield row
         except Exception as ex:
-            logger.warning(
-                f"Parsing error: {ex}"
-            )
+            logger.warning(f"Parsing error: {ex}")

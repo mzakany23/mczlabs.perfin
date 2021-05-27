@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from elasticsearch_dsl import (Date, Document, Float, Keyword, Long, Text,
-                               connections)
+from elasticsearch_dsl import Date, Document, Float, Keyword, Long, Text, connections
 from loguru import logger
 
 from .settings import DATE_FMT
