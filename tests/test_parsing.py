@@ -95,14 +95,16 @@ def test_get_csv_file_names(csv_finder, schema):
 
         make test TEST_FILE=test_parsing TEST_FN=test_get_csv_file_names
     """
-    finder = csv_finder("chase_test_invert")
+    finder = csv_finder("chase_test_basic")
+    path = Path("./tests/files").resolve()
 
-    for old_file, new_file_name in get_csv_file_names(finder, "", schema):
-        parts = new_file_name.split("____")
+    for old_file, new_file_name in get_csv_file_names(finder, path, schema):
+
+        parts = str(new_file_name).split("____")
         fd, td = parts[1].split("--")
-        fd = datetime.datetime.strptime(fd, DATE_FMT)
+        fd = datetime.strptime(fd, DATE_FMT)
 
         assert len(parts) == 3
-        assert isinstance(fd, datetime.datetime)
+        assert isinstance(fd, datetime)
         assert isinstance(old_file, Path)
-        assert isinstance(new_file_name, str)
+        assert isinstance(new_file_name, Path)

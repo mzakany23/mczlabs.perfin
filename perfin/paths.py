@@ -68,7 +68,6 @@ def get_file_columns(df: DataFrame, config_meta: Dict) -> FileColumns:
     for file_columns in file_column_groups:
         try:
             df_cols = df.columns
-
             assert len(df_cols) == len(file_columns)
 
             for i, col in enumerate(file_columns):

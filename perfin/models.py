@@ -11,8 +11,8 @@ es_config = {"hosts": ["localhost"], "timeout": 20}
 connections.create_connection(**es_config)
 
 
-def dfmt(d):
-    return None if d is None else datetime.strftime(d, DATE_FMT)
+def dfmt(date: datetime, date_fmt: str = DATE_FMT):
+    return None if date is None else datetime.strftime(date, date_fmt)
 
 
 def get_date(**kwargs):

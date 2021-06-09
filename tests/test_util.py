@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pytest
 from perfin.util import (
     convert_date,
     convert_float,
@@ -26,6 +27,12 @@ def test_convert_date():
 
     date = convert_date("2020-01-01", "%Y-%m-%d")
     assert type(date) == datetime
+
+    with pytest.raises(Exception):
+        convert_date("2020-01-01", set)
+
+    with pytest.raises(Exception):
+        convert_date("2020-01-01", ["%m-%Y-%d"])
 
 
 def test_convert_float():
@@ -55,6 +62,8 @@ def test_create_file_name():
     fd, td = "2020-01-01", "2020-02-02"
     name = "foo"
     fn = create_file_name(name, fd, td)
+    create_file_name(name, "2020/01/01", td)
+    create_file_name(name, fd, "2020/02/02")
 
     assert "____".join(fn.split("____")[0:2]) == "foo____2020-01-01--2020-02-02"
 

@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, Tuple
 
 import pandas
@@ -14,7 +15,7 @@ from .util import convert_date, convert_float, convert_int, create_file_name
 
 
 def get_csv_file_names(
-    finder: LocalCSVFileFinder, to_path: str, schema: dict
+    finder: LocalCSVFileFinder, to_path: Path, schema: dict
 ) -> Tuple[FilePath, str]:
     for file in finder.load_files():
         df = pandas.read_csv(file, keep_default_na=False)
