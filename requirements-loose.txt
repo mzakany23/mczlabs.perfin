@@ -1,5 +1,0 @@
-elasticsearch-dsl
-pydantic
-pandas
-loguru
-s3fs
