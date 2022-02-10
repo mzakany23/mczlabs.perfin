@@ -1,11 +1,6 @@
-PYTHON_VERSION := python3.9
 VENV := .venv
 VENV_ACTIVATE := $(VENV)/bin/activate
-VENV_SENTINEL := $(VENV)/.sentinel
-VENV_PIP := $(VENV)/bin/pip $(PIP_EXTRA_OPTS)
-VENV_AWS := $(VENV)/bin/aws
-VENV_PRECOMMIT := $(VENV)/bin/pre-commit
-VENV_PYTEST := $(VENV)/bin/pytest
+RUN := poetry run
 CURRENT_PASSWORD ?=
 NEW_PASSWORD ?=
 EXAMPLE_FILE ?= upload_example
@@ -29,34 +24,27 @@ endif
 
 
 .PHONY: $(VENV)
-$(VENV):
-	$(MAKE) $(VENV_SENTINEL)
+$(VENV): rebuild_venv build_develop install_linting
 
 
-$(VENV_SENTINEL): requirements.txt requirements-test.txt .pre-commit-config.yaml
-	$(MAKE) ensure_no_venv
+.PHONY: rebuild_venv
+rebuild_venv: ensure_no_venv
 	rm -rf $(VENV)
-	$(PYTHON_VERSION) -m venv $(VENV)
-	$(VENV_PIP) install -r requirements.txt
-	$(VENV_PIP) install -r requirements-test.txt
-	$(VENV_PRECOMMIT) install
-	touch $(VENV_SENTINEL)
 
 
-.PHONY: update_requirements
-update_requirements: requirements-test.txt
-	$(MAKE) ensure_no_venv
-	rm requirements.txt
-	rm -rf $(VENV)
-	$(PYTHON_VERSION) -m venv $(VENV)
-	$(VENV_PIP) install -r requirements-loose.txt
-	$(VENV_PIP) freeze >> requirements.txt
-	make $(VENV)
+.PHONY: build_develop
+build_develop:
+	poetry install
+
+
+.PHONY: install_linting
+install_linting:
+	$(RUN) pre-commit install
 
 
 .PHONY: pre-commit
-pre-commit: $(VENV)
-	$(VENV_PRECOMMIT) run -a
+pre-commit:
+	$(RUN) pre-commit run -a
 
 
 .PHONY: test
@@ -64,14 +52,14 @@ pre-commit: $(VENV)
 test:
 ifeq ($(TEST_FILE),)
 	SKIP_SENTRY=1 \
-	$(VENV_PYTEST) --cov=perfin  --cov-report term-missing tests/ -s
+	$(RUN) pytest --cov=perfin  --cov-report term-missing tests/ -s
 else
 ifeq ($(TEST_FN),)
 	SKIP_SENTRY=1 \
-	$(VENV_PYTEST) ./tests/$(TEST_FILE).py -s
+	$(RUN) pytest ./tests/$(TEST_FILE).py -s
 else
 	SKIP_SENTRY=1 \
-	$(VENV_PYTEST) ./tests/$(TEST_FILE).py -k $(TEST_FN) -s
+	$(RUN) pytest ./tests/$(TEST_FILE).py -k $(TEST_FN) -s
 endif
 endif
 
@@ -116,27 +104,27 @@ stop:
 
 .PHONY: terraform_init
 terraform_init:
-	export AWS_PROFILE=perfin_terraform;\
+	export AWS_PROFILE=$(AWS_PROFILE);\
 	cd ./terraform ;\
 	terraform init
 
 
 .PHONY: terraform_plan
 terraform_plan:
-	export AWS_PROFILE=perfin_terraform;\
+	export AWS_PROFILE=$(AWS_PROFILE);\
 	cd ./terraform ;\
 	terraform plan -var-file=dev.tfvars
 
 
 .PHONY: terraform_apply
 terraform_apply: terraform_init
-	export AWS_PROFILE=perfin_terraform;\
+	export AWS_PROFILE=$(AWS_PROFILE);\
 	cd ./terraform ;\
 	terraform apply -var-file=dev.tfvars
 
 
 .PHONY: terraform_apply
-terraform_apply: terraform_init
+terraform_destry: terraform_init
 	export AWS_PROFILE=perfin_terraform;\
 	cd ./terraform ;\
 	terraform destroy
