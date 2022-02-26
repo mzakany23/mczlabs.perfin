@@ -29,11 +29,16 @@ $(VENV): rebuild_venv build_develop install_linting
 
 .PHONY: rebuild_venv
 rebuild_venv: ensure_no_venv
-	rm -rf $(VENV)
+	rm -rf $(VENV) || true
+
+
+.PHONY: ensure_poetry_osx
+ensure_poetry_osx:
+	source install_helpers.sh; ensure_poetry
 
 
 .PHONY: build_develop
-build_develop:
+build_develop: ensure_poetry_osx
 	poetry install
 
 
@@ -47,7 +52,6 @@ pre-commit:
 	$(RUN) pre-commit run -a
 
 
-.PHONY: test
 .PHONY: test
 test:
 ifeq ($(TEST_FILE),)
