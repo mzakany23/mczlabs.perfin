@@ -23,7 +23,16 @@ make .venv
 # start elasticsearch/kibana
 make start
 
+# download csv files, save to ~/Desktop`
+# ...
+
 # assuming you have transactions downloaded locally and have set config/accounts.json
+# runs cli.py/upload function:
+# move_files_to_root()
+# insert_transactions()
+# move_files_to_s3()
+# delete_local_files()
+
 make cli CMD=upload
 
 # go to kibana and make some charts
