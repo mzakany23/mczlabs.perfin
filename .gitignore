@@ -113,3 +113,4 @@ package-lock.json
 package.json
 examples
 .DS_Store
+manifests

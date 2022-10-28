@@ -1,26 +1,29 @@
 import json
 import os
 import sys
+from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 
+import boto3
 from loguru import logger
+
 from perfin import (
     LocalCSVFileFinder,
-    PerFinTransaction,
     S3CSVFileFinder,
+    config,
+    csv_doc_batches,
     csv_docs,
     get_csv_file_names,
+    get_es,
 )
 
-FILE_DIR = os.environ.get("FILE_DIR", Path("./files").resolve())
-BUCKET_PATH = os.environ.get("BUCKET_PATH", "mzakany-perfin")
-BASE_PATH = "~/Desktop"
+BASE_PATH = config.base_path
+BUCKET_PATH = config.bucket_path
+FILE_DIR = config.file_dir
+SCHEMA = config.schema()
 
-path = Path("./.config/accounts.json").resolve()
-
-with path.open("r") as file:
-    SCHEMA = json.load(file)["ACCOUNT_LOOKUP"]
-
+ES  = get_es()
 
 def stop():
     """
@@ -46,7 +49,7 @@ def create_index():
 
         make cli CMD=create_index
     """
-    PerFinTransaction.init()
+    ES.init()
 
 
 def destroy_index():
@@ -55,8 +58,8 @@ def destroy_index():
 
         make cli CMD=destroy_index
     """
-    if PerFinTransaction._index.exists():
-        PerFinTransaction._index.delete()
+    if ES._index.exists():
+        ES._index.delete()
 
 
 def reboot_index():
@@ -78,7 +81,7 @@ def sync_s3_data_locally():
     for row in csv_docs(
         base_path=BUCKET_PATH, schema=SCHEMA, finder_cls=S3CSVFileFinder
     ):
-        PerFinTransaction.create(**row)
+        ES.create(**row)
 
 
 def insert_transactions():
@@ -90,7 +93,7 @@ def insert_transactions():
     for row in csv_docs(
         base_path=FILE_DIR, schema=SCHEMA, finder_cls=LocalCSVFileFinder
     ):
-        PerFinTransaction.create(**row)
+        ES.create(**row)
 
 
 def move_files_to_root():
@@ -162,6 +165,17 @@ def upload():
     insert_transactions()
     move_files_to_s3()
     delete_local_files()
+
+
+def show_flat_batches():
+    """
+        How to run
+
+        make cli CMD=show_flat_batches
+    """
+    for partition, batch in enumerate(csv_doc_batches(1)):
+        for flat_row in batch:
+            print(flat_row)
 
 
 def run():

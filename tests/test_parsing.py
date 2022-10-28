@@ -1,14 +1,16 @@
-from datetime import datetime
-from pathlib import Path
-
-from perfin import DATE_FMT, get_csv_file_names, make_key
-
 """
     how to run
 
     make test TEST_FILE=test_parsing
 """
 
+from datetime import datetime
+from pathlib import Path
+
+from perfin import config, get_csv_file_names, make_key
+from perfin.parsing import DATE_FMT
+
+DATE_FMT = config.date_fmt
 
 def test_parsing_key():
     """

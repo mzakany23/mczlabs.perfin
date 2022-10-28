@@ -124,7 +124,7 @@ terraform_apply: terraform_init
 
 
 .PHONY: terraform_apply
-terraform_destry: terraform_init
+terraform_destroy: terraform_init
 	export AWS_PROFILE=perfin_terraform;\
 	cd ./terraform ;\
 	terraform destroy

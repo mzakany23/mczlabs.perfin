@@ -10,7 +10,6 @@ from .types import File, FileColumns
 
 S3 = None
 
-
 @dataclass
 class LocalCSVFileFinder:
     base_path: str = "~/Desktop"
