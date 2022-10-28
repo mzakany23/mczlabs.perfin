@@ -3,23 +3,20 @@ from datetime import datetime
 from elasticsearch_dsl import Date, Document, Float, Keyword, Long, Text, connections
 from loguru import logger
 
-from .settings import DATE_FMT
+from .settings import config
 from .util import generate_specific_key, make_key
 
-es_config = {"hosts": ["localhost"], "timeout": 20}
-
-connections.create_connection(**es_config)
-
+ES = None
 
 def dfmt(d):
-    return None if d is None else datetime.strftime(d, DATE_FMT)
+    return None if d is None else datetime.strftime(d, config.date_fmt)
 
 
 def get_date(**kwargs):
     return Date(default_timezone="UTC", **kwargs)
 
 
-class PerFinTransaction(Document):
+class ESPerFinTransaction(Document):
     created_at = get_date()
     category = Keyword()
     aggregates = Keyword()
@@ -49,7 +46,7 @@ class PerFinTransaction(Document):
 
         aggregates = make_key(doc.get("description") or "")
 
-        transaction = PerFinTransaction(
+        transaction = ESPerFinTransaction(
             account_name=doc_key,
             account_type=doc_type,
             aggregates=aggregates,
@@ -77,3 +74,10 @@ class PerFinTransaction(Document):
         )
         logger.info(f"inserting {self.__dict__}")
         return super().save(**kwargs)
+
+def get_es():
+    global ES
+    ES = connections.create_connection(**{
+        "hosts": ["localhost"], "timeout": 20
+    })
+    return ESPerFinTransaction

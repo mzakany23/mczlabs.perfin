@@ -1,17 +1,21 @@
 import json
 from datetime import datetime
-from typing import Dict, Tuple
+from typing import Callable, Dict, Tuple
 
 import pandas
 from loguru import logger
 from pydantic.dataclasses import dataclass
 from pydantic.error_wrappers import ValidationError
 
-from .paths import LocalCSVFileFinder, find_config, get_file_columns
-from .settings import DATE_FMT
+from .doc import Doc, FlatDoc
+from .paths import LocalCSVFileFinder, S3CSVFileFinder, find_config, get_file_columns
+from .settings import PerfinConfig, config
 from .types import DateFormat, FilePath, RowFieldValue, SchemaType
 from .util import convert_date, convert_float, convert_int, create_file_name
 
+BUCKET_PATH = config.bucket_path
+SCHEMA = config.schema()
+DATE_FMT = config.date_fmt
 
 def get_csv_file_names(
     finder: LocalCSVFileFinder, to_path: str, schema: dict
@@ -86,7 +90,6 @@ class CSVFileParser:
                 except ValidationError as e:
                     raise Exception(f"ValidationError: {stype}") from e
 
-            # for debugging purposes
             doc["original"] = json.dumps(
                 {"file_column": file_column, "sort_key": sort_key, "row": row.to_dict()}
             )
@@ -97,14 +100,42 @@ class CSVFileParser:
                 "doc_type": file_meta["record_type"],
             }
 
-
-def csv_docs(base_path, schema, finder_cls=LocalCSVFileFinder) -> Dict:
+def csv_docs(
+    base_path,
+    schema,
+    finder_cls:Callable=LocalCSVFileFinder,
+    doc_cls:Doc=None
+) -> Dict:
     finder = finder_cls(base_path=base_path)
-
     for file in finder.load_files():
         parser = CSVFileParser(file, schema)
         try:
             for row in parser.get_rows():
+                if doc_cls is not None:
+                    row["doc"] = doc_cls().parse(row['doc'])
                 yield row
         except Exception as ex:
             logger.warning(f"Parsing error: {ex}")
+
+
+def csv_doc_batches(batches:int=10, doc_cls:Callable=FlatDoc, perfin_config:PerfinConfig=None):
+    current = batches
+    batch = []
+    if perfin_config is None:
+        perfin_config = config
+
+    for i, row in enumerate(csv_docs(
+        base_path=config.bucket_path,
+        schema=config.schema(),
+        finder_cls=S3CSVFileFinder,
+        doc_cls=FlatDoc
+    )):
+        batch.append(row['doc'])
+
+        if i == current - 1:
+            yield batch
+            current += batches
+            batch = []
+
+    if batch:
+        yield batch
