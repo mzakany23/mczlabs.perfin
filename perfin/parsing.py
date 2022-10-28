@@ -14,7 +14,6 @@ from .types import DateFormat, FilePath, RowFieldValue, SchemaType
 from .util import convert_date, convert_float, convert_int, create_file_name
 
 BUCKET_PATH = config.bucket_path
-SCHEMA = config.schema()
 DATE_FMT = config.date_fmt
 
 def get_csv_file_names(
