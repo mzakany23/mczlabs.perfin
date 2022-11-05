@@ -14,6 +14,7 @@ from .types import File, FileColumns
 
 S3 = None
 
+
 @dataclass
 class LocalCSVFileFinder:
     base_path: str = "~/Desktop"
@@ -44,51 +45,42 @@ class S3CSVFileFinder:
 
     def get_s3_conn(self):
         global S3
-        return S3 if S3 else boto3.client('s3')
+        return S3 if S3 else boto3.client("s3")
 
     def load_files(self) -> File:
         s3 = self.get_s3_conn()
-        res = s3.list_objects_v2(
-            Bucket=self.base_path
-        )
-        for content in res['Contents']:
-            file_path = content['Key']
+        res = s3.list_objects_v2(Bucket=self.base_path)
+        for content in res["Contents"]:
+            file_path = content["Key"]
             if not file_path.lower().endswith(".csv"):
                 continue
 
             with tempfile.NamedTemporaryFile() as file:
-                res = s3.get_object(
-                    Bucket=self.base_path,
-                    Key=file_path
-                )
-                body = res['Body'].read()
+                res = s3.get_object(Bucket=self.base_path, Key=file_path)
+                body = res["Body"].read()
                 file.write(body)
                 file.seek(0)
                 file.stem = Path(file_path).stem
                 yield file
 
     def move(self, file: Path):
-        self.get_s3_conn().put_object(
-            Bucket=self.base_path,
-            Body=file,
-            Key=file.name
-        )
+        self.get_s3_conn().put_object(Bucket=self.base_path, Body=file, Key=file.name)
 
 
-def ensure_dir(path:str) -> Path:
+def ensure_dir(path: str) -> Path:
     dir = Path(path)
     dir.mkdir(exist_ok=True, parents=True)
     return dir
 
 
 def error_to_files_dir(df: pd.DataFrame, file_meta: Dict):
-    col = file_meta['file_columns']
+    col = file_meta["file_columns"]
     dead_letter = "./files/errors/deadletter"
 
     schema_dir = ensure_dir("./files/errors/schema")
     deadletter_dir = ensure_dir(dead_letter)
 
-    expected = [item['column_name'] for item in col[0]]
+    expected = [item["column_name"] for item in col[0]]
     if isinstance(df, pd.core.indexes.base.Index):
         df = df.to_frame()
     filename = datetime.utcnow().strftime("%Y%m%dT%H%M%S%f")
@@ -100,21 +92,18 @@ def error_to_files_dir(df: pd.DataFrame, file_meta: Dict):
     with path.open("w") as file:
         json.dump(
             {
-                "got" : got,
-                "expected" : expected,
-                "body" : df.head().to_dict(),
-                "meta" : file_meta,
+                "got": got,
+                "expected": expected,
+                "body": df.head().to_dict(),
+                "meta": file_meta,
             },
             file,
-            indent=4
+            indent=4,
         )
 
 
-
 def get_file_columns(
-    df: pd.DataFrame,
-    config_meta: Dict,
-    error_handler: Callable = error_to_files_dir
+    df: pd.DataFrame, config_meta: Dict, error_handler: Callable = error_to_files_dir
 ) -> FileColumns:
     file_column_groups = config_meta["file_columns"]
 
@@ -149,7 +138,7 @@ def get_file_columns(
 
             return file_columns, get_sort_key(file_columns)
 
-    except AssertionError as e:
+    except AssertionError:
         error_handler(df, config_meta)
         raise
 

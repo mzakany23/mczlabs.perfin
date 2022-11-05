@@ -1,12 +1,7 @@
-import json
 import os
 import sys
-from datetime import date, datetime
-from decimal import Decimal
-from pathlib import Path
 
 from loguru import logger
-
 from perfin import (
     LocalCSVFileFinder,
     S3CSVFileFinder,
@@ -23,7 +18,8 @@ BUCKET_PATH = config.bucket_path
 FILE_DIR = config.file_dir
 SCHEMA = config.schema()
 
-ES  = get_es()
+ES = get_es()
+
 
 def stop():
     """
@@ -185,7 +181,7 @@ def setup_pg():
         make cli CMD=setup_pg
     """
     create_pg_tables()
-    seed_pg_tables('./.config/accounts.json')
+    seed_pg_tables("./.config/accounts.json")
 
 
 def ingest_pg():

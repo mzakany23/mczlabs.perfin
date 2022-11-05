@@ -16,6 +16,7 @@ from .util import convert_date, convert_float, convert_int, create_file_name
 BUCKET_PATH = config.bucket_path
 DATE_FMT = config.date_fmt
 
+
 def get_csv_file_names(
     finder: LocalCSVFileFinder, to_path: str, schema: dict
 ) -> Tuple[FilePath, str]:
@@ -101,10 +102,7 @@ class CSVFileParser:
 
 
 def csv_docs(
-    base_path,
-    schema,
-    finder_cls:Callable=LocalCSVFileFinder,
-    doc_cls:Doc=None,
+    base_path, schema, finder_cls: Callable = LocalCSVFileFinder, doc_cls: Doc = None,
 ) -> Dict:
     finder = finder_cls(base_path=base_path)
     for file in finder.load_files():
@@ -114,23 +112,27 @@ def csv_docs(
                 if doc_cls is not None:
                     row["doc"] = doc_cls().parse(row)
                 yield row
-        except Exception as ex:
+        except Exception:
             logger.warning("Error parsing file!")
 
 
-def csv_doc_batches(batches:int=10, doc_cls:Callable=FlatDoc, perfin_config:PerfinConfig=None):
+def csv_doc_batches(
+    batches: int = 10, doc_cls: Callable = FlatDoc, perfin_config: PerfinConfig = None
+):
     current = batches
     batch = []
     if perfin_config is None:
         perfin_config = config
 
-    for i, row in enumerate(csv_docs(
-        base_path=config.bucket_path,
-        schema=config.schema(),
-        finder_cls=S3CSVFileFinder,
-        doc_cls=FlatDoc
-    )):
-        batch.append(row['doc'])
+    for i, row in enumerate(
+        csv_docs(
+            base_path=config.bucket_path,
+            schema=config.schema(),
+            finder_cls=S3CSVFileFinder,
+            doc_cls=FlatDoc,
+        )
+    ):
+        batch.append(row["doc"])
 
         if i == current - 1:
             yield batch

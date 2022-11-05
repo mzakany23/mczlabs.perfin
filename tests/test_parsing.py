@@ -3,14 +3,13 @@
 
     make test TEST_FILE=test_parsing
 """
-
 from datetime import datetime
 from pathlib import Path
 
 from perfin import config, get_csv_file_names, make_key
-from perfin.parsing import DATE_FMT
 
-DATE_FMT = config.date_fmt
+DATE_FMT = config.date_format
+
 
 def test_parsing_key():
     """

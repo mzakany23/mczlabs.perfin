@@ -1,20 +1,11 @@
 import json
-from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import List
 
 from elasticsearch_dsl import Date, Document, Float, Keyword, Long, Text, connections
 from loguru import logger
-from sqlalchemy import (
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    create_engine,
-    select,
-)
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, create_engine
 from sqlalchemy.orm import Session, declarative_base, relationship
 
 from .doc import Doc
@@ -25,6 +16,7 @@ ES = None
 # using postgresql@14
 PG_URL = "postgresql://localhost:5432/perfin"
 PG = declarative_base()
+
 
 def dfmt(d):
     return None if d is None else datetime.strftime(d, config.date_fmt)
@@ -97,7 +89,7 @@ class ESPerFinTransaction(Document):
 class ESPerfinPG(PG):
     __tablename__ = "perfin"
     id = Column(Integer, primary_key=True)
-    hash=Column(String, nullable=True)
+    hash = Column(String, nullable=True)
     date = Column(DateTime, nullable=True)
     transaction_date = Column(DateTime, nullable=True)
     transaction_posted_date = Column(DateTime, nullable=True)
@@ -123,16 +115,12 @@ class DocKey(PG):
 
 def get_es():
     global ES
-    ES = connections.create_connection(**{
-        "hosts": ["localhost"], "timeout": 20
-    })
+    ES = connections.create_connection(**{"hosts": ["localhost"], "timeout": 20})
     return ESPerFinTransaction
 
 
 def get_pg():
-    return Session(
-        create_engine(PG_URL, future=True)
-    )
+    return Session(create_engine(PG_URL, future=True))
 
 
 def create_pg_tables():
@@ -142,45 +130,43 @@ def create_pg_tables():
 
 def seed_pg_tables(path):
     with get_pg() as session:
-        with Path(path).open('r') as file:
-            for key in json.load(file)['ACCOUNT_LOOKUP'].keys():
+        with Path(path).open("r") as file:
+            for key in json.load(file)["ACCOUNT_LOOKUP"].keys():
                 session.add(DocKey(key=key))
         session.commit()
 
 
-def create_pg_docs(docs:List[Doc]):
+def create_pg_docs(docs: List[Doc]):
     with get_pg() as session:
         batch = []
         key_cache = {
-            doc_key.key : {"id" : doc_key.id, "obj" : doc_key}
+            doc_key.key: {"id": doc_key.id, "obj": doc_key}
             for doc_key in session.query(DocKey).all()
         }
         for doc in docs:
             cache = key_cache[doc.key]
-            key = cache['obj']
-            key_id = cache['id']
+            key = cache["obj"]
+            key_id = cache["id"]
 
-            if session.query(ESPerfinPG).filter_by(
-                hash=doc.hash
-            ).first():
+            if session.query(ESPerfinPG).filter_by(hash=doc.hash).first():
                 continue
 
             item = ESPerfinPG(
-                hash = doc.hash,
-                description = doc.description,
-                original = doc.original,
-                transaction_date = doc.transaction_date,
-                memo = doc.memo,
-                transaction_type = doc.transaction_type,
-                card_num = doc.card_num,
-                debit = doc.debit,
-                amount = doc.amount,
-                credit = doc.credit,
-                check_num = doc.check_num,
-                transaction_posted_date = doc.transaction_posted_date,
-                category = doc.category,
-                doc_key = key,
-                doc_key_id = key_id,
+                hash=doc.hash,
+                description=doc.description,
+                original=doc.original,
+                transaction_date=doc.transaction_date,
+                memo=doc.memo,
+                transaction_type=doc.transaction_type,
+                card_num=doc.card_num,
+                debit=doc.debit,
+                amount=doc.amount,
+                credit=doc.credit,
+                check_num=doc.check_num,
+                transaction_posted_date=doc.transaction_posted_date,
+                category=doc.category,
+                doc_key=key,
+                doc_key_id=key_id,
             )
             batch.append(item)
         session.add_all(batch)
