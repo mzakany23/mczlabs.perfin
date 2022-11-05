@@ -5,7 +5,6 @@ from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 
-import boto3
 from loguru import logger
 
 from perfin import (
@@ -17,6 +16,7 @@ from perfin import (
     get_csv_file_names,
     get_es,
 )
+from perfin.models import create_pg_docs, create_pg_tables, seed_pg_tables
 
 BASE_PATH = config.base_path
 BUCKET_PATH = config.bucket_path
@@ -176,6 +176,30 @@ def show_flat_batches():
     for partition, batch in enumerate(csv_doc_batches(1)):
         for flat_row in batch:
             print(flat_row)
+
+
+def setup_pg():
+    """
+        How to run
+
+        make cli CMD=setup_pg
+    """
+    create_pg_tables()
+    seed_pg_tables('./.config/accounts.json')
+
+
+def ingest_pg():
+    """
+        How to run
+
+        make cli CMD=ingest_pg
+
+        Description
+
+        Ensure `setup_pg` ran first
+    """
+    for partition, batch in enumerate(csv_doc_batches(100)):
+        create_pg_docs(batch)
 
 
 def run():

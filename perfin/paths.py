@@ -1,10 +1,14 @@
+import json
+import tempfile
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
+from typing import Callable, Dict, List
 
+import boto3
+import pandas
+import pandas as pd
 from loguru import logger
-from pandas import DataFrame
-from s3fs import S3FileSystem
 
 from .types import File, FileColumns
 
@@ -40,23 +44,78 @@ class S3CSVFileFinder:
 
     def get_s3_conn(self):
         global S3
-        return S3 if S3 else S3FileSystem(anon=False)
+        return S3 if S3 else boto3.client('s3')
 
     def load_files(self) -> File:
-        get_s3_conn = self.get_s3_conn
+        s3 = self.get_s3_conn()
+        res = s3.list_objects_v2(
+            Bucket=self.base_path
+        )
+        for content in res['Contents']:
+            file_path = content['Key']
+            if not file_path.lower().endswith(".csv"):
+                continue
 
-        for file_path in get_s3_conn().ls(self.base_path):
-            path = Path(file_path)
-            with get_s3_conn().open(file_path, mode="r") as file:
-                file.stem = path.stem
+            with tempfile.NamedTemporaryFile() as file:
+                res = s3.get_object(
+                    Bucket=self.base_path,
+                    Key=file_path
+                )
+                body = res['Body'].read()
+                file.write(body)
+                file.seek(0)
+                file.stem = Path(file_path).stem
                 yield file
 
     def move(self, file: Path):
-        filename = f"{self.base_path}/{file.name}"
-        self.get_s3_conn().put(str(file), filename)
+        self.get_s3_conn().put_object(
+            Bucket=self.base_path,
+            Body=file,
+            Key=file.name
+        )
 
 
-def get_file_columns(df: DataFrame, config_meta: Dict) -> FileColumns:
+def ensure_dir(path:str) -> Path:
+    dir = Path(path)
+    dir.mkdir(exist_ok=True, parents=True)
+    return dir
+
+
+def error_to_files_dir(df: pd.DataFrame, file_meta: Dict):
+    col = file_meta['file_columns']
+    dead_letter = "./files/errors/deadletter"
+
+    schema_dir = ensure_dir("./files/errors/schema")
+    deadletter_dir = ensure_dir(dead_letter)
+
+    expected = [item['column_name'] for item in col[0]]
+    if isinstance(df, pd.core.indexes.base.Index):
+        df = df.to_frame()
+    filename = datetime.utcnow().strftime("%Y%m%dT%H%M%S%f")
+    path = Path(f"{schema_dir}/{filename}.json")
+    got = [col for col in df.columns]
+    logger.warning(f"Error parsing! expected:{expected}, got:{got}")
+    df.to_csv(f"{deadletter_dir}/{filename}.csv")
+
+    with path.open("w") as file:
+        json.dump(
+            {
+                "got" : got,
+                "expected" : expected,
+                "body" : df.head().to_dict(),
+                "meta" : file_meta,
+            },
+            file,
+            indent=4
+        )
+
+
+
+def get_file_columns(
+    df: pd.DataFrame,
+    config_meta: Dict,
+    error_handler: Callable = error_to_files_dir
+) -> FileColumns:
     file_column_groups = config_meta["file_columns"]
 
     if isinstance(file_column_groups[0], dict):
@@ -64,40 +123,35 @@ def get_file_columns(df: DataFrame, config_meta: Dict) -> FileColumns:
 
     df_cols = None
 
-    for file_columns in file_column_groups:
-        try:
+    try:
+        for file_columns in file_column_groups:
             df_cols = df.columns
 
-            assert len(df_cols) == len(file_columns)
+            # try and match a different column on fail
+            if not len(df_cols) == len(file_columns):
+                continue
 
             for i, col in enumerate(file_columns):
+                # in this instance, column_name in the json format
+                # object is a list, so checking multiple values
                 if isinstance(col["column_name"], list):
                     inner_col = col["column_name"]
-                    inner_col_len = len(inner_col) - 1
-                    for _, icol in enumerate(inner_col):
+                    for icol in inner_col:
                         if df_cols[i].lower() == icol.lower():
                             col["column_name"] = icol
                             break
-                        if i == inner_col_len:
-                            raise AssertionError(
-                                f"{df_cols[i].lower()} == {icol.lower()}"
-                            )
+                    else:
+                        raise AssertionError()
+                # in this instance is only a string
                 else:
-                    assert df_cols[i].lower() == col["column_name"].lower()
-        except AssertionError as e:
-            logger.warning(e)
-            continue
-        return file_columns, get_sort_key(file_columns)
+                    if not df_cols[i].lower() == col["column_name"].lower():
+                        raise AssertionError()
 
-    inspect_cols = ""
+            return file_columns, get_sort_key(file_columns)
 
-    for col in file_column_groups:
-        inner_col = []
-        for inner in col:
-            inner_col.append(inner["column_name"])
-        inspect_cols += f"\ncolumn: {inner_col}\n"
-
-    raise Exception(f"Could not match {file_column_groups} with {df_cols}")
+    except AssertionError as e:
+        error_handler(df, config_meta)
+        raise
 
 
 def find_config(search_name: str, schema: Dict) -> Dict:

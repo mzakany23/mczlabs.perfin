@@ -99,11 +99,12 @@ class CSVFileParser:
                 "doc_type": file_meta["record_type"],
             }
 
+
 def csv_docs(
     base_path,
     schema,
     finder_cls:Callable=LocalCSVFileFinder,
-    doc_cls:Doc=None
+    doc_cls:Doc=None,
 ) -> Dict:
     finder = finder_cls(base_path=base_path)
     for file in finder.load_files():
@@ -111,10 +112,10 @@ def csv_docs(
         try:
             for row in parser.get_rows():
                 if doc_cls is not None:
-                    row["doc"] = doc_cls().parse(row['doc'])
+                    row["doc"] = doc_cls().parse(row)
                 yield row
         except Exception as ex:
-            logger.warning(f"Parsing error: {ex}")
+            logger.warning("Error parsing file!")
 
 
 def csv_doc_batches(batches:int=10, doc_cls:Callable=FlatDoc, perfin_config:PerfinConfig=None):
