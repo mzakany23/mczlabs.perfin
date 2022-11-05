@@ -3,16 +3,9 @@
 
 [![CircleCI](https://circleci.com/gh/mzakany23/mczlabs.perfin.svg?style=svg&circle-token=7cf7c24bd0574883c1c2a0abf849736a1126395f)](https://circleci.com/gh/mzakany23/mczlabs.perfin)[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)[![Coverage Status](https://coveralls.io/repos/github/mzakany23/mczlabs.perfin/badge.svg?branch=master)](https://coveralls.io/github/mzakany23/mczlabs.perfin?branch=master)
 
-Personal Finance Transaction Management.
+Ingest CSV's using a schema file.
 
-This repo aims to aid in the munging, ingestion, and viewing of personal finance transactions gathered through bank csv report exports.
-
-It originally used plaid for data pipe but I've found working with csv's more reliable.
-
-**Github Project Board**
-https://github.com/mzakany23/mczlabs.perfin/projects/2
-
-## Quick Start
+## ES Quick Start
 
 Assuming osx >= 10.13.4 and docker is installed.
 
@@ -37,6 +30,14 @@ make cli CMD=upload
 
 # go to kibana and make some charts
 open http://localhost:5601
+```
+# PG Quick Start
+
+Make sure PG running:
+
+```bash
+make cli CMD=setup_pg
+make cli CMD=ingest_pg
 ```
 
 ## Deploy to aws
