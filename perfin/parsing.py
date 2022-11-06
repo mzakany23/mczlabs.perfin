@@ -118,6 +118,7 @@ class CSVFileParser:
                 logger.warning(f"error parsing file {self.file.path}, {e}")
                 handle_error(df, file_meta)
 
+
 def csv_docs(
     base_path: str,
     schema: Dict,

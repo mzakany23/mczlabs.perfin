@@ -23,8 +23,7 @@ def handle_error(df: pd.DataFrame, file_meta: Dict):
     got = [col for col in df.columns]
     remote_path = file_meta["file_path"]
     logger.warning(
-        f"Error parsing! expected:{expected}, "
-        f"got:{got}, file_path: {remote_path}"
+        f"Error parsing! expected:{expected}, " f"got:{got}, file_path: {remote_path}"
     )
     df.to_csv(f"{deadletter_dir}/{filename}.csv")
 
@@ -37,5 +36,5 @@ def handle_error(df: pd.DataFrame, file_meta: Dict):
                 "meta": file_meta,
             },
             file,
-            indent=4
+            indent=4,
         )
