@@ -93,24 +93,17 @@ class ESPerfinPG(PG):
     date = Column(DateTime, nullable=True)
     transaction_date = Column(DateTime, nullable=True)
     transaction_posted_date = Column(DateTime, nullable=True)
+    transaction_type = Column(String, nullable=True)
     description = Column(String, nullable=True)
     original = Column(String, nullable=True)
     memo = Column(String, nullable=True)
-    transaction_type = Column(String, nullable=True)
     card_num = Column(String, nullable=True)
     debit = Column(String, nullable=True)
     amount = Column(String, nullable=True)
     credit = Column(String, nullable=True)
     check_num = Column(String, nullable=True)
     category = Column(String, nullable=True)
-    doc_key = relationship("DocKey")
-    doc_key_id = Column(Integer, ForeignKey("doc_key.id"))
-
-
-class DocKey(PG):
-    __tablename__ = "doc_key"
-    id = Column(Integer, primary_key=True)
-    key = Column(String, unique=True)
+    doc_key = Column(String, nullable=True)
 
 
 def get_es():
@@ -128,29 +121,12 @@ def create_pg_tables():
     PG.metadata.create_all(engine)
 
 
-def seed_pg_tables(path):
-    with get_pg() as session:
-        with Path(path).open("r") as file:
-            for key in json.load(file)["ACCOUNT_LOOKUP"].keys():
-                session.add(DocKey(key=key))
-        session.commit()
-
-
 def create_pg_docs(docs: List[Doc]):
     with get_pg() as session:
         batch = []
-        key_cache = {
-            doc_key.key: {"id": doc_key.id, "obj": doc_key}
-            for doc_key in session.query(DocKey).all()
-        }
         for doc in docs:
-            cache = key_cache[doc.key]
-            key = cache["obj"]
-            key_id = cache["id"]
-
             if session.query(ESPerfinPG).filter_by(hash=doc.hash).first():
                 continue
-
             item = ESPerfinPG(
                 hash=doc.hash,
                 description=doc.description,
@@ -164,9 +140,9 @@ def create_pg_docs(docs: List[Doc]):
                 credit=doc.credit,
                 check_num=doc.check_num,
                 transaction_posted_date=doc.transaction_posted_date,
+                date=doc.date,
                 category=doc.category,
-                doc_key=key,
-                doc_key_id=key_id,
+                doc_key=doc.key
             )
             batch.append(item)
         session.add_all(batch)

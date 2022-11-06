@@ -2,6 +2,7 @@ import os
 import sys
 
 from loguru import logger
+
 from perfin import (
     LocalCSVFileFinder,
     S3CSVFileFinder,
@@ -11,7 +12,7 @@ from perfin import (
     get_csv_file_names,
     get_es,
 )
-from perfin.models import create_pg_docs, create_pg_tables, seed_pg_tables
+from perfin.models import create_pg_docs, create_pg_tables
 
 BASE_PATH = config.base_path
 BUCKET_PATH = config.bucket_path
@@ -181,7 +182,6 @@ def setup_pg():
         make cli CMD=setup_pg
     """
     create_pg_tables()
-    seed_pg_tables("./.config/accounts.json")
 
 
 def ingest_pg():
@@ -198,7 +198,7 @@ def ingest_pg():
     for batch in csv_doc_batches(100):
         create_pg_docs(batch)
         ingested += len(batch)
-        logger.info(f"ingested: {ingested}")
+        logger.info(f"batch: {ingested}")
 
 
 def run():
