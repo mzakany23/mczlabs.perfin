@@ -92,6 +92,7 @@ class CSVFileParser:
 
             if file_column and sort_key:
                 for _, row in df.iterrows():
+                    breakpoint()
                     doc = {}
                     for i, stype in enumerate(file_column):
                         try:
