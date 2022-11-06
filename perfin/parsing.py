@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from io import StringIO
 from typing import Any, Callable, Dict, Tuple
 
 import pandas as pd
@@ -81,7 +82,13 @@ class CSVFileParser:
     def get_rows(self) -> Dict:
         df, file_meta = None, None
         try:
-            df = pd.read_csv(self.file.file, keep_default_na=False)
+            try:
+                df = pd.read_csv(self.file.file, keep_default_na=False)
+            except Exception:
+                self.file.file.seek(0)
+                fr = self.file.file.read().decode('utf-8').replace(",", "")
+                data = StringIO(fr.replace(",", " "))
+                df = pd.read_csv(data, keep_default_na=False)
             file_name = self.file.path
             cols = [col for col in df.columns]
             file_meta = find_config(file_name, self.parse_schema)
