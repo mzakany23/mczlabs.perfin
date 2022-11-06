@@ -194,8 +194,11 @@ def ingest_pg():
 
         Ensure `setup_pg` ran first
     """
-    for partition, batch in enumerate(csv_doc_batches(100)):
+    ingested = 0
+    for batch in csv_doc_batches(100):
         create_pg_docs(batch)
+        ingested += len(batch)
+        logger.info(f"ingested: {ingested}")
 
 
 def run():

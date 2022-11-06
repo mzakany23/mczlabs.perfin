@@ -8,7 +8,7 @@ from pathlib import Path
 
 from perfin import config, get_csv_file_names, make_key
 
-DATE_FMT = config.date_format
+DATE_FMT = config.date_fmt
 
 
 def test_parsing_key():
@@ -34,9 +34,9 @@ def test_basic_schema_capone(csv_docs):
     """
 
     for row in csv_docs("capone_test_basic"):
-        doc = row["doc"]
+        doc = row.doc
         assert doc
-        assert row["doc_key"] == "capital_one"
+        assert row.doc_key == "capital_one"
         assert isinstance(doc["transaction_posted_date"], datetime)
         assert doc["amount"] < 0
 
@@ -49,9 +49,9 @@ def test_basic_schema_53(csv_docs):
     """
 
     for row in csv_docs("fifththird_test_basic"):
-        doc = row["doc"]
+        doc = row.doc
         assert doc
-        assert row["doc_key"] == "fifth_third"
+        assert row.doc_key == "fifth_third"
         assert isinstance(doc["transaction_posted_date"], datetime)
         assert doc["amount"] < 0
 
@@ -64,9 +64,9 @@ def test_basic_chase(csv_docs):
     """
 
     for row in csv_docs("chase_test_basic"):
-        doc = row["doc"]
+        doc = row.doc
         assert doc
-        assert row["doc_key"] == "chase"
+        assert row.doc_key == "chase"
         assert isinstance(doc["transaction_posted_date"], datetime)
         assert doc["amount"] < 0
 
@@ -79,8 +79,8 @@ def test_get_transactions(csv_docs):
     """
 
     for row in csv_docs("chase____2020.01.01"):
-        doc = row["doc"]
-        doc_key = row["doc_key"]
+        doc = row.doc
+        doc_key = row.doc_key
         try:
             assert isinstance(doc["amount"], float)
             assert isinstance(doc["description"], str)
