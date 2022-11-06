@@ -79,17 +79,18 @@ class CSVFileParser:
     parse_schema: Dict
 
     def get_rows(self) -> Dict:
-        df = pd.read_csv(self.file.file, keep_default_na=False)
-        file_name = self.file.path
-        cols = [col for col in df.columns]
-        file_meta = find_config(file_name, self.parse_schema)
-        file_meta["file_path"] = file_name
-        file_column, sort_key = get_file_columns(df, file_meta)
+        df, file_meta = None, None
+        try:
+            df = pd.read_csv(self.file.file, keep_default_na=False)
+            file_name = self.file.path
+            cols = [col for col in df.columns]
+            file_meta = find_config(file_name, self.parse_schema)
+            file_meta["file_path"] = file_name
+            file_column, sort_key = get_file_columns(df, file_meta)
 
-        logger.info(f"successfully parsed {file_name}: {cols}")
+            logger.info(f"successfully parsed {file_name}: {cols}")
 
-        if file_column and sort_key:
-            try:
+            if file_column and sort_key:
                 for _, row in df.iterrows():
                     doc = {}
                     for i, stype in enumerate(file_column):
@@ -114,9 +115,9 @@ class CSVFileParser:
                     )
                 else:
                     yield None
-            except Exception as e:
-                logger.warning(f"error parsing file {self.file.path}, {e}")
-                handle_error(df, file_meta)
+        except Exception as e:
+            logger.warning(f"error parsing file {self.file.path}, {e}")
+            handle_error(df, file_meta, self.file)
 
 
 def csv_docs(
@@ -155,7 +156,7 @@ def csv_doc_batches(
             doc_cls=FlatDoc,
         )
     ):
-        batch.append(row["doc"])
+        batch.append(row.doc)
 
         if i == current - 1:
             yield batch

@@ -30,11 +30,11 @@ class FlatDoc(Doc):
     category: str = None
 
     def parse(self, row: Dict):
-        doc = row["doc"]
+        doc = row.doc
         hashed = hashlib.new("sha256")
         hashed.update(str(doc).encode("utf8"))
         self.hash = hashed.hexdigest()
-        self.key = row["doc_key"]
+        self.key = row.doc_key
         self.description = doc.get("description")
         self.original = doc.get("original")
         self.memo = doc.get("memo")

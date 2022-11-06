@@ -53,7 +53,8 @@ class S3CSVFileFinder:
     def load_files(self) -> CSVFile:
         s3 = get_s3_conn()
         res = s3.list_objects_v2(Bucket=self.base_path)
-        for content in res["Contents"]:
+        contents = res["Contents"]
+        for content in contents:
             file_path = content["Key"]
             if not file_path.lower().endswith(".csv"):
                 continue
