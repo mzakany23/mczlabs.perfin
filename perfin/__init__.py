@@ -20,6 +20,5 @@ __all__ = [
     "LocalCSVFileFinder",
     "S3CSVFileFinder",
     "config",
-    "get_es"
-    "make_key"
+    "get_es" "make_key",
 ]

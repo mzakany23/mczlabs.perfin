@@ -14,6 +14,7 @@ SchemaType = Union[float, str, int, datetime.datetime]
 RowValue = List[Dict]
 ParsedRows = List[Callable]
 
+
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Decimal):

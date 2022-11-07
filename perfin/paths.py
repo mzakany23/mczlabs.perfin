@@ -1,14 +1,26 @@
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List
 
-from loguru import logger
-from pandas import DataFrame
-from s3fs import S3FileSystem
+import boto3
+import pandas as pd
 
-from .types import File, FileColumns
+from .types import FileColumns
 
 S3 = None
+
+
+def get_s3_conn():
+    global S3
+    return S3 if S3 else boto3.client("s3")
+
+
+@dataclass
+class CSVFile:
+    file: Any
+    path: Any = None
+
 
 @dataclass
 class LocalCSVFileFinder:
@@ -24,9 +36,9 @@ class LocalCSVFileFinder:
             for pattern in self.patterns:
                 yield from path.glob(pattern)
 
-    def load_files(self) -> Path:
+    def load_files(self) -> CSVFile:
         for path in self.get_paths():
-            yield path
+            yield CSVFile(path, str(path))
 
     def move(self, file, new_path):
         new_path = new_path.joinpath(file.name)
@@ -38,25 +50,33 @@ class S3CSVFileFinder:
     base_path: str
     patterns: List = field(default_factory=lambda: ["*.csv", "*.CSV"])
 
-    def get_s3_conn(self):
-        global S3
-        return S3 if S3 else S3FileSystem(anon=False)
+    def load_files(self) -> CSVFile:
+        s3 = get_s3_conn()
+        res = s3.list_objects_v2(Bucket=self.base_path)
+        contents = res["Contents"]
+        for content in contents:
+            file_path = content["Key"]
+            if not file_path.lower().endswith(".csv"):
+                continue
 
-    def load_files(self) -> File:
-        get_s3_conn = self.get_s3_conn
-
-        for file_path in get_s3_conn().ls(self.base_path):
-            path = Path(file_path)
-            with get_s3_conn().open(file_path, mode="r") as file:
-                file.stem = path.stem
-                yield file
+            with tempfile.NamedTemporaryFile() as file:
+                res = get_s3_conn().get_object(Bucket=self.base_path, Key=file_path)
+                body = res["Body"].read()
+                file.write(body)
+                file.seek(0)
+                yield CSVFile(file, file_path)
 
     def move(self, file: Path):
-        filename = f"{self.base_path}/{file.name}"
-        self.get_s3_conn().put(str(file), filename)
+        self.get_s3_conn().put_object(Bucket=self.base_path, Body=file, Key=file.name)
 
 
-def get_file_columns(df: DataFrame, config_meta: Dict) -> FileColumns:
+def ensure_dir(path: str) -> Path:
+    dir = Path(path)
+    dir.mkdir(exist_ok=True, parents=True)
+    return dir
+
+
+def get_file_columns(df: pd.DataFrame, config_meta: Dict) -> FileColumns:
     file_column_groups = config_meta["file_columns"]
 
     if isinstance(file_column_groups[0], dict):
@@ -65,39 +85,31 @@ def get_file_columns(df: DataFrame, config_meta: Dict) -> FileColumns:
     df_cols = None
 
     for file_columns in file_column_groups:
-        try:
-            df_cols = df.columns
+        df_cols = df.columns
 
-            assert len(df_cols) == len(file_columns)
-
-            for i, col in enumerate(file_columns):
-                if isinstance(col["column_name"], list):
-                    inner_col = col["column_name"]
-                    inner_col_len = len(inner_col) - 1
-                    for _, icol in enumerate(inner_col):
-                        if df_cols[i].lower() == icol.lower():
-                            col["column_name"] = icol
-                            break
-                        if i == inner_col_len:
-                            raise AssertionError(
-                                f"{df_cols[i].lower()} == {icol.lower()}"
-                            )
-                else:
-                    assert df_cols[i].lower() == col["column_name"].lower()
-        except AssertionError as e:
-            logger.warning(e)
+        # try and match a different column on fail
+        if not len(df_cols) == len(file_columns):
             continue
+
+        for i, col in enumerate(file_columns):
+            # in this instance, column_name in the json format
+            # object is a list, so checking multiple values
+            if isinstance(col["column_name"], list):
+                inner_col = col["column_name"]
+                for icol in inner_col:
+                    if df_cols[i].lower() == icol.lower():
+                        col["column_name"] = icol
+                        break
+                else:
+                    raise AssertionError()
+            # in this instance is only a string
+            else:
+                if not df_cols[i].lower() == col["column_name"].lower():
+                    raise AssertionError()
+
         return file_columns, get_sort_key(file_columns)
-
-    inspect_cols = ""
-
-    for col in file_column_groups:
-        inner_col = []
-        for inner in col:
-            inner_col.append(inner["column_name"])
-        inspect_cols += f"\ncolumn: {inner_col}\n"
-
-    raise Exception(f"Could not match {file_column_groups} with {df_cols}")
+    else:
+        return None, None
 
 
 def find_config(search_name: str, schema: Dict) -> Dict:

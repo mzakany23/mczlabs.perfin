@@ -1,12 +1,22 @@
+import json
 from datetime import datetime
+from pathlib import Path
+from typing import List
 
 from elasticsearch_dsl import Date, Document, Float, Keyword, Long, Text, connections
 from loguru import logger
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, create_engine
+from sqlalchemy.orm import Session, declarative_base, relationship
 
+from .doc import Doc
 from .settings import config
 from .util import generate_specific_key, make_key
 
 ES = None
+# using postgresql@14
+PG_URL = "postgresql://localhost:5432/perfin"
+PG = declarative_base()
+
 
 def dfmt(d):
     return None if d is None else datetime.strftime(d, config.date_fmt)
@@ -75,9 +85,65 @@ class ESPerFinTransaction(Document):
         logger.info(f"inserting {self.__dict__}")
         return super().save(**kwargs)
 
+
+class ESPerfinPG(PG):
+    __tablename__ = "perfin"
+    id = Column(Integer, primary_key=True)
+    hash = Column(String, nullable=True)
+    date = Column(DateTime, nullable=True)
+    transaction_date = Column(DateTime, nullable=True)
+    transaction_posted_date = Column(DateTime, nullable=True)
+    transaction_type = Column(String, nullable=True)
+    description = Column(String, nullable=True)
+    original = Column(String, nullable=True)
+    memo = Column(String, nullable=True)
+    card_num = Column(String, nullable=True)
+    debit = Column(String, nullable=True)
+    amount = Column(String, nullable=True)
+    credit = Column(String, nullable=True)
+    check_num = Column(String, nullable=True)
+    category = Column(String, nullable=True)
+    doc_key = Column(String, nullable=True)
+
+
 def get_es():
     global ES
-    ES = connections.create_connection(**{
-        "hosts": ["localhost"], "timeout": 20
-    })
+    ES = connections.create_connection(**{"hosts": ["localhost"], "timeout": 20})
     return ESPerFinTransaction
+
+
+def get_pg():
+    return Session(create_engine(PG_URL, future=True))
+
+
+def create_pg_tables():
+    engine = create_engine(PG_URL, future=True)
+    PG.metadata.create_all(engine)
+
+
+def create_pg_docs(docs: List[Doc]):
+    with get_pg() as session:
+        batch = []
+        for doc in docs:
+            if session.query(ESPerfinPG).filter_by(hash=doc.hash).first():
+                continue
+            item = ESPerfinPG(
+                hash=doc.hash,
+                description=doc.description,
+                original=doc.original,
+                transaction_date=doc.transaction_date,
+                memo=doc.memo,
+                transaction_type=doc.transaction_type,
+                card_num=doc.card_num,
+                debit=doc.debit,
+                amount=doc.amount,
+                credit=doc.credit,
+                check_num=doc.check_num,
+                transaction_posted_date=doc.transaction_posted_date,
+                date=doc.date,
+                category=doc.category,
+                doc_key=doc.key
+            )
+            batch.append(item)
+        session.add_all(batch)
+        session.commit()

@@ -90,7 +90,7 @@ SCHEMA = {
                     "column_name": "Date",
                     "sort_key": True,
                     "key": "transaction_posted_date",
-                    "date_format": "%Y-%m-%d",
+                    "date_format": "%m/%d/%Y",
                     "schema_type": "date",
                 },
                 {
@@ -154,7 +154,7 @@ SCHEMA = {
                     "column_name": "Date",
                     "sort_key": True,
                     "key": "transaction_posted_date",
-                    "date_format": "%Y-%m-%d",
+                    "date_format": "%m/%d/%Y",
                     "schema_type": "date",
                 },
                 {

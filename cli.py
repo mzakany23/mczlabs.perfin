@@ -1,11 +1,6 @@
-import json
 import os
 import sys
-from datetime import date, datetime
-from decimal import Decimal
-from pathlib import Path
 
-import boto3
 from loguru import logger
 
 from perfin import (
@@ -17,13 +12,15 @@ from perfin import (
     get_csv_file_names,
     get_es,
 )
+from perfin.models import create_pg_docs, create_pg_tables
 
 BASE_PATH = config.base_path
 BUCKET_PATH = config.bucket_path
 FILE_DIR = config.file_dir
 SCHEMA = config.schema()
 
-ES  = get_es()
+ES = get_es()
+
 
 def stop():
     """
@@ -176,6 +173,32 @@ def show_flat_batches():
     for partition, batch in enumerate(csv_doc_batches(1)):
         for flat_row in batch:
             print(flat_row)
+
+
+def setup_pg():
+    """
+        How to run
+
+        make cli CMD=setup_pg
+    """
+    create_pg_tables()
+
+
+def ingest_pg():
+    """
+        How to run
+
+        make cli CMD=ingest_pg
+
+        Description
+
+        Ensure `setup_pg` ran first
+    """
+    ingested = 0
+    for batch in csv_doc_batches(100):
+        create_pg_docs(batch)
+        ingested += len(batch)
+        logger.info(f"batch: {ingested}")
 
 
 def run():
