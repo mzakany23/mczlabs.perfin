@@ -86,7 +86,7 @@ class CSVFileParser:
                 df = pd.read_csv(self.file.file, keep_default_na=False)
             except Exception:
                 self.file.file.seek(0)
-                fr = self.file.file.read().decode('utf-8').replace(",", "")
+                fr = self.file.file.read().decode("utf-8").replace(",", "")
                 data = StringIO(fr.replace(",", " "))
                 df = pd.read_csv(data, keep_default_na=False)
             file_name = self.file.path

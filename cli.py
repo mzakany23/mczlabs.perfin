@@ -2,8 +2,15 @@ import os
 import sys
 
 from loguru import logger
-from perfin import (LocalCSVFileFinder, S3CSVFileFinder, config,
-                    csv_doc_batches, csv_docs, get_csv_file_names, get_es)
+from perfin import (
+    LocalCSVFileFinder,
+    S3CSVFileFinder,
+    config,
+    csv_doc_batches,
+    csv_docs,
+    get_csv_file_names,
+    get_es,
+)
 from perfin.models import create_pg_docs, create_pg_tables
 
 BASE_PATH = config.base_path

@@ -1,13 +1,11 @@
 from datetime import datetime
 from typing import List
 
-from elasticsearch_dsl import (Date, Document, Float, Keyword, Long, Text,
-                               connections)
+from elasticsearch_dsl import Date, Document, Float, Keyword, Long, Text, connections
 from loguru import logger
-from sqlalchemy import (BigInteger, Column, DateTime, Float, Integer, String,
-                        create_engine)
-from sqlalchemy.orm import (Session, declarative_base, relationship,
-                            sessionmaker)
+from sqlalchemy import Float  # noqa
+from sqlalchemy import BigInteger, Column, DateTime, Integer, String, create_engine
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from .doc import Doc
 from .settings import config
@@ -150,7 +148,7 @@ def create_pg_docs(docs: List[Doc]):
                 transaction_posted_date=doc.transaction_posted_date,
                 date=doc.date,
                 category=doc.category,
-                doc_key=doc.key
+                doc_key=doc.key,
             )
             batch.append(item)
         session.add_all(batch)

@@ -2,7 +2,6 @@
 .venv/bin/python query.py
 .venv/bin/ipython -i query.py
 """
-
 from perfin.models import ESPerfinPG, pg_session
 
 session = pg_session()

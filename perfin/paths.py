@@ -12,6 +12,7 @@ from .types import FileColumns
 S3 = None
 OVERRIDE = os.environ.get("PERFIN_DEBUG")
 
+
 def get_s3_conn():
     global S3
     return S3 if S3 else boto3.client("s3")
@@ -54,7 +55,7 @@ class S3CSVFileFinder:
     def load_files(self) -> CSVFile:
         s3 = get_s3_conn()
         if OVERRIDE:
-            contents = [{"Key" : OVERRIDE}]
+            contents = [{"Key": OVERRIDE}]
         else:
             res = s3.list_objects_v2(Bucket=self.base_path)
             contents = res["Contents"]
