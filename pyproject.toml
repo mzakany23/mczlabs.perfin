@@ -28,6 +28,7 @@ pytest-rerunfailures = "^10.2"
 pytest-mock = "^3.6.1"
 requests-mock = "^1.9.3"
 twine = "^3.7.0"
+pgcli = "^3.5.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
