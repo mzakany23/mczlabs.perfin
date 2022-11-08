@@ -82,3 +82,9 @@ make terraform_destroy
 make test
 make tox
 ```
+
+## Psql
+
+```bash
+.venv/bin/pgcli perfin
+```

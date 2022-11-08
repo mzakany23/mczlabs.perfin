@@ -2,16 +2,8 @@ import os
 import sys
 
 from loguru import logger
-
-from perfin import (
-    LocalCSVFileFinder,
-    S3CSVFileFinder,
-    config,
-    csv_doc_batches,
-    csv_docs,
-    get_csv_file_names,
-    get_es,
-)
+from perfin import (LocalCSVFileFinder, S3CSVFileFinder, config,
+                    csv_doc_batches, csv_docs, get_csv_file_names, get_es)
 from perfin.models import create_pg_docs, create_pg_tables
 
 BASE_PATH = config.base_path
@@ -195,7 +187,7 @@ def ingest_pg():
         Ensure `setup_pg` ran first
     """
     ingested = 0
-    for batch in csv_doc_batches(100):
+    for batch in csv_doc_batches(200):
         create_pg_docs(batch)
         ingested += len(batch)
         logger.info(f"batch: {ingested}")
