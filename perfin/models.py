@@ -1,12 +1,11 @@
-import json
 from datetime import datetime
-from pathlib import Path
 from typing import List
 
 from elasticsearch_dsl import Date, Document, Float, Keyword, Long, Text, connections
 from loguru import logger
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, create_engine
-from sqlalchemy.orm import Session, declarative_base, relationship
+from sqlalchemy import Float  # noqa
+from sqlalchemy import BigInteger, Column, DateTime, Integer, String, create_engine
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from .doc import Doc
 from .settings import config
@@ -97,11 +96,11 @@ class ESPerfinPG(PG):
     description = Column(String, nullable=True)
     original = Column(String, nullable=True)
     memo = Column(String, nullable=True)
-    card_num = Column(String, nullable=True)
-    debit = Column(String, nullable=True)
-    amount = Column(String, nullable=True)
-    credit = Column(String, nullable=True)
-    check_num = Column(String, nullable=True)
+    card_num = Column(BigInteger, nullable=True)
+    debit = Column(Float, nullable=True)
+    amount = Column(Float, nullable=True)
+    credit = Column(Float, nullable=True)
+    check_num = Column(BigInteger, nullable=True)
     category = Column(String, nullable=True)
     doc_key = Column(String, nullable=True)
 
@@ -114,6 +113,13 @@ def get_es():
 
 def get_pg():
     return Session(create_engine(PG_URL, future=True))
+
+
+def pg_session():
+    engine = create_engine(PG_URL, future=True)
+    Session = sessionmaker(bind=engine)
+    Session.configure(bind=engine)
+    return Session()
 
 
 def create_pg_tables():
@@ -134,15 +140,15 @@ def create_pg_docs(docs: List[Doc]):
                 transaction_date=doc.transaction_date,
                 memo=doc.memo,
                 transaction_type=doc.transaction_type,
-                card_num=doc.card_num,
-                debit=doc.debit,
-                amount=doc.amount,
-                credit=doc.credit,
-                check_num=doc.check_num,
+                card_num=doc.card_num or 0,
+                debit=float(doc.debit or 0),
+                amount=float(doc.amount or 0),
+                credit=float(doc.credit or 0),
+                check_num=int(doc.check_num or 0),
                 transaction_posted_date=doc.transaction_posted_date,
                 date=doc.date,
                 category=doc.category,
-                doc_key=doc.key
+                doc_key=doc.key,
             )
             batch.append(item)
         session.add_all(batch)

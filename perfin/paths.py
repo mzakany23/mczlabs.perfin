@@ -1,3 +1,4 @@
+import os
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -9,6 +10,7 @@ import pandas as pd
 from .types import FileColumns
 
 S3 = None
+OVERRIDE = os.environ.get("PERFIN_DEBUG")
 
 
 def get_s3_conn():
@@ -52,8 +54,12 @@ class S3CSVFileFinder:
 
     def load_files(self) -> CSVFile:
         s3 = get_s3_conn()
-        res = s3.list_objects_v2(Bucket=self.base_path)
-        contents = res["Contents"]
+        if OVERRIDE:
+            contents = [{"Key": OVERRIDE}]
+        else:
+            res = s3.list_objects_v2(Bucket=self.base_path)
+            contents = res["Contents"]
+
         for content in contents:
             file_path = content["Key"]
             if not file_path.lower().endswith(".csv"):
