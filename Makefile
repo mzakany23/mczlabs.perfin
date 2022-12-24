@@ -24,16 +24,13 @@ endif
 
 
 .PHONY: $(VENV)
-$(VENV): rebuild_venv build_develop install_linting
+$(VENV): develop install_linting
 
 
-.PHONY: rebuild_venv
-rebuild_venv: ensure_no_venv
+
+.PHONY: develop
+develop:
 	rm -rf $(VENV)
-
-
-.PHONY: build_develop
-build_develop:
 	poetry install
 
 
