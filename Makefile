@@ -23,19 +23,10 @@ ifdef VIRTUAL_ENV
 endif
 
 
-.PHONY: $(VENV)
-$(VENV): develop install_linting
-
-
-
 .PHONY: develop
 develop:
 	rm -rf $(VENV)
 	poetry install
-
-
-.PHONY: install_linting
-install_linting:
 	$(RUN) pre-commit install
 
 
