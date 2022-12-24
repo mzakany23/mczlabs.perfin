@@ -13,7 +13,6 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            export PATH=~/.local/share/pypoetry/venv/bin/:$PATH
             curl -sSL https://install.python-poetry.org | python3 -
             poetry
             poetry config virtualenvs.in-project true
