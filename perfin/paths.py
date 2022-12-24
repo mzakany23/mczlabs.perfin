@@ -72,8 +72,10 @@ class S3CSVFileFinder:
                 file.seek(0)
                 yield CSVFile(file, file_path)
 
-    def move(self, file: Path):
-        self.get_s3_conn().put_object(Bucket=self.base_path, Body=file, Key=file.name)
+    def move(self, obj: CSVFile):
+        get_s3_conn().upload_file(
+            obj.path, self.base_path, Key=obj.file.name
+        )
 
 
 def ensure_dir(path: str) -> Path:

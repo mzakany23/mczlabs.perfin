@@ -10,7 +10,8 @@ from pydantic.error_wrappers import ValidationError
 
 from .doc import Doc, FlatDoc
 from .error import handle_error
-from .paths import LocalCSVFileFinder, S3CSVFileFinder, find_config, get_file_columns
+from .paths import (LocalCSVFileFinder, S3CSVFileFinder, find_config,
+                    get_file_columns)
 from .settings import PerfinConfig, config
 from .types import DateFormat, FilePath, RowFieldValue, SchemaType
 from .util import convert_date, convert_float, convert_int, create_file_name
@@ -22,7 +23,8 @@ DATE_FMT = config.date_fmt
 def get_csv_file_names(
     finder: LocalCSVFileFinder, to_path: str, schema: Dict
 ) -> Tuple[FilePath, str]:
-    for file in finder.load_files():
+    for obj in finder.load_files():
+        file = obj.file
         df = pd.read_csv(file, keep_default_na=False)
         file_meta = find_config(file.stem, schema)
         _, sort_key = get_file_columns(df, file_meta)

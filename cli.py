@@ -2,15 +2,8 @@ import os
 import sys
 
 from loguru import logger
-from perfin import (
-    LocalCSVFileFinder,
-    S3CSVFileFinder,
-    config,
-    csv_doc_batches,
-    csv_docs,
-    get_csv_file_names,
-    get_es,
-)
+from perfin import (LocalCSVFileFinder, S3CSVFileFinder, config,
+                    csv_doc_batches, csv_docs, get_csv_file_names, get_es)
 from perfin.models import create_pg_docs, create_pg_tables
 
 BASE_PATH = config.base_path
@@ -89,7 +82,7 @@ def insert_transactions():
     for row in csv_docs(
         base_path=FILE_DIR, schema=SCHEMA, finder_cls=LocalCSVFileFinder
     ):
-        ES.create(**row)
+        ES.create(**row.__dict__)
 
 
 def move_files_to_root():
@@ -136,7 +129,7 @@ def delete_local_files():
 
     for path in finder.load_files():
         logger.info(f"deleting {path}")
-        path.unlink()
+        path.file.unlink()
         logger.info("done")
 
 
@@ -157,9 +150,9 @@ def upload():
 
         make cli CMD=upload
     """
-    move_files_to_root()
-    insert_transactions()
-    move_files_to_s3()
+    # move_files_to_root()
+    # insert_transactions()
+    # move_files_to_s3()
     delete_local_files()
 
 
