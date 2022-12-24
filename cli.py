@@ -1,16 +1,10 @@
+import json
 import os
 import sys
 
 from loguru import logger
-from perfin import (
-    LocalCSVFileFinder,
-    S3CSVFileFinder,
-    config,
-    csv_doc_batches,
-    csv_docs,
-    get_csv_file_names,
-    get_es,
-)
+from perfin import (LocalCSVFileFinder, S3CSVFileFinder, config,
+                    csv_doc_batches, csv_docs, get_csv_file_names, get_es)
 from perfin.models import create_pg_docs, create_pg_tables
 
 BASE_PATH = config.base_path
@@ -172,6 +166,24 @@ def show_flat_batches():
     for partition, batch in enumerate(csv_doc_batches(1)):
         for flat_row in batch:
             print(flat_row)
+
+
+def show_merged_headers():
+    """
+        How to run
+
+        make cli CMD=show_merged_headers
+    """
+    unique = set()
+    for partition, batch in enumerate(csv_doc_batches(1)):
+        for flat_row in batch:
+            # print(flat_row)
+            cols = set([
+                column['column_name']for column
+                in json.loads(flat_row.original)["file_column"]
+            ])
+            unique = unique.union(cols)
+    print(f"total headers: {unique}")
 
 
 def setup_pg():
