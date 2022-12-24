@@ -27,7 +27,7 @@ endif
 develop:
 	rm -rf $(VENV)
 	poetry install
-	$(RUN) pre-commit install
+	$(RUN) pre-commit
 
 
 .PHONY: pre-commit
