@@ -16,6 +16,8 @@ jobs:
             curl -sSL https://install.python-poetry.org | python3 -
             poetry
             poetry config virtualenvs.in-project true
+            pwd
+            ls
             poetry install
 
       - save_cache:
