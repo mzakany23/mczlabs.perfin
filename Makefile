@@ -26,7 +26,6 @@ endif
 .PHONY: develop
 develop:
 	rm -rf $(VENV)
-	$(VENV)/bin/pip install --upgrade pip
 	poetry install
 	$(RUN) pre-commit
 
